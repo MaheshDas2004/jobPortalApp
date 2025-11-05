@@ -32,7 +32,6 @@ dist/
 node_modules/.vite/
 
 # TailwindCSS output (if generating separate CSS in dist)
-*.css
 *.map
 
 # Environment files
