@@ -1,0 +1,72 @@
+# ===============================
+# OS files
+# ===============================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# ===============================
+# Node.js / NPM
+# ===============================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+.pnpm-debug.log*
+
+# Vite build output
+dist/
+node_modules/.vite/
+
+# TailwindCSS output (if generating separate CSS in dist)
+*.css
+*.map
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+
+# ===============================
+# IDEs / Editors
+# ===============================
+# VS Code
+.vscode/
+.history/
+
+# JetBrains
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# ===============================
+# Misc / Temp files
+# ===============================
+*.swp
+*.swo
+*.bak
+*.tmp
+*.old
+*.orig
