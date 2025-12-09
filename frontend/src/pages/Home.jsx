@@ -1,226 +1,308 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Search, Briefcase, MapPin, Code, TrendingUp, DollarSign, Users, LayoutGrid, Zap, ShieldCheck,
-  User, Aperture, MessageCircle, ArrowRight, Layers, TrendingDown, Menu, X, ChevronRight, Star
+  User, Aperture, ArrowRight, Layers, ChevronRight, 
+  ChevronLeft, Heart, Eye
 } from 'lucide-react';
 import Hero from '../components/Hero';
 
-const BrutalistJobPortal = () => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+const JobPortalHome = () => {
+  const [savedJobs, setSavedJobs] = useState([]);
+  const jobCarouselRef = useRef(null);
 
-  // Mock Data
+  const valueProps = [
+    { title: 'Easy Search', description: 'Simple and fast job discovery', icon: Search },
+    { title: 'Modern Design', description: 'Clean and intuitive interface', icon: Zap },
+    { title: 'Quick Apply', description: 'Apply to jobs with one click', icon: ArrowRight },
+    { title: 'Responsive', description: 'Works on all devices', icon: ShieldCheck },
+  ];
+
+  // Job categories and featured jobs (moved from Hero component)
   const jobCategories = [
-    { title: 'Software Development', jobs: 2500, icon: Code, color: 'bg-teal-400' },
-    { title: 'Marketing & Sales', jobs: 1200, icon: TrendingUp, color: 'bg-yellow-400' },
-    { title: 'Finance & Accounting', jobs: 850, icon: DollarSign, color: 'bg-pink-400' },
-    { title: 'Customer Support', jobs: 1500, icon: Users, color: 'bg-purple-400' },
-    { title: 'Data Science', jobs: 700, icon: Layers, color: 'bg-orange-400' },
-    { title: 'Design & Creative', jobs: 600, icon: Aperture, color: 'bg-blue-400' },
-    { title: 'Human Resources', jobs: 450, icon: User, color: 'bg-red-400' },
-    { title: 'Project Management', jobs: 900, icon: LayoutGrid, color: 'bg-green-400' },
+    { title: 'Software Development', jobs: 2500, icon: Code, img: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&h=300&fit=crop' },
+    { title: 'Marketing & Sales', jobs: 1200, icon: TrendingUp, img: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=400&h=300&fit=crop' },
+    { title: 'Finance & Accounting', jobs: 850, icon: DollarSign, img: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&h=300&fit=crop' },
+    { title: 'Customer Support', jobs: 1500, icon: Users, img: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&h=300&fit=crop' },
+    { title: 'Data Science', jobs: 700, icon: Layers, img: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop' },
+    { title: 'Design & Creative', jobs: 600, icon: Aperture, img: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&h=300&fit=crop' },
+    { title: 'Human Resources', jobs: 450, icon: User, img: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=400&h=300&fit=crop' },
+    { title: 'Project Management', jobs: 900, icon: LayoutGrid, img: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&h=300&fit=crop' },
   ];
 
   const featuredJobs = [
-    { title: 'Senior Backend Engineer', company: 'Innovatech', logo: 'I', salary: '$130k - $150k', location: 'Remote', type: 'Full-time', featured: true },
-    { title: 'Digital Marketing Manager', company: 'Global Brands Co.', logo: 'G', salary: '$80k - $100k', location: 'New York, NY', type: 'Hybrid', featured: true },
-    { title: 'Financial Analyst II', company: 'FinPulse Group', logo: 'F', salary: '$75k - $95k', location: 'Chicago, IL', type: 'Full-time', featured: false },
-    { title: 'Customer Success Rep', company: 'ServicePro', logo: 'S', salary: '$55k - $65k', location: 'Austin, TX', type: 'Remote', featured: false },
+    { 
+      id: 1, 
+      title: 'Senior Frontend Developer', 
+      company: 'TechCorp', 
+      logo: '🚀', 
+      salary: '₹12-15 LPA', 
+      location: 'Bangalore, IN', 
+      type: 'Full-time', 
+      applied: 45, 
+      views: 234, 
+      color: 'from-blue-500 to-purple-600',
+      featured: true 
+    },
+    { 
+      id: 2, 
+      title: 'Product Manager', 
+      company: 'StartupX', 
+      logo: '💡', 
+      salary: '₹18-22 LPA', 
+      location: 'Mumbai, IN', 
+      type: 'Full-time', 
+      applied: 67, 
+      views: 189, 
+      color: 'from-green-500 to-blue-500',
+      featured: true 
+    },
+    { 
+      id: 3, 
+      title: 'UX/UI Designer', 
+      company: 'DesignHub', 
+      logo: '🎨', 
+      salary: '₹8-12 LPA', 
+      location: 'Remote', 
+      type: 'Contract', 
+      applied: 23, 
+      views: 156, 
+      color: 'from-pink-500 to-orange-500',
+      featured: false 
+    },
+    { 
+      id: 4, 
+      title: 'Data Scientist', 
+      company: 'DataTech', 
+      logo: '📊', 
+      salary: '₹15-20 LPA', 
+      location: 'Delhi, IN', 
+      type: 'Full-time', 
+      applied: 89, 
+      views: 321, 
+      color: 'from-purple-500 to-pink-500',
+      featured: true 
+    },
+    { 
+      id: 5, 
+      title: 'DevOps Engineer', 
+      company: 'CloudSys', 
+      logo: '⚙️', 
+      salary: '₹14-18 LPA', 
+      location: 'Hyderabad, IN', 
+      type: 'Full-time', 
+      applied: 56, 
+      views: 278, 
+      color: 'from-indigo-500 to-blue-600',
+      featured: false 
+    }
   ];
 
-  const topCompanies = [
-    { name: 'TechCorp', tag: 'Actively Hiring', logo: 'T', openings: 45 },
-    { name: 'FutureDrive', tag: 'New Jobs', logo: 'F', openings: 28 },
-    { name: 'GlobalSoft', tag: '30+ Openings', logo: 'G', openings: 32 },
-    { name: 'HealthPlus', tag: 'Actively Hiring', logo: 'H', openings: 18 },
-    { name: 'Digital Edge', tag: 'New Jobs', logo: 'D', openings: 22 },
-    { name: 'Ecom Solutions', tag: '15+ Openings', logo: 'E', openings: 15 },
-  ];
+  const toggleSaveJob = (jobId) => {
+    setSavedJobs(prev =>
+      prev.includes(jobId) ? prev.filter(id => id !== jobId) : [...prev, jobId]
+    );
+  };
 
-  const valueProps = [
-    { title: '100% VERIFIED', description: 'Only legitimate registered businesses', icon: ShieldCheck, color: 'bg-teal-400' },
-    { title: 'AI-POWERED', description: 'Personalized job matching system', icon: Zap, color: 'bg-yellow-400' },
-    { title: 'DIRECT APPLY', description: 'No redirects to external sites', icon: ArrowRight, color: 'bg-pink-400' },
-    { title: 'ZERO FAKES', description: 'Rigorously reviewed daily', icon: TrendingDown, color: 'bg-purple-400' },
-  ];
+  const scrollCarousel = (direction, ref) => {
+    if (ref.current) {
+      const scrollAmount = 350;
+      ref.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
 
-  const testimonials = [
-    { name: 'Sarah L.', role: 'Senior Developer', quote: "Found my dream remote job in just two weeks! The interface is so clean and easy to use.", image: 'SL', rating: 5 },
-    { name: 'Mark R.', role: 'Hiring Manager', quote: "Excellent quality candidates! The posting feature is intuitive and targets the right talent pools.", image: 'MR', rating: 5 },
-  ];
-
-  const LogoPlaceholder = ({ letter, size = 'h-12 w-12', color = 'bg-teal-400' }) => (
-    <div className={`${size} ${color} border-4 border-black flex items-center justify-center text-black font-black text-lg`}>
+  const LogoPlaceholder = ({ letter, size = 'h-12 w-12' }) => (
+    <div className={`${size} bg-gray-900 border-2 border-black flex items-center justify-center text-white font-extrabold text-lg`}>
       {letter}
     </div>
   );
 
   return (
     <div className="min-h-screen bg-white">
-        <Hero /> 
-      <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Hero Section */}
-        
-        {/* Top Companies */}
-        <section className="py-12 lg:py-20 bg-gray-50 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 border-y-8 border-black">
-          <div className="mb-12">
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black uppercase border-b-8 border-black inline-block pr-8">
-              TOP COMPANIES
-            </h2>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
-            {topCompanies.map((company, index) => (
-              <div 
-                key={index} 
-                className="p-6 bg-white border-4 border-black text-center cursor-pointer transform hover:rotate-3 transition hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
-              >
-                <div className="flex justify-center mb-4">
-                  <LogoPlaceholder letter={company.logo} size="h-16 w-16" color="bg-yellow-400" />
+      <Hero jobCategories={jobCategories} />
+      <main>
+        {/* Categories Section */}
+        <section className="bg-white py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="mb-12 text-center">
+              <div className="inline-block mb-4 px-4 py-1 bg-black text-white text-xs font-bold tracking-wider">EXPLORE CATEGORIES</div>
+              <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-4">Browse by Industry</h2>
+              <p className="text-sm sm:text-base font-semibold text-gray-600 max-w-2xl mx-auto">Discover thousands of opportunities across multiple sectors</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {jobCategories.map((cat, index) => (
+                <div key={index} className="group relative overflow-hidden border-2 border-black cursor-pointer bg-white">
+                  <div className="relative h-48 sm:h-56 overflow-hidden">
+                    <img src={cat.img} alt={cat.title} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black via-black/70 to-transparent"></div>
+                    <div className="absolute top-3 right-3 p-2 sm:p-3 bg-white border-2 border-black">
+                      <cat.icon className="h-4 w-4 sm:h-5 sm:w-5 text-black" strokeWidth={2.5} />
+                    </div>
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 md:p-5">
+                    <h3 className="text-base sm:text-lg font-extrabold mb-1 sm:mb-2 text-white leading-tight">{cat.title}</h3>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs sm:text-sm font-bold text-gray-200">{cat.jobs.toLocaleString()} Jobs</p>
+                      <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 text-white transition-transform group-hover:translate-x-1" />
+                    </div>
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
                 </div>
-                <h4 className="font-black uppercase text-sm mb-2">{company.name}</h4>
-                <p className="text-xs font-bold uppercase mb-2">{company.openings} OPENINGS</p>
-                <span className={`text-xs font-black inline-block px-3 py-1 border-2 border-black ${company.tag.includes('Actively') ? 'bg-green-400' : 'bg-blue-400'}`}>
-                  {company.tag.toUpperCase()}
-                </span>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </section>
 
-        {/* Value Props */}
-        <section className="py-12 lg:py-20">
-          <div className="mb-12">
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black uppercase border-b-8 border-black inline-block pr-8">
-              WHY US?
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {valueProps.map((prop, index) => (
-              <div 
-                key={index} 
-                className={`p-6 lg:p-8 border-4 border-black transform hover:-rotate-1 transition ${prop.color}`}
-              >
-                <prop.icon className="h-12 w-12 lg:h-14 lg:w-14 mb-4 stroke-[3]" />
-                <h3 className="text-xl lg:text-2xl font-black uppercase mb-3 leading-tight">{prop.title}</h3>
-                <p className="text-base font-bold uppercase text-sm leading-relaxed">{prop.description}</p>
+        {/* Featured Jobs Carousel Section */}
+        <section className="bg-gray-50 py-16">
+          <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center mb-10">
+              <div>
+                <h2 className="text-3xl sm:text-4xl font-black mb-2">Featured Jobs</h2>
+                <p className="text-sm font-semibold text-gray-600">Discover the best job openings for your career</p>
               </div>
-            ))}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => scrollCarousel('left', jobCarouselRef)}
+                    className="p-3 bg-white border-2 border-black hover:bg-black hover:text-white transition"
+                  >
+                    <ChevronLeft className="h-5 w-5" strokeWidth={2.5} />
+                  </button>
+                  <button
+                    onClick={() => scrollCarousel('right', jobCarouselRef)}
+                    className="p-3 bg-white border-2 border-black hover:bg-black hover:text-white transition"
+                  >
+                    <ChevronRight className="h-5 w-5" strokeWidth={2.5} />
+                  </button>
+                </div>
+              </div>
+
+              <div
+                ref={jobCarouselRef}
+                className="flex gap-6 overflow-x-auto pb-4"
+                style={{ 
+                  scrollbarWidth: 'none', 
+                  msOverflowStyle: 'none',
+                  WebkitScrollbar: { display: 'none' }
+                }}
+              >
+                {featuredJobs.map((job) => (
+                  <div
+                    key={job.id}
+                    className="min-w-[320px] bg-white border-2 border-black shadow-lg hover:shadow-2xl transition-all group relative overflow-hidden"
+                  >
+                    <div className={`h-32 bg-gradient-to-br ${job.color} relative flex items-center justify-center`}>
+                      {job.featured && (
+                        <div className="absolute top-3 left-3 bg-white px-3 py-1 text-xs font-black">
+                          ⭐ FEATURED
+                        </div>
+                      )}
+                      <div className="absolute top-3 right-3 bg-white px-3 py-1 text-xs font-black">
+                        {job.type}
+                      </div>
+                      <div className="text-6xl">{job.logo}</div>
+                      <button
+                        onClick={() => toggleSaveJob(job.id)}
+                        className="absolute bottom-3 right-3 p-2 bg-white border border-gray-300 hover:border-black transition"
+                      >
+                        <Heart 
+                          className={`h-4 w-4 ${savedJobs.includes(job.id) ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} 
+                          strokeWidth={2.5} 
+                        />
+                      </button>
+                    </div>
+
+                    <div className="p-6">
+                      <h3 className="text-lg font-black mb-2 group-hover:underline cursor-pointer">
+                        {job.title}
+                      </h3>
+                      <p className="text-sm font-bold text-gray-600 mb-4">{job.company}</p>
+
+                      <div className="space-y-2 mb-4">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                          <MapPin className="h-4 w-4" strokeWidth={2.5} />
+                          <span>{job.location}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                          <DollarSign className="h-4 w-4" strokeWidth={2.5} />
+                          <span>{job.salary}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between text-xs font-bold text-gray-600 mb-4 pt-4 border-t border-gray-200">
+                        <div className="flex items-center gap-1">
+                          <Users className="h-4 w-4" strokeWidth={2.5} />
+                          <span>{job.applied} Applied</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Eye className="h-4 w-4" strokeWidth={2.5} />
+                          <span>{job.views} Views</span>
+                        </div>
+                      </div>
+
+                      <button className="w-full py-3 bg-black text-white font-black hover:bg-gray-800 transition">
+                        APPLY NOW
+                      </button>
+                    </div>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
-        {/* Testimonials */}
-        <section className="py-12 lg:py-20">
-          <div className="mb-12">
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black uppercase border-b-8 border-black inline-block pr-8">
-              REAL TALK
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {testimonials.map((test, index) => (
-              <div 
-                key={index} 
-                className="p-6 lg:p-8 bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
-              >
-                <div className="flex mb-4">
-                  {[...Array(test.rating)].map((_, i) => (
-                    <Star key={i} className="h-6 w-6 fill-black stroke-black" />
-                  ))}
+        {/* Value Props - Enhanced */}
+        <section className="bg-white py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="mb-12 text-center">
+              <h2 className="text-3xl sm:text-4xl font-black mb-2">Why Choose Us</h2>
+              <p className="text-sm font-semibold text-gray-600">Everything you need for a successful job search</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {valueProps.map((prop, index) => (
+                <div 
+                  key={index} 
+                  className="p-6 lg:p-8 border-2 border-black bg-white hover:bg-gray-50 transition text-center group"
+                >
+                  <prop.icon className="h-10 w-10 lg:h-12 lg:w-12 mb-4 stroke-2 text-gray-900 mx-auto group-hover:scale-110 transition-transform" />
+                  <h3 className="text-lg lg:text-xl font-black mb-3 text-gray-900 group-hover:underline">{prop.title}</h3>
+                  <p className="font-medium text-sm leading-relaxed text-gray-600">{prop.description}</p>
                 </div>
-                <p className="text-lg lg:text-xl font-bold uppercase mb-6 leading-relaxed">"{test.quote}"</p>
-                <div className="flex items-center">
-                  <div className="h-14 w-14 bg-teal-400 border-4 border-black flex items-center justify-center font-black text-lg mr-4">
-                    {test.image}
-                  </div>
-                  <div>
-                    <p className="font-black uppercase text-lg">{test.name}</p>
-                    <p className="text-sm font-bold uppercase text-gray-600">{test.role}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </section>
 
         {/* CTA Section */}
-        <section className="py-16 lg:py-24 text-center bg-teal-400 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 border-y-8 border-black mb-12">
-          <h2 className="text-4xl sm:text-5xl lg:text-7xl font-black uppercase mb-6 leading-none">
-            READY TO<br />START NOW?
-          </h2>
-          <p className="text-xl sm:text-2xl font-bold uppercase mb-10 tracking-wide">
-            DON'T WAIT. APPLY TODAY.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-            <button className="w-full sm:w-auto px-12 py-5 bg-black text-white font-black uppercase border-4 border-black hover:bg-white hover:text-black transition text-xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:translate-x-2 hover:translate-y-2 hover:shadow-none">
-              BROWSE JOBS
-            </button>
-            <button className="w-full sm:w-auto px-12 py-5 bg-white text-black font-black uppercase border-4 border-black hover:bg-yellow-400 transition text-xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:translate-x-2 hover:translate-y-2 hover:shadow-none">
-              POST A JOB
-            </button>
+        <section className="bg-gray-900 py-20 border-t-2 border-black">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-4xl mx-auto text-center">
+              <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black mb-6 leading-tight text-white">
+                Your Future Starts
+                <span className="bg-white text-black px-4 py-1 inline-block transform -skew-x-6 ml-3">
+                  Here
+                </span>
+              </h2>
+              <p className="text-lg sm:text-xl text-gray-300 mb-10 font-medium max-w-2xl mx-auto">
+                Join thousands of professionals who have found their dream careers through our platform.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <button className="w-full sm:w-auto px-10 py-4 bg-white text-black font-black hover:bg-gray-200 transition shadow-lg flex items-center justify-center gap-2">
+                  <Search className="h-5 w-5" strokeWidth={2.5} />
+                  FIND JOBS
+                </button>
+                <button className="w-full sm:w-auto px-10 py-4 bg-transparent text-white font-black border-2 border-white hover:bg-white hover:text-black transition flex items-center justify-center gap-2">
+                  <Briefcase className="h-5 w-5" strokeWidth={2.5} />
+                  FOR EMPLOYERS
+                </button>
+              </div>
+            </div>
           </div>
         </section>
       </main>
-
-      {/* Footer */}
-      <footer className="bg-black text-white py-12 lg:py-16 border-t-8 border-black">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-8">
-            <div>
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="h-12 w-12 bg-teal-400 border-4 border-white flex items-center justify-center">
-                  <Briefcase className="h-7 w-7 text-black" />
-                </div>
-                <span className="text-2xl font-black uppercase">JobPortal</span>
-              </div>
-              <p className="font-bold uppercase text-sm text-gray-400">REAL JOBS. REAL PEOPLE. NO BS.</p>
-            </div>
-            <div>
-              <h4 className="font-black uppercase mb-4 text-lg border-b-4 border-teal-400 inline-block pb-1">CANDIDATES</h4>
-              <ul className="space-y-2 text-sm font-bold uppercase">
-                <li><a href="#" className="hover:text-teal-400 transition">Browse Jobs</a></li>
-                <li><a href="#" className="hover:text-yellow-400 transition">Companies</a></li>
-                <li><a href="#" className="hover:text-pink-400 transition">Career Advice</a></li>
-                <li><a href="#" className="hover:text-purple-400 transition">Resume Builder</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-black uppercase mb-4 text-lg border-b-4 border-yellow-400 inline-block pb-1">EMPLOYERS</h4>
-              <ul className="space-y-2 text-sm font-bold uppercase">
-                <li><a href="#" className="hover:text-teal-400 transition">Post a Job</a></li>
-                <li><a href="#" className="hover:text-yellow-400 transition">Pricing</a></li>
-                <li><a href="#" className="hover:text-pink-400 transition">Success Stories</a></li>
-                <li><a href="#" className="hover:text-purple-400 transition">Resources</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-black uppercase mb-4 text-lg border-b-4 border-pink-400 inline-block pb-1">COMPANY</h4>
-              <ul className="space-y-2 text-sm font-bold uppercase">
-                <li><a href="#" className="hover:text-teal-400 transition">About Us</a></li>
-                <li><a href="#" className="hover:text-yellow-400 transition">Contact</a></li>
-                <li><a href="#" className="hover:text-pink-400 transition">Privacy</a></li>
-                <li><a href="#" className="hover:text-purple-400 transition">Terms</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t-4 border-gray-800 pt-8 flex flex-col sm:flex-row justify-between items-center">
-            <p className="font-bold uppercase text-sm mb-4 sm:mb-0">© 2024 JOBPORTAL. ALL RIGHTS RESERVED.</p>
-            <div className="flex space-x-4">
-              <a href="#" className="h-12 w-12 bg-white border-4 border-white flex items-center justify-center hover:bg-teal-400 transition">
-                <svg className="h-6 w-6 text-black" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-              </a>
-              <a href="#" className="h-12 w-12 bg-white border-4 border-white flex items-center justify-center hover:bg-yellow-400 transition">
-                <svg className="h-6 w-6 text-black" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
-              </a>
-              <a href="#" className="h-12 w-12 bg-white border-4 border-white flex items-center justify-center hover:bg-pink-400 transition">
-                <svg className="h-6 w-6 text-black" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-              </a>
-              <a href="#" className="h-12 w-12 bg-white border-4 border-white flex items-center justify-center hover:bg-purple-400 transition">
-                <svg className="h-6 w-6 text-black" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C8.74 0 8.333.015 7.053.072 5.775.132 4.905.333 4.14.63c-.789.306-1.459.717-2.126 1.384S.935 3.35.63 4.14C.333 4.905.131 5.775.072 7.053.012 8.333 0 8.74 0 12s.015 3.667.072 4.947c.06 1.277.261 2.148.558 2.913.306.788.717 1.459 1.384 2.126.667.666 1.336 1.079 2.126 1.384.766.296 1.636.499 2.913.558C8.333 23.988 8.74 24 12 24s3.667-.015 4.947-.072c1.277-.06 2.148-.262 2.913-.558.788-.306 1.459-.718 2.126-1.384.666-.667 1.079-1.335 1.384-2.126.296-.765.499-1.636.558-2.913.06-1.28.072-1.687.072-4.947s-.015-3.667-.072-4.947c-.06-1.277-.262-2.149-.558-2.913-.306-.789-.718-1.459-1.384-2.126C21.319 1.347 20.651.935 19.86.63c-.765-.297-1.636-.499-2.913-.558C15.667.012 15.26 0 12 0zm0 2.16c3.203 0 3.585.016 4.85.071 1.17.055 1.805.249 2.227.415.562.217.96.477 1.382.896.419.42.679.819.896 1.381.164.422.36 1.057.413 2.227.057 1.266.07 1.646.07 4.85s-.015 3.585-.074 4.85c-.061 1.17-.256 1.805-.421 2.227-.224.562-.479.96-.899 1.382-.419.419-.824.679-1.38.896-.42.164-1.065.36-2.235.413-1.274.057-1.649.07-4.859.07-3.211 0-3.586-.015-4.859-.074-1.171-.061-1.816-.256-2.236-.421-.569-.224-.96-.479-1.379-.899-.421-.419-.69-.824-.9-1.38-.165-.42-.359-1.065-.42-2.235-.045-1.26-.061-1.649-.061-4.844 0-3.196.016-3.586.061-4.861.061-1.17.255-1.814.42-2.234.21-.57.479-.96.9-1.381.419-.419.81-.689 1.379-.898.42-.166 1.051-.361 2.221-.421 1.275-.045 1.65-.06 4.859-.06l.045.03zm0 3.678c-3.405 0-6.162 2.76-6.162 6.162 0 3.405 2.76 6.162 6.162 6.162 3.405 0 6.162-2.76 6.162-6.162 0-3.405-2.76-6.162-6.162-6.162zM12 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm7.846-10.405c0 .795-.646 1.44-1.44 1.44-.795 0-1.44-.646-1.44-1.44 0-.794.646-1.439 1.44-1.439.793-.001 1.44.645 1.44 1.439z"/></svg>
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
 
-export default BrutalistJobPortal;
+export default JobPortalHome;

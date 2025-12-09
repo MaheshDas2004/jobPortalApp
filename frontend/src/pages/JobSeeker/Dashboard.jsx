@@ -62,7 +62,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Header with background */}
-      <div className="relative bg-gradient-to-br from-teal-400 via-yellow-400 to-pink-400 border-b-8 border-black overflow-hidden">
+      <div className="relative bg-linear-to-br from-teal-400 via-yellow-400 to-pink-400 border-b-8 border-black overflow-hidden">
         {/* Background pattern */}
         <div 
           className="absolute inset-0 opacity-10"
@@ -123,7 +123,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {stats.map((stat, idx) => (
             <div key={idx} className={`p-6 border-4 border-black ${stat.color} transform hover:-rotate-1 transition relative`}>
-              <stat.icon className="h-8 w-8 mb-3 stroke-[3]" />
+              <stat.icon className="h-8 w-8 mb-3 stroke-3" />
               <p className="text-4xl font-black mb-1">{stat.value}</p>
               <p className="text-sm font-black uppercase mb-2">{stat.label}</p>
               <span className="absolute top-2 right-2 px-2 py-1 bg-black text-white text-xs font-black border-2 border-black">

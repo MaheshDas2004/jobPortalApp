@@ -1,6 +1,4 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 import LoginPage from './pages/LoginPage'
 import Home from './pages/Home'
@@ -9,24 +7,39 @@ import Navbar from './components/Navbar'
 import { Route, Routes } from 'react-router-dom'
 import Dashboard from './pages/JobSeeker/Dashboard'
 import IntroPage from './pages/Recruiter/InroPage'
+import EventHandling from './demo/EventHandling'
+import SignupSeeker from './pages/JobSeeker/SignupSeeker'
+import Jobs from './pages/JobSeeker/Jobs'
+import JobPortal from './pages/JobSeeker/JobPortal'
+import AboutUs from './pages/AboutUs'
+import SignupRecruiter from './pages/Recruiter/SignupRecruiter'
+import PostJob from './pages/Recruiter/PostJob'
+import MainLayout from './layouts/MainLayout'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
     <div>
-    <Navbar/>
-    <div>
-     <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/login" element={<LoginPage />}/>
-      <Route path="/login-recruiter" element={<RecruiterLoginPage />}/>
-      <Route path="/dashboard" element={<Dashboard />}/>
-      <Route path="/intro" element={<IntroPage />}/>
+      <Navbar/>
 
+      <Routes>
+        {/* Pages WITH Footer */}
+        <Route element={<MainLayout/>}>
+          <Route path="/" element={<Home />} />
+          <Route path="/dashboard" element={<Dashboard />}/>
+          <Route path="/intro" element={<IntroPage />}/>
+          <Route path="/job-portal" element={<JobPortal />}/>
+          <Route path="/jobs" element={<Jobs />}/>
+          <Route path="/about-us" element={<AboutUs />}/>
+          <Route path="/demo" element={<EventHandling />}/>
+        </Route>
 
-     </Routes>
-    </div>
+        {/* Pages WITHOUT Footer */}
+        <Route path="/login" element={<LoginPage />}/>
+        <Route path="/login-recruiter" element={<RecruiterLoginPage />}/>
+        <Route path='/signup-seeker' element={<SignupSeeker />}/>
+        <Route path="/signup-recruiter" element={<SignupRecruiter />}/>
+        <Route path="/post-job" element={<PostJob />}/>
+      </Routes>
     </div>
   )
 }

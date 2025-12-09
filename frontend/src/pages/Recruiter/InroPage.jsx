@@ -1,52 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Search, Briefcase, Users, Target, BarChart3, Clock, CheckCircle2, Building2,
   UserPlus, ArrowRight, Sparkles, Filter, Zap, ShieldCheck, TrendingUp, DollarSign,
   FileText, Eye, MessageSquare, Calendar, PieChart, Award, Rocket, Star, Menu, X,
   ChevronRight, Settings, Bell, CreditCard, Headphones, BookOpen, Play
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const IntroPage = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Pricing Plans
-  const pricingPlans = [
-    { 
-      name: 'Starter', 
-      price: 'Free', 
-      period: '', 
-      color: 'bg-teal-400',
-      features: ['1 Active Job Post', '25 Candidate Views/mo', 'Basic Analytics', 'Email Support'],
-      cta: 'Start Free'
-    },
-    { 
-      name: 'Professional', 
-      price: '$99', 
-      period: '/month',
-      color: 'bg-yellow-400',
-      popular: true,
-      features: ['10 Active Job Posts', 'Unlimited Candidate Views', 'AI Candidate Matching', 'Priority Support', 'ATS Integration'],
-      cta: 'Get Started'
-    },
-    { 
-      name: 'Enterprise', 
-      price: '$299', 
-      period: '/month',
-      color: 'bg-pink-400',
-      features: ['Unlimited Job Posts', 'Dedicated Account Manager', 'Custom Branding', 'API Access', 'Team Collaboration', 'Advanced Analytics'],
-      cta: 'Contact Sales'
-    },
-  ];
-
-  // Features for Recruiters
   const recruiterFeatures = [
-    { title: 'AI-POWERED MATCHING', description: 'Smart algorithms match top candidates to your jobs automatically', icon: Sparkles, color: 'bg-teal-400' },
-    { title: 'APPLICANT TRACKING', description: 'Full ATS system built-in. Track every candidate seamlessly', icon: Target, color: 'bg-yellow-400' },
-    { title: 'INSTANT ANALYTICS', description: 'Real-time insights on job performance and candidate quality', icon: BarChart3, color: 'bg-pink-400' },
-    { title: 'VERIFIED PROFILES', description: 'All candidates are verified with skills assessments', icon: ShieldCheck, color: 'bg-purple-400' },
+    { title: 'AI-Powered Matching', description: 'Smart algorithms match top candidates to your jobs automatically', icon: Sparkles },
+    { title: 'Applicant Tracking', description: 'Full ATS system built-in. Track every candidate seamlessly', icon: Target },
+    { title: 'Instant Analytics', description: 'Real-time insights on job performance and candidate quality', icon: BarChart3 },
+    { title: 'Verified Profiles', description: 'All candidates are verified with skills assessments', icon: ShieldCheck },
   ];
 
-  // How It Works Steps
   const howItWorks = [
     { step: '01', title: 'Create Account', description: 'Sign up in 30 seconds. No credit card required.', icon: UserPlus },
     { step: '02', title: 'Post Your Job', description: 'Use our templates or create custom listings.', icon: FileText },
@@ -54,7 +24,6 @@ const IntroPage = () => {
     { step: '04', title: 'Hire Fast', description: 'Schedule interviews and make offers in-platform.', icon: Rocket },
   ];
 
-  // Success Metrics
   const successMetrics = [
     { value: '72%', label: 'Faster Time-to-Hire', icon: Clock },
     { value: '3.5x', label: 'More Qualified Applicants', icon: Users },
@@ -62,7 +31,6 @@ const IntroPage = () => {
     { value: '94%', label: 'Recruiter Satisfaction', icon: Star },
   ];
 
-  // Testimonials from Recruiters
   const testimonials = [
     { 
       name: 'Jennifer K.', 
@@ -87,7 +55,6 @@ const IntroPage = () => {
     },
   ];
 
-  // Trusted Companies
   const trustedBy = [
     { name: 'TechCorp', logo: 'TC' },
     { name: 'InnovateCo', logo: 'IC' },
@@ -97,264 +64,219 @@ const IntroPage = () => {
     { name: 'EnterpriseX', logo: 'EX' },
   ];
 
-  const LogoPlaceholder = ({ letter, size = 'h-12 w-12', color = 'bg-teal-400' }) => (
-    <div className={`${size} ${color} border-4 border-black flex items-center justify-center text-black font-black text-lg`}>
-      {letter}
-    </div>
-  );
-
   return (
     <div className="min-h-screen bg-white">
-      <header className="py-20 lg:py-28 text-center">
-    <h1 className="text-5xl lg:text-7xl font-black uppercase">Hire Top Talent Faster</h1>
-    <p className="mt-6 text-xl font-bold text-gray-600">AI-powered sourcing, ATS, and analytics for modern recruiters.</p>
-  </header>
+      {/* Hero Section */}
+      <section className="relative overflow-hidden bg-black text-white">
+        <div className="absolute inset-0">
+          <img
+            src='/hr.jpeg'
+            alt=""
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-linear-to-b from-black/70 via-black/60 to-black"></div>
+        </div>
+        
+        <div className="relative z-10 w-full px-4 sm:px-8 md:px-12 lg:px-16 xl:px-24 2xl:px-32 py-16 sm:py-24 md:py-32 lg:py-40">
+          <div className="text-center max-w-5xl mx-auto">
+            <div className="inline-block px-3 py-1 sm:px-4 sm:py-1.5 bg-white/10 backdrop-blur-sm border border-white/20 text-white text-xs sm:text-sm font-semibold mb-4 sm:mb-6">
+              TRUSTED BY 2,500+ COMPANIES WORLDWIDE
+            </div>
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black mb-4 sm:mb-6 leading-none tracking-tighter">
+              Hire Top Talent
+              <br />
+              <span className="text-gray-300">Faster Than Ever</span>
+            </h1>
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-300 mb-8 sm:mb-10 max-w-3xl mx-auto font-medium">
+              AI-powered recruiting platform that connects you with qualified candidates instantly. Zero guesswork, maximum results.
+            </p>
 
-      <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-12 sm:mb-16 max-w-lg mx-auto">
+              <Link to='/signup-recruiter' className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-white text-black font-black hover:bg-gray-200 transition-all text-sm sm:text-base flex items-center justify-center gap-2 shadow-2xl">
+                <UserPlus className="h-4 w-4 sm:h-5 sm:w-5" />
+                SIGN UP AS RECRUITER
+              </Link>
+              <button className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-transparent text-white font-black border-2 border-white hover:bg-white hover:text-black transition-all text-sm sm:text-base flex items-center justify-center gap-2">
+                <Eye className="h-4 w-4 sm:h-5 sm:w-5" />
+                EXPLORE PLATFORM
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto">
+              {[
+                { label: 'Time Saved', value: '72%' },
+                { label: 'Cost Reduced', value: '45%' },
+                { label: 'Quality Hires', value: '3.5x' },
+                { label: 'Satisfaction', value: '94%' }
+              ].map((stat, idx) => (
+                <div key={idx} className="text-center p-4 sm:p-6 bg-white/5 backdrop-blur-sm border border-white/20 hover:bg-white/10 transition-all">
+                  <p className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black mb-1">{stat.value}</p>
+                  <p className="text-xs sm:text-sm text-gray-400 font-bold uppercase tracking-wide">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <main className="w-full">
         
         {/* Trusted By Section */}
-        <section className="py-12 border-b-4 border-black">
-          <p className="text-center font-black uppercase text-gray-500 mb-8">Trusted by 2,500+ companies worldwide</p>
-          <div className="flex flex-wrap justify-center items-center gap-8">
+        <section className="py-12 sm:py-16 border-b-2 border-black px-4 sm:px-8 md:px-12 lg:px-16 xl:px-24 2xl:px-32">
+          <p className="text-center text-xs sm:text-sm font-black text-black mb-6 sm:mb-8 uppercase tracking-widest">TRUSTED BY LEADING COMPANIES</p>
+          <div className="flex flex-wrap justify-center items-center gap-6 sm:gap-8 md:gap-12 max-w-6xl mx-auto">
             {trustedBy.map((company, idx) => (
-              <div key={idx} className="flex items-center gap-3 opacity-60 hover:opacity-100 transition">
-                <div className="h-12 w-12 bg-gray-200 border-2 border-black flex items-center justify-center font-black">
+              <div key={idx} className="flex items-center gap-2 sm:gap-3 opacity-40 hover:opacity-100 transition-all">
+                <div className="h-8 w-8 sm:h-10 sm:w-10 bg-black flex items-center justify-center font-black text-white text-xs sm:text-sm border-2 border-black">
                   {company.logo}
                 </div>
-                <span className="font-black uppercase text-lg hidden sm:block">{company.name}</span>
+                <span className="font-black text-black text-sm sm:text-base hidden sm:block">{company.name}</span>
               </div>
             ))}
           </div>
         </section>
 
         {/* Features Section */}
-        <section id="features" className="py-12 lg:py-20">
-          <div className="mb-12">
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black uppercase border-b-8 border-black inline-block pr-8">
-              POWERFUL TOOLS
-            </h2>
-            <p className="mt-4 text-xl font-bold uppercase text-gray-600">Everything you need to hire smarter</p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {recruiterFeatures.map((feature, index) => (
-              <div 
-                key={index} 
-                className={`p-6 lg:p-8 border-4 border-black transform hover:-rotate-1 transition ${feature.color}`}
-              >
-                <feature.icon className="h-12 w-12 lg:h-14 lg:w-14 mb-4 stroke-[3]" />
-                <h3 className="text-xl lg:text-2xl font-black uppercase mb-3 leading-tight">{feature.title}</h3>
-                <p className="font-bold text-sm leading-relaxed">{feature.description}</p>
-              </div>
-            ))}
+        <section id="features" className="py-16 sm:py-20 lg:py-24 px-4 sm:px-8 md:px-12 lg:px-16 xl:px-24 2xl:px-32">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-12 sm:mb-16">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-black mb-3 sm:mb-4 tracking-tighter leading-none">
+                POWERFUL TOOLS FOR<br />MODERN RECRUITERS
+              </h2>
+              <p className="text-base sm:text-lg lg:text-xl text-gray-700 max-w-3xl mx-auto font-semibold mt-4">
+                Everything you need to streamline your hiring process and find the perfect candidates
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              {recruiterFeatures.map((feature, index) => (
+                <div 
+                  key={index} 
+                  className="p-6 sm:p-8 bg-white border-2 border-black hover:bg-black hover:text-white transition-all group"
+                >
+                  <div className="h-12 w-12 sm:h-14 sm:w-14 bg-black group-hover:bg-white flex items-center justify-center mb-4 sm:mb-6 transition-all">
+                    <feature.icon className="h-6 w-6 sm:h-7 sm:w-7 text-white group-hover:text-black" />
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-black text-black group-hover:text-white mb-2 sm:mb-3 uppercase tracking-tight">{feature.title}</h3>
+                  <p className="text-gray-700 group-hover:text-gray-300 leading-relaxed text-sm sm:text-base font-medium">{feature.description}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
         {/* How It Works */}
-        <section className="py-12 lg:py-20 bg-gray-50 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 border-y-8 border-black">
-          <div className="mb-12">
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black uppercase border-b-8 border-black inline-block pr-8">
-              HOW IT WORKS
-            </h2>
-            <p className="mt-4 text-xl font-bold uppercase text-gray-600">Start hiring in 4 simple steps</p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {howItWorks.map((step, index) => (
-              <div key={index} className="relative">
-                <div className="p-6 bg-white border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-                  <span className="text-6xl font-black text-gray-200">{step.step}</span>
-                  <step.icon className="h-10 w-10 mb-4 stroke-[3] text-teal-500" />
-                  <h3 className="text-xl font-black uppercase mb-2">{step.title}</h3>
-                  <p className="font-bold text-sm text-gray-600">{step.description}</p>
+        <section className="py-16 sm:py-20 lg:py-24 bg-gray-100 px-4 sm:px-8 md:px-12 lg:px-16 xl:px-24 2xl:px-32">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-12 sm:mb-16">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-black mb-3 sm:mb-4 tracking-tighter leading-none">
+                HOW IT WORKS
+              </h2>
+              <p className="text-base sm:text-lg lg:text-xl text-gray-700 max-w-3xl mx-auto font-semibold mt-4">
+                Get started in minutes and start receiving qualified candidates
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              {howItWorks.map((step, index) => (
+                <div key={index} className="relative bg-white p-6 sm:p-8 hover:shadow-2xl transition-all border-2 border-transparent hover:border-black">
+                  <div className="absolute top-0 left-0 w-full h-2 bg-black"></div>
+                  <span className="text-5xl sm:text-6xl font-black text-gray-200 mb-3 sm:mb-4 block">{step.step}</span>
+                  <div className="h-12 w-12 sm:h-14 sm:w-14 bg-black flex items-center justify-center mb-3 sm:mb-4">
+                    <step.icon className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-black text-black mb-2 uppercase tracking-tight">{step.title}</h3>
+                  <p className="text-gray-700 text-sm sm:text-base font-medium leading-relaxed">{step.description}</p>
                 </div>
-                {index < 3 && (
-                  <ChevronRight className="hidden lg:block absolute top-1/2 -right-5 h-10 w-10 text-black" />
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </section>
 
         {/* Success Metrics */}
-        <section className="py-12 lg:py-20">
-          <div className="mb-12">
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black uppercase border-b-8 border-black inline-block pr-8">
-              REAL RESULTS
-            </h2>
-          </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            {successMetrics.map((metric, index) => (
-              <div 
-                key={index} 
-                className={`p-8 border-4 border-black text-center ${
-                  index === 0 ? 'bg-teal-400' : 
-                  index === 1 ? 'bg-yellow-400' : 
-                  index === 2 ? 'bg-pink-400' : 'bg-purple-400'
-                }`}
-              >
-                <metric.icon className="h-10 w-10 mx-auto mb-4 stroke-[3]" />
-                <p className="text-4xl lg:text-5xl font-black mb-2">{metric.value}</p>
-                <p className="font-black uppercase text-sm">{metric.label}</p>
-              </div>
-            ))}
+        <section className="py-16 sm:py-20 lg:py-24 px-4 sm:px-8 md:px-12 lg:px-16 xl:px-24 2xl:px-32">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-12 sm:mb-16">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-black mb-3 sm:mb-4 tracking-tighter leading-none">
+                REAL RESULTS
+              </h2>
+              <p className="text-base sm:text-lg lg:text-xl text-gray-700 max-w-3xl mx-auto font-semibold mt-4">
+                See the impact our platform has on hiring efficiency
+              </p>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              {successMetrics.map((metric, index) => (
+                <div 
+                  key={index} 
+                  className="p-6 sm:p-8 bg-black text-white hover:bg-white hover:text-black border-2 border-black text-center transition-all group"
+                >
+                  <metric.icon className="h-8 w-8 sm:h-10 sm:w-10 mx-auto mb-3 sm:mb-4 text-white group-hover:text-black transition-all" />
+                  <p className="text-3xl sm:text-4xl lg:text-5xl font-black mb-1 sm:mb-2">{metric.value}</p>
+                  <p className="text-xs sm:text-sm font-bold uppercase tracking-wide">{metric.label}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
         {/* Testimonials */}
-        <section id="testimonials" className="py-12 lg:py-20 bg-black -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 border-y-8 border-teal-400">
-          <div className="mb-12">
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black uppercase text-white border-b-8 border-teal-400 inline-block pr-8">
-              SUCCESS STORIES
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {testimonials.map((test, index) => (
-              <div 
-                key={index} 
-                className={`p-6 lg:p-8 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] ${
-                  index === 0 ? 'bg-teal-400' : index === 1 ? 'bg-yellow-400' : 'bg-pink-400'
-                }`}
-              >
-                <div className="flex mb-4">
-                  {[...Array(test.rating)].map((_, i) => (
-                    <Star key={i} className="h-6 w-6 fill-black stroke-black" />
-                  ))}
-                </div>
-                <p className="text-lg lg:text-xl font-bold mb-6 leading-relaxed">"{test.quote}"</p>
-                <div className="flex items-center">
-                  <div className="h-14 w-14 bg-white border-4 border-black flex items-center justify-center font-black text-lg mr-4">
-                    {test.image}
+        <section id="testimonials" className="py-16 sm:py-20 lg:py-24 bg-black text-white px-4 sm:px-8 md:px-12 lg:px-16 xl:px-24 2xl:px-32">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-12 sm:mb-16">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black mb-3 sm:mb-4 tracking-tighter leading-none">
+                SUCCESS STORIES
+              </h2>
+              <p className="text-base sm:text-lg lg:text-xl text-gray-400 max-w-3xl mx-auto font-semibold mt-4">
+                Hear from recruiters who transformed their hiring process
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              {testimonials.map((test, index) => (
+                <div 
+                  key={index} 
+                  className="p-6 sm:p-8 bg-white text-black border-2 border-white hover:bg-black hover:text-white hover:border-white transition-all group"
+                >
+                  <div className="flex mb-3 sm:mb-4">
+                    {[...Array(test.rating)].map((_, i) => (
+                      <Star key={i} className="h-4 w-4 sm:h-5 sm:w-5 fill-black group-hover:fill-white text-black group-hover:text-white" />
+                    ))}
                   </div>
-                  <div>
-                    <p className="font-black uppercase text-lg">{test.name}</p>
-                    <p className="text-sm font-bold">{test.role}</p>
+                  <p className="text-base sm:text-lg mb-4 sm:mb-6 leading-relaxed font-semibold">"{test.quote}"</p>
+                  <div className="flex items-center">
+                    <div className="h-10 w-10 sm:h-12 sm:w-12 bg-black group-hover:bg-white flex items-center justify-center font-black text-white group-hover:text-black text-xs sm:text-sm mr-3 sm:mr-4 border-2 border-black group-hover:border-white">
+                      {test.image}
+                    </div>
+                    <div>
+                      <p className="font-black text-sm sm:text-base">{test.name}</p>
+                      <p className="text-xs sm:text-sm text-gray-600 group-hover:text-gray-400 font-semibold">{test.role}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Pricing Section */}
-        <section id="pricing" className="py-12 lg:py-20">
-          <div className="mb-12 text-center">
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black uppercase border-b-8 border-black inline-block px-8">
-              SIMPLE PRICING
-            </h2>
-            <p className="mt-4 text-xl font-bold uppercase text-gray-600">No hidden fees. Cancel anytime.</p>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {pricingPlans.map((plan, index) => (
-              <div 
-                key={index} 
-                className={`relative p-8 border-4 border-black ${plan.color} ${plan.popular ? 'shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] transform scale-105' : 'shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]'}`}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-2 font-black uppercase text-sm border-2 border-black">
-                    Most Popular
-                  </div>
-                )}
-                <h3 className="text-2xl font-black uppercase mb-2">{plan.name}</h3>
-                <div className="mb-6">
-                  <span className="text-5xl font-black">{plan.price}</span>
-                  <span className="font-bold">{plan.period}</span>
-                </div>
-                <ul className="space-y-3 mb-8">
-                  {plan.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-center gap-3">
-                      <CheckCircle2 className="h-5 w-5 stroke-[3]" />
-                      <span className="font-bold">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-                <button className="w-full py-4 bg-black text-white font-black uppercase border-4 border-black hover:bg-white hover:text-black transition">
-                  {plan.cta}
-                </button>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </section>
 
         {/* CTA Section */}
-        <section className="py-16 lg:py-24 text-center bg-gradient-to-r from-teal-400 via-yellow-400 to-pink-400 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 border-y-8 border-black mb-12">
-          <h2 className="text-4xl sm:text-5xl lg:text-7xl font-black uppercase mb-6 leading-none">
-            READY TO HIRE<br />TOP TALENT?
-          </h2>
-          <p className="text-xl sm:text-2xl font-bold uppercase mb-10 tracking-wide">
-            Join 2,500+ companies already hiring smarter
-          </p>
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-            <button className="w-full sm:w-auto px-12 py-5 bg-black text-white font-black uppercase border-4 border-black hover:bg-white hover:text-black transition text-xl shadow-[8px_8px_0px_0px_rgba(255,255,255,0.5)] hover:translate-x-2 hover:translate-y-2 hover:shadow-none flex items-center justify-center gap-3">
-              <UserPlus className="h-6 w-6" />
-              Sign Up as Recruiter
-            </button>
-            <button className="w-full sm:w-auto px-12 py-5 bg-white text-black font-black uppercase border-4 border-black hover:bg-black hover:text-white transition text-xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:translate-x-2 hover:translate-y-2 hover:shadow-none flex items-center justify-center gap-3">
-              <Play className="h-6 w-6" />
-              Watch Demo
-            </button>
+        <section className="py-20 sm:py-24 lg:py-32 text-center px-4 sm:px-8 md:px-12 lg:px-16 xl:px-24 2xl:px-32 bg-white border-t-2 border-black">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-black mb-4 sm:mb-6 tracking-tighter leading-none">
+              READY TO HIRE<br />TOP TALENT?
+            </h2>
+            <p className="text-base sm:text-lg lg:text-xl text-gray-700 mb-8 sm:mb-10 font-semibold">
+              Join 2,500+ companies already hiring smarter with our platform
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center max-w-lg mx-auto">
+              <button className="w-full sm:w-auto px-8 sm:px-10 py-3 sm:py-4 bg-black text-white font-black hover:bg-gray-800 transition-all text-base sm:text-lg flex items-center justify-center gap-2 shadow-2xl">
+                <UserPlus className="h-4 w-4 sm:h-5 sm:w-5" />
+                SIGN UP AS RECRUITER
+              </button>
+              <button className="w-full sm:w-auto px-8 sm:px-10 py-3 sm:py-4 bg-white text-black font-black border-2 border-black hover:bg-gray-100 transition-all text-base sm:text-lg flex items-center justify-center gap-2">
+                <Eye className="h-4 w-4 sm:h-5 sm:w-5" />
+                EXPLORE PLATFORM
+              </button>
+            </div>
           </div>
         </section>
       </main>
-
-      {/* Footer */}
-      <footer className="bg-black text-white py-12 lg:py-16 border-t-8 border-teal-400">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-8">
-            <div>
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="h-12 w-12 bg-teal-400 border-4 border-white flex items-center justify-center">
-                  <Briefcase className="h-7 w-7 text-black" />
-                </div>
-                <div>
-                  <span className="text-2xl font-black uppercase">JobPortal</span>
-                  <span className="block text-xs font-bold text-teal-400">FOR RECRUITERS</span>
-                </div>
-              </div>
-              <p className="font-bold uppercase text-sm text-gray-400">HIRE SMARTER. HIRE FASTER.</p>
-            </div>
-            <div>
-              <h4 className="font-black uppercase mb-4 text-lg border-b-4 border-teal-400 inline-block pb-1">PRODUCT</h4>
-              <ul className="space-y-2 text-sm font-bold uppercase">
-                <li><a href="#" className="hover:text-teal-400 transition">Features</a></li>
-                <li><a href="#" className="hover:text-yellow-400 transition">Pricing</a></li>
-                <li><a href="#" className="hover:text-pink-400 transition">Integrations</a></li>
-                <li><a href="#" className="hover:text-purple-400 transition">API</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-black uppercase mb-4 text-lg border-b-4 border-yellow-400 inline-block pb-1">RESOURCES</h4>
-              <ul className="space-y-2 text-sm font-bold uppercase">
-                <li><a href="#" className="hover:text-teal-400 transition">Blog</a></li>
-                <li><a href="#" className="hover:text-yellow-400 transition">Hiring Guides</a></li>
-                <li><a href="#" className="hover:text-pink-400 transition">Webinars</a></li>
-                <li><a href="#" className="hover:text-purple-400 transition">Case Studies</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-black uppercase mb-4 text-lg border-b-4 border-pink-400 inline-block pb-1">SUPPORT</h4>
-              <ul className="space-y-2 text-sm font-bold uppercase">
-                <li><a href="#" className="hover:text-teal-400 transition">Help Center</a></li>
-                <li><a href="#" className="hover:text-yellow-400 transition">Contact Sales</a></li>
-                <li><a href="#" className="hover:text-pink-400 transition">Status</a></li>
-                <li><a href="#" className="hover:text-purple-400 transition">Security</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t-4 border-gray-800 pt-8 flex flex-col sm:flex-row justify-between items-center">
-            <p className="font-bold uppercase text-sm mb-4 sm:mb-0">© 2024 JOBPORTAL. ALL RIGHTS RESERVED.</p>
-            <div className="flex space-x-4">
-              <a href="#" className="h-12 w-12 bg-white border-4 border-white flex items-center justify-center hover:bg-teal-400 transition">
-                <svg className="h-6 w-6 text-black" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-              </a>
-              <a href="#" className="h-12 w-12 bg-white border-4 border-white flex items-center justify-center hover:bg-yellow-400 transition">
-                <svg className="h-6 w-6 text-black" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
-              </a>
-              <a href="#" className="h-12 w-12 bg-white border-4 border-white flex items-center justify-center hover:bg-pink-400 transition">
-                <svg className="h-6 w-6 text-black" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
