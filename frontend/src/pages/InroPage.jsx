@@ -92,7 +92,7 @@ const IntroPage = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-12 sm:mb-16 max-w-lg mx-auto">
-              <Link to='/signup-recruiter' className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-white text-black font-black hover:bg-gray-200 transition-all text-sm sm:text-base flex items-center justify-center gap-2 shadow-2xl">
+              <Link to='/emp-signup' className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-white text-black font-black hover:bg-gray-200 transition-all text-sm sm:text-base flex items-center justify-center gap-2 shadow-2xl">
                 <UserPlus className="h-4 w-4 sm:h-5 sm:w-5" />
                 SIGN UP AS RECRUITER
               </Link>
