@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import {
   Search, Briefcase, MapPin, Code, TrendingUp, DollarSign, Users, LayoutGrid, Zap, ShieldCheck,
   User, Aperture, ArrowRight, Layers, ChevronRight, 
-  ChevronLeft, Heart, Eye
+  ChevronLeft, Heart, Eye, ExternalLink
 } from 'lucide-react';
 import Hero from '../components/Hero';
 
@@ -37,11 +37,10 @@ const JobPortalHome = () => {
       logo: '🚀', 
       salary: '₹12-15 LPA', 
       location: 'Bangalore, IN', 
-      type: 'Full-time', 
+      type: 'In Office', 
       applied: 45, 
       views: 234, 
-      color: 'from-blue-500 to-purple-600',
-      featured: true 
+      color: 'from-blue-500 to-purple-600'
     },
     { 
       id: 2, 
@@ -50,11 +49,10 @@ const JobPortalHome = () => {
       logo: '💡', 
       salary: '₹18-22 LPA', 
       location: 'Mumbai, IN', 
-      type: 'Full-time', 
+      type: 'In Office', 
       applied: 67, 
       views: 189, 
-      color: 'from-green-500 to-blue-500',
-      featured: true 
+      color: 'from-green-500 to-blue-500'
     },
     { 
       id: 3, 
@@ -63,11 +61,10 @@ const JobPortalHome = () => {
       logo: '🎨', 
       salary: '₹8-12 LPA', 
       location: 'Remote', 
-      type: 'Contract', 
+      type: 'Remote', 
       applied: 23, 
       views: 156, 
-      color: 'from-pink-500 to-orange-500',
-      featured: false 
+      color: 'from-pink-500 to-orange-500'
     },
     { 
       id: 4, 
@@ -76,11 +73,10 @@ const JobPortalHome = () => {
       logo: '📊', 
       salary: '₹15-20 LPA', 
       location: 'Delhi, IN', 
-      type: 'Full-time', 
+      type: 'Hybrid', 
       applied: 89, 
       views: 321, 
-      color: 'from-purple-500 to-pink-500',
-      featured: true 
+      color: 'from-purple-500 to-pink-500'
     },
     { 
       id: 5, 
@@ -89,11 +85,10 @@ const JobPortalHome = () => {
       logo: '⚙️', 
       salary: '₹14-18 LPA', 
       location: 'Hyderabad, IN', 
-      type: 'Full-time', 
+      type: 'In Office', 
       applied: 56, 
       views: 278, 
-      color: 'from-indigo-500 to-blue-600',
-      featured: false 
+      color: 'from-indigo-500 to-blue-600'
     }
   ];
 
@@ -125,7 +120,7 @@ const JobPortalHome = () => {
       <main>
         {/* Categories Section */}
         <section className="bg-white py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-15">
             <div className="mb-12 text-center">
               <div className="inline-block mb-4 px-4 py-1 bg-black text-white text-xs font-bold tracking-wider">EXPLORE CATEGORIES</div>
               <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-4">Browse by Industry</h2>
@@ -148,7 +143,6 @@ const JobPortalHome = () => {
                       <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 text-white transition-transform group-hover:translate-x-1" />
                     </div>
                   </div>
-                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
                 </div>
               ))}
             </div>
@@ -157,7 +151,7 @@ const JobPortalHome = () => {
 
         {/* Featured Jobs Carousel Section */}
         <section className="bg-gray-50 py-16">
-          <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-15">
             <div className="flex justify-between items-center mb-10">
               <div>
                 <h2 className="text-3xl sm:text-4xl font-black mb-2">Featured Jobs</h2>
@@ -182,36 +176,18 @@ const JobPortalHome = () => {
               <div
                 ref={jobCarouselRef}
                 className="flex gap-6 overflow-x-auto pb-4"
-                style={{ 
-                  scrollbarWidth: 'none', 
-                  msOverflowStyle: 'none',
-                  WebkitScrollbar: { display: 'none' }
-                }}
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
               >
                 {featuredJobs.map((job) => (
                   <div
                     key={job.id}
                     className="min-w-[320px] bg-white border-2 border-black shadow-lg hover:shadow-2xl transition-all group relative overflow-hidden"
                   >
-                    <div className={`h-32 bg-gradient-to-br ${job.color} relative flex items-center justify-center`}>
-                      {job.featured && (
-                        <div className="absolute top-3 left-3 bg-white px-3 py-1 text-xs font-black">
-                          ⭐ FEATURED
-                        </div>
-                      )}
+                    <div className={`h-32 bg-linear-to-br ${job.color} relative flex items-center justify-center`}>
                       <div className="absolute top-3 right-3 bg-white px-3 py-1 text-xs font-black">
                         {job.type}
                       </div>
                       <div className="text-6xl">{job.logo}</div>
-                      <button
-                        onClick={() => toggleSaveJob(job.id)}
-                        className="absolute bottom-3 right-3 p-2 bg-white border border-gray-300 hover:border-black transition"
-                      >
-                        <Heart 
-                          className={`h-4 w-4 ${savedJobs.includes(job.id) ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} 
-                          strokeWidth={2.5} 
-                        />
-                      </button>
                     </div>
 
                     <div className="p-6">
@@ -242,12 +218,20 @@ const JobPortalHome = () => {
                         </div>
                       </div>
 
-                      <button className="w-full py-3 bg-black text-white font-black hover:bg-gray-800 transition">
-                        APPLY NOW
+                      <button className="w-full py-3 bg-black text-white font-black text-sm hover:bg-gray-900 transition flex items-center justify-center gap-2">
+                        VIEW DETAILS
+                        <ExternalLink className="h-4 w-4" strokeWidth={2.5} />
                       </button>
                     </div>
                 </div>
               ))}
+            </div>
+
+            <div className="text-center mt-8">
+              <button className="px-8 py-3 bg-white text-black font-black border-2 border-black hover:bg-black hover:text-white transition inline-flex items-center gap-2">
+                VIEW ALL JOBS
+                <ChevronRight className="h-4 w-4" strokeWidth={2.5} />
+              </button>
             </div>
           </div>
         </section>

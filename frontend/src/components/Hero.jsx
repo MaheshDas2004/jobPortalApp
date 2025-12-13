@@ -62,16 +62,6 @@ const Hero = ({ jobCategories = [] }) => {
           </div>
         </div>
       </section>
-
-      <style jsx>{`
-        @keyframes spin-slow {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        .animate-spin-slow {
-          animation: spin-slow 3s linear infinite;
-        }
-      `}</style>
     </div>
   )
 }

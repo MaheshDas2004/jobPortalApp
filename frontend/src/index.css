@@ -4,3 +4,13 @@
 html, body, #root {
   height: 100%;
 }
+
+/* Custom slow spin animation */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
