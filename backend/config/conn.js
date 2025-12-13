@@ -1,8 +1,9 @@
 const mongoose=require('mongoose')
+require('dotenv').config();
 
 const connectDB = async () => {
   try {
-    await mongoose.connect('mongodb+srv://maheshdas23_db_user:HuvQATzvzp24JJsN@hirematrixcluster.ladtvjt.mongodb.net/?appName=HireMatrixCluster');
+    await mongoose.connect(process.env.MONGODB_URI);
     console.log("MongoDB Connected");
   } catch (err) {
     console.log(err);
