@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { CheckCircle } from "lucide-react";
 
 export default function ESignup() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -10,8 +13,9 @@ export default function ESignup() {
     confirmPassword: "",
     termsAccepted: false
   });
-
-
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -19,12 +23,41 @@ export default function ESignup() {
       ...formData,
       [name]: type === 'checkbox' ? checked : value
     });
+    setError(null);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Employer signup:', formData);
-    // Here you would call API to create employer account
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+    if (!formData.termsAccepted) {
+      setError("You must accept the Terms of Service.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // POST to employee signup endpoint
+      const res = await axios.post("http://localhost:3000/api/employee/signup", {
+        fullName: formData.fullName,
+        email: formData.email,
+        password: formData.password
+      });
+
+      if (res.status === 201) {
+        setIsSubmitted(true);
+        setTimeout(() => {
+          navigate("/emp-signin");
+        }, 1500);
+      }
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.message || "Signup failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -58,6 +91,22 @@ export default function ESignup() {
             <p className="text-sm text-gray-700">Complete your profile after signup</p>
           </div>
 
+          {error && (
+            <div className="bg-red-50 border-2 border-red-500 p-4 mb-4">
+              <p className="text-red-700 font-bold text-sm uppercase">{error}</p>
+            </div>
+          )}
+
+          {isSubmitted && (
+            <div className="bg-green-50 border-2 border-green-500 p-4 mb-4 flex space-x-3">
+              <CheckCircle className="text-green-600 h-5 w-5" />
+              <div>
+                <p className="font-bold text-green-800 text-sm uppercase">Signup Successful!</p>
+                <p className="text-green-700 text-xs">Redirecting to login...</p>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-4">
               <div>
@@ -68,6 +117,7 @@ export default function ESignup() {
                   placeholder="John Doe"
                   value={formData.fullName}
                   onChange={handleChange}
+                  required
                   className="w-full px-4 py-3 border-2 border-black bg-gray-100 text-gray-900 placeholder-gray-500 focus:outline-none focus:bg-white font-mono text-sm"
                 />
               </div>
@@ -80,6 +130,7 @@ export default function ESignup() {
                   placeholder="you@company.com"
                   value={formData.email}
                   onChange={handleChange}
+                  required
                   className="w-full px-4 py-3 border-2 border-black bg-gray-100 text-gray-900 placeholder-gray-500 focus:outline-none focus:bg-white font-mono text-sm"
                 />
               </div>
@@ -92,6 +143,7 @@ export default function ESignup() {
                   placeholder="+91 98765 43210"
                   value={formData.phone}
                   onChange={handleChange}
+                  required
                   className="w-full px-4 py-3 border-2 border-black bg-gray-100 text-gray-900 placeholder-gray-500 focus:outline-none focus:bg-white font-mono text-sm"
                 />
               </div>
@@ -104,6 +156,7 @@ export default function ESignup() {
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={handleChange}
+                  required
                   className="w-full px-4 py-3 border-2 border-black bg-gray-100 text-gray-900 placeholder-gray-500 focus:outline-none focus:bg-white font-mono text-sm"
                 />
                 <p className="text-xs font-bold text-gray-600 mt-1">Min. 8 characters with letters and numbers</p>
@@ -117,6 +170,7 @@ export default function ESignup() {
                   placeholder="••••••••"
                   value={formData.confirmPassword}
                   onChange={handleChange}
+                  required
                   className="w-full px-4 py-3 border-2 border-black bg-gray-100 text-gray-900 placeholder-gray-500 focus:outline-none focus:bg-white font-mono text-sm"
                 />
               </div>
@@ -141,9 +195,10 @@ export default function ESignup() {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-black text-white font-bold py-3 px-4 border-2 border-black hover:bg-gray-800 transition-colors uppercase tracking-wide mt-6"
+              disabled={loading}
+              className="w-full bg-black text-white font-bold py-3 px-4 border-2 border-black hover:bg-gray-800 transition-colors uppercase tracking-wide mt-6 disabled:opacity-50"
             >
-              CREATE ACCOUNT
+              {loading ? "CREATING ACCOUNT..." : "CREATE ACCOUNT"}
             </button>
           </form>
 
