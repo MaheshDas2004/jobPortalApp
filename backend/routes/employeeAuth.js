@@ -10,7 +10,7 @@ const routeProtector = require('../middlewares/routeProtector');
 // Signup Route
 router.post("/signup", validateSignup, async (req, res) => {
     try {
-        const { fullName, email, password } = req.body;
+        const { fullName, email, mobile, password } = req.body;
 
         const existingEmployee = await Employee.findOne({ email });
 
@@ -23,6 +23,7 @@ router.post("/signup", validateSignup, async (req, res) => {
         const newEmployee = new Employee({
             fullName,
             email,
+            mobile,
             password: hashedPassword
         });
 

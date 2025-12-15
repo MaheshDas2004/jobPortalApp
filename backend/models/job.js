@@ -72,10 +72,6 @@ const jobSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
-  isDraft: {
-    type: Boolean,
-    default: false
-  },
   postedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Candidate', // Changed to Candidate as per your existing structure

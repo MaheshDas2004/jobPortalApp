@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const routeProtector = require('../middlewares/routeProtector');
-const Job = require('../models/Job'); // Add your Job model import
+const Job = require('../models/job'); // Add your Job model import
 
 // Create a new job posting
 router.post('/all', routeProtector, async (req, res) => {

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, Fragment } from 'react';
 import {
-  Briefcase, Building2, MapPin, DollarSign, Clock, Users,
+  Briefcase, Building2, MapPin, DollarSign, Clock,
   FileText, Tag, Calendar, Zap, ChevronDown, Plus, X,
-  Upload, Send, AlertCircle, CheckCircle2
+  Send, AlertCircle, CheckCircle2
 } from 'lucide-react';
 
 const PostJob = () => {
@@ -19,14 +19,15 @@ const PostJob = () => {
     responsibilities: '',
     qualifications: '',
     benefits: '',
-    deadline: '',
-    positions: '1'
+    deadline: ''
   });
 
   const [currentSkill, setCurrentSkill] = useState('');
   const [showPreview, setShowPreview] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [activeSection, setActiveSection] = useState('basic');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState(null);
 
   const workTypeOptions = ['In Office', 'Remote', 'Field Work', 'Hybrid'];
   const jobTypeOptions = ['Full Time', 'Part Time', 'Contract', 'Internship'];
@@ -97,9 +98,82 @@ const PostJob = () => {
     }));
   };
 
-  const handleSubmit = (isDraft) => {
-    console.log('Form submitted:', { ...formData, isDraft });
-    alert(isDraft ? 'Job saved as draft!' : 'Job posted successfully!');
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitStatus(null);
+
+    try {
+      // Validate required fields
+      const requiredFields = ['jobTitle', 'company', 'location', 'workType', 'jobType', 'experience', 'salary'];
+      const missingFields = requiredFields.filter(field => !formData[field]);
+      
+      if (missingFields.length > 0 || formData.skills.length === 0 || !formData.description.trim()) {
+        throw new Error('Please fill all required fields before posting the job.');
+      }
+
+      // Prepare data for API
+      const jobData = {
+        ...formData,
+        postedAt: new Date().toISOString(),
+        employerId: 'emp_123', // This would come from auth context in real app
+        status: 'active'
+      };
+
+      console.log('Sending job data to backend:', jobData);
+
+      // Mock API call - replace with actual backend endpoint
+      const response = await fetch('http://localhost:5000/api/jobs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // 'Authorization': `Bearer ${token}`, // Add auth token in real app
+        },
+        body: JSON.stringify(jobData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      setSubmitStatus({
+        type: 'success',
+        message: 'Job posted successfully!',
+        jobId: result.jobId
+      });
+
+      // Reset form after successful submission
+      setTimeout(() => {
+        setFormData({
+          jobTitle: '',
+          company: '',
+          location: '',
+          workType: '',
+          jobType: '',
+          experience: '',
+          salary: '',
+          skills: [],
+          description: '',
+          responsibilities: '',
+          qualifications: '',
+          benefits: '',
+          deadline: ''
+        });
+        setCurrentStep(1);
+        setActiveSection('basic');
+      }, 2000);
+
+    } catch (error) {
+      console.error('Error submitting job:', error);
+      setSubmitStatus({
+        type: 'error',
+        message: error.message || 'Failed to submit job. Please try again.'
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const scrollToSection = (sectionId) => {
@@ -202,7 +276,25 @@ const PostJob = () => {
               </div>
             </div>
 
-            <div className="bg-white border-2 border-black p-6 sm:p-8">
+            <form onSubmit={handleSubmit} className="bg-white border-2 border-black p-6 sm:p-8">
+              {/* Submit Status Message */}
+              {submitStatus && (
+                <div className={`mb-6 p-4 border-2 ${
+                  submitStatus.type === 'success' 
+                    ? 'bg-green-50 border-green-500 text-green-800' 
+                    : 'bg-red-50 border-red-500 text-red-800'
+                } font-semibold`}>
+                  <div className="flex items-center gap-2">
+                    {submitStatus.type === 'success' ? (
+                      <CheckCircle2 className="h-5 w-5" strokeWidth={2.5} />
+                    ) : (
+                      <AlertCircle className="h-5 w-5" strokeWidth={2.5} />
+                    )}
+                    {submitStatus.message}
+                  </div>
+                </div>
+              )}
+
               {/* Step 1: Basic Information */}
               {currentStep === 1 && (
                 <div id="section-basic" className="mb-8 scroll-mt-24">
@@ -329,40 +421,21 @@ const PostJob = () => {
                     </div>
                   </div>
 
-                  {/* Salary & Positions */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-black mb-2">
-                        SALARY RANGE *
-                      </label>
-                      <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" strokeWidth={2.5} />
-                        <input
-                          type="text"
-                          name="salary"
-                          value={formData.salary}
-                          onChange={handleInputChange}
-                          placeholder="e.g. ₹5 LPA - ₹8 LPA"
-                          className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 focus:border-black outline-none font-semibold"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-black mb-2">
-                        NO. OF POSITIONS
-                      </label>
-                      <div className="relative">
-                        <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" strokeWidth={2.5} />
-                        <input
-                          type="number"
-                          name="positions"
-                          value={formData.positions}
-                          onChange={handleInputChange}
-                          min="1"
-                          className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 focus:border-black outline-none font-semibold"
-                        />
-                      </div>
+                  {/* Salary */}
+                  <div>
+                    <label className="block text-sm font-black mb-2">
+                      SALARY RANGE *
+                    </label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" strokeWidth={2.5} />
+                      <input
+                        type="text"
+                        name="salary"
+                        value={formData.salary}
+                        onChange={handleInputChange}
+                        placeholder="e.g. ₹5 LPA - ₹8 LPA"
+                        className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 focus:border-black outline-none font-semibold"
+                      />
                     </div>
                   </div>
 
@@ -534,18 +607,20 @@ const PostJob = () => {
                   </button>
                 ) : (
                   <button
-                    type="button"
-                    onClick={() => handleSubmit(false)}
-                    className="flex-1 py-4 bg-black text-white font-black border-2 border-black hover:bg-gray-900 transition flex items-center justify-center gap-2"
+                    type="submit"
+                    disabled={isSubmitting}
+                    className={`flex-1 py-4 font-black border-2 transition flex items-center justify-center gap-2 ${
+                      isSubmitting 
+                        ? 'bg-gray-400 text-gray-700 border-gray-400 cursor-not-allowed' 
+                        : 'bg-black text-white border-black hover:bg-gray-900'
+                    }`}
                   >
                     <Send className="h-5 w-5" strokeWidth={2.5} />
-                    POST JOB
+                    {isSubmitting ? 'POSTING...' : 'POST JOB'}
                   </button>
                 )}
               </div>
-
-
-            </div>
+            </form>
           </div>
 
           {/* Tips Sidebar */}
