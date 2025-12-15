@@ -1,21 +1,50 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { CheckCircle } from 'lucide-react';
 
-export default function ESignin() {
+export default function ESignin({ setUser }) {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: ""
   });
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handlechange = (e) => {
     setFormData({
       ...formData, [e.target.name]: e.target.value
     });
+    setError(null);
   };
-  
-  const handleSubmit = (e) => {
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData)
+    setLoading(true);
+    try {
+      const res = await axios.post("http://localhost:3000/api/employee/signin", formData, {
+        withCredentials: true
+      });
+
+      if (res.data?.user) {
+        setUser(res.data.user);
+        setIsSubmitted(true);
+
+        // Notify navbar or other components
+        window.dispatchEvent(new Event('authStateChanged'));
+
+        setTimeout(() => {
+          navigate("/");
+        }, 1500);
+      }
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.message || "Signin failed. Please check your credentials.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -48,6 +77,22 @@ export default function ESignin() {
             <p className="text-sm text-gray-700">Access your recruiter dashboard</p>
           </div>
 
+          {error && (
+            <div className="bg-red-50 border-2 border-red-500 p-4 mb-4">
+              <p className="text-red-700 font-bold text-sm uppercase">{error}</p>
+            </div>
+          )}
+
+          {isSubmitted && (
+            <div className="bg-green-50 border-2 border-green-500 p-4 mb-4 flex space-x-3">
+              <CheckCircle className="text-green-600 h-5 w-5" />
+              <div>
+                <p className="font-bold text-green-800 text-sm uppercase">Login Successful!</p>
+                <p className="text-green-700 text-xs">Redirecting to dashboard...</p>
+              </div>
+            </div>
+          )}
+
           {/* Login Form Card */}
           <div className="bg-white p-4 mb-4">
             <div className="space-y-4">
@@ -60,6 +105,7 @@ export default function ESignin() {
                   placeholder="you@company.com"
                   value={formData.email}
                   onChange={handlechange}
+                  disabled={loading || isSubmitted}
                   className="w-full px-4 py-3 border-2 border-black bg-gray-100 text-gray-900 placeholder-gray-500 focus:outline-none focus:bg-white font-mono text-sm"
                 />
               </div>
@@ -72,17 +118,19 @@ export default function ESignin() {
                   name="password"
                   value={formData.password}
                   onChange={handlechange}
+                  disabled={loading || isSubmitted}
                   placeholder="••••••••"
                   className="w-full px-4 py-3 border-2 border-black bg-gray-100 text-gray-900 placeholder-gray-500 focus:outline-none focus:bg-white font-mono text-sm"
                 />
               </div>
 
               {/* Sign In Button */}
-              <button 
+              <button
                 onClick={handleSubmit}
-                className="w-full bg-black text-white font-bold py-3 px-4 border-2 border-black hover:bg-white hover:text-black transition-colors text-base mt-4 uppercase tracking-wide"
+                disabled={loading || isSubmitted}
+                className="w-full bg-black text-white font-bold py-3 px-4 border-2 border-black hover:bg-white hover:text-black transition-colors text-base mt-4 uppercase tracking-wide disabled:opacity-50"
               >
-                SIGN IN
+                {loading ? "SIGNING IN..." : "SIGN IN"}
               </button>
 
               {/* Links */}
@@ -96,7 +144,7 @@ export default function ESignin() {
           {/* Sign Up CTA */}
           <div className="bg-white p-3 text-center">
             <p className="text-gray-900 font-bold mb-2 uppercase text-sm">New to Hire Matrix?</p>
-            <Link to="/emp-signup" className="w-full bg-white text-black font-bold py-2 px-4 border-2 border-black hover:bg-black hover:text-white transition-colors uppercase text-sm">
+            <Link to="/emp-signup" className="w-full bg-white text-black font-bold py-2 px-4 border-2 border-black hover:bg-black hover:text-white transition-colors uppercase text-sm inline-block">
               Create Recruiter Account
             </Link>
           </div>

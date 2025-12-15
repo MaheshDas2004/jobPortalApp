@@ -21,28 +21,28 @@ function App() {
 
   return (
     <div>
-      <Navbar/>
+      <Navbar />
 
       <Routes>
         {/* Pages WITH Footer */}
-        <Route element={<MainLayout/>}>
+        <Route element={<MainLayout />}>
           <Route path="/" element={<Home />} />
           {/* <Route path="/dashboard" element={<Dashboard />}/> */}
-          <Route path="/intro" element={<IntroPage/>}/>
-          <Route path="/job-portal" element={<JobPortal />}/>
-          <Route path="/about-us" element={<AboutUs />}/>
-          <Route path="/demo" element={<EventHandling />}/>
+          <Route path="/intro" element={<IntroPage />} />
+          <Route path="/job-portal" element={<JobPortal />} />
+          <Route path="/about-us" element={<AboutUs />} />
+          <Route path="/demo" element={<EventHandling />} />
 
         </Route>
 
         {/* Pages WITHOUT Footer */}
-          <Route path="/jobs" element={<Jobs />}/>
+        <Route path="/jobs" element={<Jobs />} />
 
-        <Route path="/cand-signin" element={<Signin setUser={setUser}/>}/>
-        <Route path="/emp-signin" element={<ESignin />}/>
-        <Route path='/cand-signup' element={<Signup />}/>
-        <Route path="/emp-signup" element={<ESignup />}/>
-        <Route path="/post-job" element={<PostJob />}/>
+        <Route path="/cand-signin" element={<Signin setUser={setUser} />} />
+        <Route path="/emp-signin" element={<ESignin setUser={setUser} />} />
+        <Route path='/cand-signup' element={<Signup />} />
+        <Route path="/emp-signup" element={<ESignup setUser={setUser} />} />
+        <Route path="/post-job" element={<PostJob />} />
       </Routes>
     </div>
   )
