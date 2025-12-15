@@ -11,8 +11,10 @@ import Jobs from './pages/Jobs'
 import Signin from './pages/candidate/Signin'
 import ESignin from './pages/employer/ESignin'
 import ESignup from './pages/employer/ESignup'
+import PostJob from './pages/employer/PostJob'
 import Signup from './pages/candidate/Signup'
 import IntroPage from './pages/InroPage'
+
 
 function App() {
   const [user, setUser] = useState(null);
@@ -40,7 +42,7 @@ function App() {
         <Route path="/emp-signin" element={<ESignin />}/>
         <Route path='/cand-signup' element={<Signup />}/>
         <Route path="/emp-signup" element={<ESignup />}/>
-        {/* <Route path="/post-job" element={<PostJob />}/> */}
+        <Route path="/post-job" element={<PostJob />}/>
       </Routes>
     </div>
   )

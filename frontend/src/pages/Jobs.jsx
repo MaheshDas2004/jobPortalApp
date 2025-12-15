@@ -303,7 +303,7 @@ const Jobs = () => {
       {/* Hero Section */}
       <header className="relative bg-black text-white overflow-hidden">
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black"></div>
+          <div className="absolute inset-0 bg-linear-to-b from-black/70 via-black/60 to-black"></div>
         </div>
         
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 md:py-16">
@@ -370,7 +370,7 @@ const Jobs = () => {
                   <div className="p-3 sm:p-4 md:p-6">
                     <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
                       {/* Logo */}
-                      <div className={`w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 shrink-0 bg-gradient-to-br ${job.color} flex items-center justify-center border-2 border-black mx-auto sm:mx-0`}>
+                      <div className={`w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 shrink-0 bg-linear-to-br ${job.color} flex items-center justify-center border-2 border-black mx-auto sm:mx-0`}>
                         {job.logo === 'wtw' ? (
                           <span className="text-white font-black text-lg md:text-xl">wtw</span>
                         ) : (
@@ -382,7 +382,7 @@ const Jobs = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-2 gap-2">
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-base sm:text-lg md:text-xl font-black mb-1 group-hover:underline cursor-pointer break-words">
+                            <h3 className="text-base sm:text-lg md:text-xl font-black mb-1 group-hover:underline cursor-pointer wrap-break-words">
                               {job.title}
                             </h3>
                             <p className="text-xs sm:text-sm font-bold text-gray-600">{job.company}</p>
