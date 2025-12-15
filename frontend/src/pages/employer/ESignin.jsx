@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 export default function ESignin() {
   const [formData, setFormData] = useState({
@@ -87,7 +88,7 @@ export default function ESignin() {
               {/* Links */}
               <div className="mt-4 flex justify-between items-center">
                 <span className="text-xs font-bold text-gray-900 hover:underline uppercase cursor-pointer">Forgot password?</span>
-                <span className="text-xs font-bold text-gray-900 hover:underline uppercase cursor-pointer">Are you a job seeker?</span>
+                <Link to="/" className="text-xs font-bold text-gray-900 hover:underline uppercase cursor-pointer">Are you a job seeker?</Link>
               </div>
             </div>
           </div>
@@ -95,9 +96,9 @@ export default function ESignin() {
           {/* Sign Up CTA */}
           <div className="bg-white p-3 text-center">
             <p className="text-gray-900 font-bold mb-2 uppercase text-sm">New to Hire Matrix?</p>
-            <button className="w-full bg-white text-black font-bold py-2 px-4 border-2 border-black hover:bg-black hover:text-white transition-colors uppercase text-sm">
+            <Link to="/emp-signup" className="w-full bg-white text-black font-bold py-2 px-4 border-2 border-black hover:bg-black hover:text-white transition-colors uppercase text-sm">
               Create Recruiter Account
-            </button>
+            </Link>
           </div>
         </div>
       </div>

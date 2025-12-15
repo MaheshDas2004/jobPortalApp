@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, ArrowRight, CheckCircle } from 'lucide-react';
 import UseFetch from '../../hooks/UseFetch';
+import { Link } from 'react-router-dom';
 
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -270,9 +271,9 @@ const Signup = () => {
 
           <p className="text-center mt-4 text-sm font-bold">
             Already have an account?{" "}
-            <a href="/login" className="underline">
+            <Link to="/cand-signin" className="underline">
               Sign in
-            </a>
+            </Link>
           </p>
         </div>
       </div>

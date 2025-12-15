@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Eye, EyeOff, ArrowRight, CheckCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { Link } from "react-router-dom";
 
 export default function SigninSeeker({ setUser }) {
   const navigate = useNavigate();
@@ -173,7 +174,7 @@ export default function SigninSeeker({ setUser }) {
 
           <p className="text-center mt-4 text-sm font-bold">
             Don't have an account?{" "}
-            <a href="/signup" className="underline">Create Account</a>
+            <Link to="/cand-signup" className="underline" >Create Account</Link>
           </p>
         </div>
       </div>

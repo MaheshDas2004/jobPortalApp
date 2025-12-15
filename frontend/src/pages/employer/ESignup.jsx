@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from "react-router-dom";
 
 export default function ESignup() {
   const [formData, setFormData] = useState({
@@ -150,9 +151,7 @@ export default function ESignup() {
           <div className="mt-6 text-center">
             <p className="text-xs font-bold text-gray-900 uppercase">
               Already have an account?{' '}
-              <span className="underline cursor-pointer hover:text-gray-600">
-                Log In
-              </span>
+              <Link to="/emp-signin" className="underline cursor-pointer hover:text-gray-800">Log In</Link>
             </p>
           </div>
         </div>

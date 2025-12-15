@@ -14,8 +14,13 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
+app.get('/', (req, res) => {
+  res.send("Job Portal Backend is running");
+});
+
 app.use("/api/auth", require("./routes/auth"));
 app.use("api/jobs",require("./routes/jobs"));
+app.use("/api/employee", require("./routes/employeeAuth"));
 
 const PORT = process.env.PORT || 3000;
 
