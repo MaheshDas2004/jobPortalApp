@@ -3,9 +3,11 @@ import { Eye, EyeOff, ArrowRight, CheckCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
-export default function SigninSeeker({ setUser }) {
+export default function SigninSeeker() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
@@ -53,24 +55,18 @@ export default function SigninSeeker({ setUser }) {
 
     try {
       const res = await axios.post(
-        "http://localhost:3000/api/auth/signin",
+        "http://localhost:3000/api/auth/candidate/signin",
         formData,
         { withCredentials: true } // ✅ HTTP-only cookie ke liye
       );
 
-      // ✅ Backend JWT cookie me set karega
-      if (res.data?.user) {
-        setUser(res.data.user); // frontend me user state set
-      }
-
+      // ✅ Backend JWT cookie me set karega - let AuthContext detect on navigation
       setFormData({ email: "", password: "" });
       setIsSubmitted(true);
 
       setTimeout(() => {
-        // Notify navbar to update just before redirect
-        window.dispatchEvent(new Event('authStateChanged'));
         setIsSubmitted(false);
-        navigate("/"); // redirect
+        navigate("/"); // redirect - navbar will update when home page loads
       }, 1500);
     } catch (err) {
       if (err.response?.data?.message) setFriendlyError(err.response.data.message);

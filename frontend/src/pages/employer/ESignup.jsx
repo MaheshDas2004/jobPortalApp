@@ -40,7 +40,7 @@ export default function ESignup() {
     setLoading(true);
     try {
       // POST to employee signup endpoint
-      const res = await axios.post("http://localhost:3000/api/employee/signup", {
+      const res = await axios.post("http://localhost:3000/api/auth/employee/signup", {
         fullName: formData.fullName,
         email: formData.email,
         password: formData.password

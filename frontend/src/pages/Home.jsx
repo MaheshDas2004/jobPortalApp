@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Search, Briefcase, MapPin, Code, TrendingUp, DollarSign, Users, LayoutGrid, Zap, ShieldCheck,
   User, Aperture, ArrowRight, Layers, ChevronRight, 
@@ -9,6 +9,11 @@ import Hero from '../components/Hero';
 const JobPortalHome = () => {
   const [savedJobs, setSavedJobs] = useState([]);
   const jobCarouselRef = useRef(null);
+
+  // Trigger auth check when home page loads (for navbar update after login)
+  useEffect(() => {
+    window.dispatchEvent(new Event('authStateChanged'));
+  }, []);
 
   const valueProps = [
     { title: 'Easy Search', description: 'Simple and fast job discovery', icon: Search },

@@ -20,7 +20,7 @@ const Signup = () => {
 
   // Custom Hook
   const { fetchData, loading: apiLoading, error: friendlyError } = UseFetch({
-    url: "http://localhost:3000/api/auth/signup",
+    url: "http://localhost:3000/api/auth/candidate/signup",
     method: "POST"
   });
 

@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { CheckCircle } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
-export default function ESignin({ setUser }) {
+export default function ESignin() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: ""
@@ -24,19 +26,15 @@ export default function ESignin({ setUser }) {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await axios.post("http://localhost:3000/api/employee/signin", formData, {
+      const res = await axios.post("http://localhost:3000/api/auth/employee/signin", formData, {
         withCredentials: true
       });
 
       if (res.data?.user) {
-        setUser(res.data.user);
         setIsSubmitted(true);
 
-        // Notify navbar or other components
-        window.dispatchEvent(new Event('authStateChanged'));
-
         setTimeout(() => {
-          navigate("/");
+          navigate("/"); // navbar will update when home page loads
         }, 1500);
       }
     } catch (err) {

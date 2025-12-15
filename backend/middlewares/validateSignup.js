@@ -13,6 +13,11 @@ const validateSignup = [
     .isLength({ min: 6 })
     .withMessage("Password must be at least 6 characters"),
 
+  body("mobile")
+    .optional()
+    .matches(/^\d{10}$/)
+    .withMessage("Mobile number must be 10 digits"),
+
   (req, res, next) => {
     const errors = validationResult(req);
 

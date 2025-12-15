@@ -23,7 +23,7 @@ router.post("/signup", validateSignup, async (req, res) => {
         const newEmployee = new Employee({
             fullName,
             email,
-            mobile,
+            mobile: mobile || undefined, // Only include if provided
             password: hashedPassword
         });
 

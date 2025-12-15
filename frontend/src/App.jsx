@@ -14,14 +14,15 @@ import ESignup from './pages/employer/ESignup'
 import PostJob from './pages/employer/PostJob'
 import Signup from './pages/candidate/Signup'
 import IntroPage from './pages/InroPage'
+import { AuthProvider } from './context/AuthContext'
 
 
 function App() {
-  const [user, setUser] = useState(null);
 
   return (
-    <div>
-      <Navbar />
+    <AuthProvider>
+      <div>
+        <Navbar />
 
       <Routes>
         {/* Pages WITH Footer */}
@@ -38,13 +39,14 @@ function App() {
         {/* Pages WITHOUT Footer */}
         <Route path="/jobs" element={<Jobs />} />
 
-        <Route path="/cand-signin" element={<Signin setUser={setUser} />} />
-        <Route path="/emp-signin" element={<ESignin setUser={setUser} />} />
+        <Route path="/cand-signin" element={<Signin />} />
+        <Route path="/emp-signin" element={<ESignin />} />
         <Route path='/cand-signup' element={<Signup />} />
-        <Route path="/emp-signup" element={<ESignup setUser={setUser} />} />
+        <Route path="/emp-signup" element={<ESignup />} />
         <Route path="/post-job" element={<PostJob />} />
       </Routes>
-    </div>
+      </div>
+    </AuthProvider>
   )
 }
 

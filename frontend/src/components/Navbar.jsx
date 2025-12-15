@@ -1,65 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, LogOut, LayoutDashboard } from 'lucide-react';
-import axios from 'axios';
+import { User, LogOut, LayoutDashboard, Briefcase } from 'lucide-react';
 import hmxLogo from '../assets/HMX.png';
+import { useAuth } from '../context/AuthContext';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [user, setUser] = useState(null);
   const navigate = useNavigate();
-
-  const fetchUser = async () => {
-    try {
-      const res = await axios.get(
-        "http://localhost:3000/api/auth/isloggedin",
-        { withCredentials: true }
-      );
-
-      if (res.data.isLoggedin) {
-        setUser(res.data.user);
-      }
-    } catch (err) {
-      // Silently handle auth check - user is not logged in
-      setUser(null);
-    }
-  };
-
-  useEffect(() => {
-    fetchUser();
-
-    // Listen for auth state changes
-    const handleAuthChange = () => {
-      fetchUser();
-    };
-
-    window.addEventListener('authStateChanged', handleAuthChange);
-
-    return () => {
-      window.removeEventListener('authStateChanged', handleAuthChange);
-    };
-  }, []);
-
-  const isLoggedIn = !!user;
+  
+  const { user, userType, isLoggedIn, isEmployee, isCandidate, logout } = useAuth();
 
   const handleLogout = async () => {
-    try {
-      await axios.post(
-        "http://localhost:3000/api/auth/logout",
-        {},
-        { withCredentials: true }
-      );
-      setUser(null);
+    const success = await logout();
+    if (success) {
       setShowProfileMenu(false);
       setIsOpen(false);
-      
-      // Notify other components about logout
-      window.dispatchEvent(new Event('authStateChanged'));
-      
       navigate('/');
-    } catch (err) {
-      console.error("Logout error:", err);
     }
   };
 
@@ -93,7 +50,6 @@ export default function Navbar() {
             <Link to="/about-us" className="text-xs sm:text-sm lg:text-base font-bold text-gray-900 hover:text-gray-600 uppercase whitespace-nowrap transition-colors">
               About Us
             </Link>
-            
             <Link to="/intro" className="text-xs sm:text-sm lg:text-base font-bold text-gray-900 hover:text-gray-600 uppercase whitespace-nowrap transition-colors">
               For Recruiters
             </Link>
@@ -117,16 +73,49 @@ export default function Navbar() {
                 {showProfileMenu && (
                   <div className="absolute right-0 top-full w-48 bg-white border-2 border-black shadow-lg">
                     <div className="px-4 py-3 border-b-2 border-black">
-                      <p className="text-xs text-gray-600 uppercase">Logged in as</p>
+                      <p className="text-xs text-gray-600 uppercase">
+                        {isEmployee ? 'Employer' : 'Candidate'}
+                      </p>
                       <p className="text-sm font-bold text-gray-900 truncate">{user?.fullName}</p>
+                      <p className="text-xs text-gray-500 truncate">{user?.email}</p>
                     </div>
-                    <Link 
-                      to="/dashboard" 
-                      className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-900 hover:bg-gray-100 transition-colors uppercase"
-                    >
-                      <LayoutDashboard className="w-4 h-4" />
-                      Dashboard
-                    </Link>
+                    
+                    {isEmployee ? (
+                      <>
+                        <Link 
+                          to="/employer-dashboard" 
+                          className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-900 hover:bg-gray-100 transition-colors uppercase"
+                        >
+                          <LayoutDashboard className="w-4 h-4" />
+                          Dashboard
+                        </Link>
+                        <Link 
+                          to="/post-job" 
+                          className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-900 hover:bg-gray-100 transition-colors uppercase"
+                        >
+                          <Briefcase className="w-4 h-4" />
+                          Post Job
+                        </Link>
+                      </>
+                    ) : (
+                      <>
+                        <Link 
+                          to="/candidate-dashboard" 
+                          className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-900 hover:bg-gray-100 transition-colors uppercase"
+                        >
+                          <LayoutDashboard className="w-4 h-4" />
+                          Dashboard
+                        </Link>
+                        <Link 
+                          to="/job-portal" 
+                          className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-900 hover:bg-gray-100 transition-colors uppercase"
+                        >
+                          <Briefcase className="w-4 h-4" />
+                          Browse Jobs
+                        </Link>
+                      </>
+                    )}
+                    
                     <button 
                       onClick={handleLogout}
                       className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-900 hover:bg-gray-100 transition-colors uppercase text-left"
@@ -181,13 +170,29 @@ export default function Navbar() {
               {isLoggedIn ? (
                 <>
                   <div className="px-2 py-2 bg-gray-50 border-2 border-black">
-                    <p className="text-xs text-gray-600 uppercase">Logged in as</p>
+                    <p className="text-xs text-gray-600 uppercase">
+                      {isEmployee ? 'Employer' : 'Candidate'}
+                    </p>
                     <p className="text-sm font-bold text-gray-900">{user?.fullName}</p>
+                    <p className="text-xs text-gray-500">{user?.email}</p>
                   </div>
-                  <Link to="/dashboard" onClick={() => setIsOpen(false)} className="flex items-center gap-3 text-sm sm:text-base font-bold text-gray-900 hover:text-gray-600 uppercase py-2 transition-colors">
+                  
+                  <Link 
+                    to={isEmployee ? "/employer-dashboard" : "/candidate-dashboard"} 
+                    onClick={() => setIsOpen(false)} 
+                    className="flex items-center gap-3 text-sm sm:text-base font-bold text-gray-900 hover:text-gray-600 uppercase py-2 transition-colors"
+                  >
                     <LayoutDashboard className="w-4 h-4 sm:w-5 sm:h-5" />
                     Dashboard
                   </Link>
+                  
+                  {isEmployee && (
+                    <Link to="/post-job" onClick={() => setIsOpen(false)} className="flex items-center gap-3 text-sm sm:text-base font-bold text-gray-900 hover:text-gray-600 uppercase py-2 transition-colors">
+                      <Briefcase className="w-4 h-4 sm:w-5 sm:h-5" />
+                      Post Job
+                    </Link>
+                  )}
+                  
                   <button onClick={handleLogout} className="flex items-center gap-3 text-sm sm:text-base font-bold text-gray-900 hover:text-gray-600 uppercase py-2 transition-colors text-left">
                     <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
                     Logout

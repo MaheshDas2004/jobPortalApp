@@ -19,7 +19,7 @@ app.get('/', (req, res) => {
 });
 
 app.use("/api/auth/candidate", require("./routes/auth"));
-app.use("api/jobs",require("./routes/jobs"));
+app.use("/api/jobs", require("./routes/jobs"));
 app.use("/api/auth/employee", require("./routes/employeeAuth"));
 
 const PORT = process.env.PORT || 3000;

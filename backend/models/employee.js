@@ -15,11 +15,11 @@ const employeeSchema = new mongoose.Schema({
     },
     mobile: {
         type: String,
-        required: true,
+        required: false,
         trim: true,
         validate: {
             validator: function(v) {
-                return /^\d{10}$/.test(v);
+                return !v || /^\d{10}$/.test(v);
             },
             message: 'Mobile number must be 10 digits'
         }
