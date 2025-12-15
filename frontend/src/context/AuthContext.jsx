@@ -15,65 +15,63 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userType, setUserType] = useState(null); // 'employee' or 'candidate'
   const [isLoading, setIsLoading] = useState(true);
+  const [hasInitialAuthCheck, setHasInitialAuthCheck] = useState(false);
 
-  const checkAuthStatus = async () => {
-    setIsLoading(true);
+  const checkAuthStatus = async (showLoading = false) => {
+    // Only show loading spinner during initial auth check or when explicitly requested
+    if (showLoading || !hasInitialAuthCheck) {
+      setIsLoading(true);
+    }
+    
+    // Get stored user type from localStorage
+    const storedUserType = localStorage.getItem('userType');
+    
+    if (!storedUserType) {
+      // No stored user type, user is not logged in
+      setUser(null);
+      setUserType(null);
+      setIsLoading(false);
+      setHasInitialAuthCheck(true);
+      return;
+    }
+
     try {
-      // First try to check if user is a candidate
-      const candidateRes = await axios.get(
-        "http://localhost:3000/api/auth/candidate/isloggedin",
-        { withCredentials: true }
-      );
+      // Make API call based on stored user type - SINGLE API CALL!
+      const endpoint = storedUserType === 'employee' 
+        ? "http://localhost:3000/api/auth/employee/isloggedin"
+        : "http://localhost:3000/api/auth/candidate/isloggedin";
 
-      if (candidateRes.data.isLoggedin) {
-        setUser(candidateRes.data.user);
-        setUserType('candidate');
-        setIsLoading(false);
-        return;
-      }
-    } catch (err) {
-      // If candidate check fails, try employee
-      try {
-        const employeeRes = await axios.get(
-          "http://localhost:3000/api/auth/employee/isloggedin",
-          { withCredentials: true }
-        );
+      const response = await axios.get(endpoint, { withCredentials: true });
 
-        if (employeeRes.data.isLoggedin) {
-          setUser(employeeRes.data.user);
-          setUserType('employee');
-          setIsLoading(false);
-          return;
-        }
-      } catch (employeeErr) {
-        // Both checks failed - user is not logged in
+      if (response.data.isLoggedin) {
+        setUser(response.data.user);
+        setUserType(storedUserType);
+      } else {
+        // Invalid session, clear stored data
+        localStorage.removeItem('userType');
         setUser(null);
         setUserType(null);
       }
+    } catch (err) {
+      // Auth check failed, clear stored data
+      localStorage.removeItem('userType');
+      setUser(null);
+      setUserType(null);
     }
     
     setIsLoading(false);
+    setHasInitialAuthCheck(true);
   };
 
   useEffect(() => {
+    // Only do initial auth check on app startup
     checkAuthStatus();
-
-    // Listen for auth state changes
-    const handleAuthChange = () => {
-      checkAuthStatus();
-    };
-
-    window.addEventListener('authStateChanged', handleAuthChange);
-
-    return () => {
-      window.removeEventListener('authStateChanged', handleAuthChange);
-    };
   }, []);
 
   const login = (userData, type) => {
     setUser(userData);
     setUserType(type);
-    window.dispatchEvent(new Event('authStateChanged'));
+    // Don't trigger auth check on login, data is already fresh
   };
 
   const logout = async () => {
@@ -85,11 +83,10 @@ export const AuthProvider = ({ children }) => {
       
       await axios.post(logoutUrl, {}, { withCredentials: true });
       
+      // Clear stored data
+      localStorage.removeItem('userType');
       setUser(null);
       setUserType(null);
-      
-      // Notify other components about logout
-      window.dispatchEvent(new Event('authStateChanged'));
       
       return true;
     } catch (err) {

@@ -31,10 +31,16 @@ export default function ESignin() {
       });
 
       if (res.data?.user) {
+        // Store user type for AuthContext
+        localStorage.setItem('userType', 'employee');
+        
+        // Update auth context with user data
+        login(res.data.user, 'employee');
+        
         setIsSubmitted(true);
 
         setTimeout(() => {
-          navigate("/"); // navbar will update when home page loads
+          navigate("/"); // redirect to home page
         }, 1500);
       }
     } catch (err) {

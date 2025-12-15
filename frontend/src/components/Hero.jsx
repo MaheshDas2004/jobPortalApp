@@ -1,8 +1,10 @@
 import React from 'react'
 import { Sparkles, Search, Briefcase, Users, Layers, Zap } from 'lucide-react'
 import qt from '../assets/qt.jpeg'
+import { useAuth } from '../context/AuthContext'
 
 const Hero = ({ jobCategories = [] }) => {
+  const { user, userType, isLoggedIn, isEmployee, isCandidate } = useAuth();
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
@@ -23,23 +25,71 @@ const Hero = ({ jobCategories = [] }) => {
               50,000+ LIVE OPPORTUNITIES
             </div>
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black mb-4 sm:mb-6 leading-none tracking-tighter">
-              Your Career
-              <br />
-              <span className="text-gray-300">Starts Here</span>
+              {isEmployee ? (
+                <>
+                  Find Top
+                  <br />
+                  <span className="text-gray-300">Talent Fast</span>
+                </>
+              ) : isCandidate ? (
+                <>
+                  Welcome Back,
+                  <br />
+                  <span className="text-gray-300">{user?.fullName?.split(' ')[0]}</span>
+                </>
+              ) : (
+                <>
+                  Your Career
+                  <br />
+                  <span className="text-gray-300">Starts Here</span>
+                </>
+              )}
             </h1>
             <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-300 mb-8 sm:mb-10 max-w-3xl mx-auto font-medium">
-              Join millions of professionals finding their dream jobs. Real opportunities, real growth, real impact.
+              {isEmployee ? (
+                "Connect with skilled professionals and build your dream team. Post jobs, review applications, and hire faster than ever."
+              ) : isCandidate ? (
+                "Ready to take the next step in your career? Discover personalized job recommendations and apply with confidence."
+              ) : (
+                "Join millions of professionals finding their dream jobs. Real opportunities, real growth, real impact."
+              )}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-8 sm:mb-10 max-w-lg mx-auto">
-              <button className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-white text-black font-black hover:bg-gray-200 transition-all text-sm sm:text-base flex items-center justify-center gap-2 shadow-2xl">
-                <Search className="h-4 w-4 sm:h-5 sm:w-5" />
-                FIND YOUR DREAM JOB
-              </button>
-              <button className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-transparent text-white font-black border-2 border-white hover:bg-white hover:text-black transition-all text-sm sm:text-base flex items-center justify-center gap-2">
-                <Briefcase className="h-4 w-4 sm:h-5 sm:w-5" />
-                EXPLORE JOBS
-              </button>
+              {isEmployee ? (
+                <>
+                  <a href="/post-job" className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-white text-black font-black hover:bg-gray-200 transition-all text-sm sm:text-base flex items-center justify-center gap-2 shadow-2xl">
+                    <Briefcase className="h-4 w-4 sm:h-5 sm:w-5" />
+                    POST A JOB
+                  </a>
+                  <a href="/employer-dashboard" className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-transparent text-white font-black border-2 border-white hover:bg-white hover:text-black transition-all text-sm sm:text-base flex items-center justify-center gap-2">
+                    <Users className="h-4 w-4 sm:h-5 sm:w-5" />
+                    MY DASHBOARD
+                  </a>
+                </>
+              ) : isCandidate ? (
+                <>
+                  <a href="/job-portal" className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-white text-black font-black hover:bg-gray-200 transition-all text-sm sm:text-base flex items-center justify-center gap-2 shadow-2xl">
+                    <Search className="h-4 w-4 sm:h-5 sm:w-5" />
+                    BROWSE JOBS
+                  </a>
+                  <a href="/candidate-dashboard" className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-transparent text-white font-black border-2 border-white hover:bg-white hover:text-black transition-all text-sm sm:text-base flex items-center justify-center gap-2">
+                    <Briefcase className="h-4 w-4 sm:h-5 sm:w-5" />
+                    MY APPLICATIONS
+                  </a>
+                </>
+              ) : (
+                <>
+                  <button className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-white text-black font-black hover:bg-gray-200 transition-all text-sm sm:text-base flex items-center justify-center gap-2 shadow-2xl">
+                    <Search className="h-4 w-4 sm:h-5 sm:w-5" />
+                    FIND YOUR DREAM JOB
+                  </button>
+                  <button className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-transparent text-white font-black border-2 border-white hover:bg-white hover:text-black transition-all text-sm sm:text-base flex items-center justify-center gap-2">
+                    <Briefcase className="h-4 w-4 sm:h-5 sm:w-5" />
+                    EXPLORE JOBS
+                  </button>
+                </>
+              )}
             </div>
 
             {/* Search Bar in Hero */}

@@ -6,9 +6,11 @@ import {
   ChevronRight, Settings, Bell, CreditCard, Headphones, BookOpen, Play
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const IntroPage = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user, userType, isLoggedIn, isEmployee, isCandidate } = useAuth();
 
   const recruiterFeatures = [
     { title: 'AI-Powered Matching', description: 'Smart algorithms match top candidates to your jobs automatically', icon: Sparkles },
@@ -92,14 +94,37 @@ const IntroPage = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-12 sm:mb-16 max-w-lg mx-auto">
-              <Link to='/emp-signup' className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-white text-black font-black hover:bg-gray-200 transition-all text-sm sm:text-base flex items-center justify-center gap-2 shadow-2xl">
-                <UserPlus className="h-4 w-4 sm:h-5 sm:w-5" />
-                SIGN UP AS RECRUITER
-              </Link>
-              <button className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-transparent text-white font-black border-2 border-white hover:bg-white hover:text-black transition-all text-sm sm:text-base flex items-center justify-center gap-2">
-                <Eye className="h-4 w-4 sm:h-5 sm:w-5" />
-                EXPLORE PLATFORM
-              </button>
+              {!isLoggedIn ? (
+                <>
+                  <Link to='/emp-signup' className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-white text-black font-black hover:bg-gray-200 transition-all text-sm sm:text-base flex items-center justify-center gap-2 shadow-2xl">
+                    <UserPlus className="h-4 w-4 sm:h-5 sm:w-5" />
+                    SIGN UP AS RECRUITER
+                  </Link>
+                  <button className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-transparent text-white font-black border-2 border-white hover:bg-white hover:text-black transition-all text-sm sm:text-base flex items-center justify-center gap-2">
+                    <Eye className="h-4 w-4 sm:h-5 sm:w-5" />
+                    EXPLORE PLATFORM
+                  </button>
+                </>
+              ) : isEmployee ? (
+                <>
+                  <Link to='/post-job' className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-white text-black font-black hover:bg-gray-200 transition-all text-sm sm:text-base flex items-center justify-center gap-2 shadow-2xl">
+                    <Briefcase className="h-4 w-4 sm:h-5 sm:w-5" />
+                    POST A JOB
+                  </Link>
+                  <Link to='/employer-dashboard' className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-transparent text-white font-black border-2 border-white hover:bg-white hover:text-black transition-all text-sm sm:text-base flex items-center justify-center gap-2">
+                    <Users className="h-4 w-4 sm:h-5 sm:w-5" />
+                    MY DASHBOARD
+                  </Link>
+                </>
+              ) : (
+                <div className="text-center">
+                  <p className="text-white font-bold mb-4">This page is for employers and recruiters</p>
+                  <Link to='/job-portal' className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-white text-black font-black hover:bg-gray-200 transition-all text-sm sm:text-base flex items-center justify-center gap-2 shadow-2xl">
+                    <Search className="h-4 w-4 sm:h-5 sm:w-5" />
+                    BROWSE JOBS
+                  </Link>
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto">

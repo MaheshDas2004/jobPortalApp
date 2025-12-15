@@ -13,16 +13,32 @@ import ESignin from './pages/employer/ESignin'
 import ESignup from './pages/employer/ESignup'
 import PostJob from './pages/employer/PostJob'
 import Signup from './pages/candidate/Signup'
+import Dashboard from './pages/candidate/Dashboard'
+import EmployerDashboard from './pages/employer/Dashboard'
+import EHome from './pages/EHome'
 import IntroPage from './pages/InroPage'
-import { AuthProvider } from './context/AuthContext'
+import { AuthProvider, useAuth } from './context/AuthContext'
 
+// Loading component for initial auth check
+const AppContent = () => {
+  const { isLoading } = useAuth();
 
-function App() {
+  // Show loading only during initial auth check
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-black border-t-transparent mx-auto mb-4"></div>
+          <h2 className="text-2xl font-black text-gray-900 mb-2">Loading...</h2>
+          <p className="text-gray-600 font-semibold">Please wait a moment</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <AuthProvider>
-      <div>
-        <Navbar />
+    <div>
+      <Navbar />
 
       <Routes>
         {/* Pages WITH Footer */}
@@ -44,10 +60,20 @@ function App() {
         <Route path='/cand-signup' element={<Signup />} />
         <Route path="/emp-signup" element={<ESignup />} />
         <Route path="/post-job" element={<PostJob />} />
+        <Route path="/candidate-dashboard" element={<Dashboard />} />
+        <Route path="/employer-dashboard" element={<EmployerDashboard />} />
+        <Route path="/ehome" element={<EHome />} />
       </Routes>
-      </div>
+    </div>
+  );
+};
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
     </AuthProvider>
-  )
+  );
 }
 
 export default App

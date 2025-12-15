@@ -5,15 +5,39 @@ import {
   ChevronLeft, Heart, Eye, ExternalLink
 } from 'lucide-react';
 import Hero from '../components/Hero';
+import { useAuth } from '../context/AuthContext';
 
 const JobPortalHome = () => {
   const [savedJobs, setSavedJobs] = useState([]);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const jobCarouselRef = useRef(null);
+  const { user, userType, isLoggedIn, isEmployee, isCandidate, isLoading } = useAuth();
 
-  // Trigger auth check when home page loads (for navbar update after login)
+  // Handle redirects for logged in users - only redirect employees, not candidates
   useEffect(() => {
-    window.dispatchEvent(new Event('authStateChanged'));
-  }, []);
+    if (!isLoading && isLoggedIn && isEmployee) {
+      setIsRedirecting(true);
+      // Add small delay for smooth transition
+      const timer = setTimeout(() => {
+        window.location.href = '/ehome';
+      }, 800);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading, isLoggedIn, isEmployee]);
+
+  // Show loading state during redirect (only for employers)
+  if (isRedirecting && isEmployee) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-black border-t-transparent mx-auto mb-4"></div>
+          <h2 className="text-2xl font-black text-gray-900 mb-2">Redirecting to Employer Dashboard...</h2>
+          <p className="text-gray-600 font-semibold">Please wait a moment</p>
+        </div>
+      </div>
+    );
+  }
 
   const valueProps = [
     { title: 'Easy Search', description: 'Simple and fast job discovery', icon: Search },
@@ -123,6 +147,31 @@ const JobPortalHome = () => {
     <div className="min-h-screen bg-white">
       <Hero jobCategories={jobCategories} />
       <main>
+        {/* Candidate Welcome Section */}
+        {isCandidate && (
+          <section className="bg-gradient-to-r from-blue-50 to-purple-50 py-8 border-b-2 border-black">
+            <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-15">
+              <div className="flex items-center justify-between bg-white border-2 border-black p-6 shadow-lg">
+                <div>
+                  <h2 className="text-2xl sm:text-3xl font-black text-gray-900 mb-2">
+                    Welcome back, {user?.fullName?.split(' ')[0]}! 👋
+                  </h2>
+                  <p className="text-sm sm:text-base font-semibold text-gray-600">
+                    Ready to find your dream job? Browse our latest opportunities or check your applications.
+                  </p>
+                </div>
+                <div className="hidden sm:flex items-center gap-3">
+                  <a href="/job-portal" className="bg-black text-white px-6 py-3 border-2 border-black hover:bg-white hover:text-black transition-colors font-bold uppercase text-sm">
+                    Browse Jobs
+                  </a>
+                  <a href="/candidate-dashboard" className="bg-white text-black px-6 py-3 border-2 border-black hover:bg-black hover:text-white transition-colors font-bold uppercase text-sm">
+                    My Dashboard
+                  </a>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
         {/* Categories Section */}
         <section className="bg-white py-16">
           <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-15">
@@ -154,14 +203,19 @@ const JobPortalHome = () => {
           </div>
         </section>
 
-        {/* Featured Jobs Carousel Section */}
-        <section className="bg-gray-50 py-16">
-          <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-15">
-            <div className="flex justify-between items-center mb-10">
-              <div>
-                <h2 className="text-3xl sm:text-4xl font-black mb-2">Featured Jobs</h2>
-                <p className="text-sm font-semibold text-gray-600">Discover the best job openings for your career</p>
-              </div>
+        {/* Role-based Content Section */}
+        {(!isLoggedIn || isCandidate) && (
+          <section className="bg-gray-50 py-16">
+            <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-15">
+              <div className="flex justify-between items-center mb-10">
+                <div>
+                  <h2 className="text-3xl sm:text-4xl font-black mb-2">
+                    {isCandidate ? 'Recommended Jobs' : 'Featured Jobs'}
+                  </h2>
+                  <p className="text-sm font-semibold text-gray-600">
+                    {isCandidate ? 'Jobs curated specially for you' : 'Discover the best job openings for your career'}
+                  </p>
+                </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => scrollCarousel('left', jobCarouselRef)}
@@ -240,6 +294,7 @@ const JobPortalHome = () => {
             </div>
           </div>
         </section>
+        )}
 
         {/* Value Props - Enhanced */}
         <section className="bg-white py-16">

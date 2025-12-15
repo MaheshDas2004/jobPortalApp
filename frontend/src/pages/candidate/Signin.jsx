@@ -60,14 +60,20 @@ export default function SigninSeeker() {
         { withCredentials: true } // ✅ HTTP-only cookie ke liye
       );
 
-      // ✅ Backend JWT cookie me set karega - let AuthContext detect on navigation
+      // ✅ Backend JWT cookie me set karega
+      // Store user type for AuthContext
+      localStorage.setItem('userType', 'candidate');
+      
+      // Update auth context with user data
+      login(res.data.user, 'candidate');
+      
       setFormData({ email: "", password: "" });
       setIsSubmitted(true);
 
       setTimeout(() => {
         setIsSubmitted(false);
-        navigate("/"); // redirect - navbar will update when home page loads
-      }, 1500);
+        navigate("/"); // redirect to home page
+      }, 2000);
     } catch (err) {
       if (err.response?.data?.message) setFriendlyError(err.response.data.message);
       else setFriendlyError("Something went wrong. Please try again.");
@@ -107,7 +113,7 @@ export default function SigninSeeker() {
               <CheckCircle className="text-green-600 h-5 w-5" />
               <div>
                 <p className="font-bold text-green-800 text-sm uppercase">Login Successful!</p>
-                <p className="text-green-700 text-xs">Redirecting to your dashboard...</p>
+                <p className="text-green-700 text-xs">Setting up your personalized experience...</p>
               </div>
             </div>
           )}

@@ -4,7 +4,7 @@ const routeProtector = require('../middlewares/routeProtector');
 const Job = require('../models/job'); // Add your Job model import
 
 // Create a new job posting
-router.post('/all', routeProtector, async (req, res) => {
+router.post('/create', routeProtector, async (req, res) => {
   try {
     const {
       jobTitle,
@@ -20,11 +20,10 @@ router.post('/all', routeProtector, async (req, res) => {
       qualifications,
       benefits,
       deadline,
-      positions,
-      isDraft
     } = req.body;
 
     // Validate required fields
+
     if (!jobTitle || !company || !location || !workType || !jobType || !experience || !salary || !description) {
       return res.status(400).json({
         success: false,
@@ -67,19 +66,17 @@ router.post('/all', routeProtector, async (req, res) => {
     }
 
     // Validate deadline if provided
-    if (deadline && new Date(deadline) < new Date()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Deadline cannot be in the past'
-      });
-    }
-
-    // Validate positions
-    if (positions && positions < 1) {
-      return res.status(400).json({
-        success: false,
-        message: 'Number of positions must be at least 1'
-      });
+    if (deadline) {
+      const deadlineDate = new Date(deadline);
+      // Set time to end of day (23:59:59)
+      deadlineDate.setHours(23, 59, 59, 999);
+      
+      if (deadlineDate < new Date()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Deadline cannot be in the past'
+        });
+      }
     }
 
     // Create new job
@@ -96,22 +93,24 @@ router.post('/all', routeProtector, async (req, res) => {
       responsibilities,
       qualifications,
       benefits,
-      deadline: deadline ? new Date(deadline) : undefined,
-      positions: positions || 1,
-      isDraft: isDraft || false,
-      isActive: isDraft ? false : true, // If draft, set isActive to false
-      postedBy: req.user._id // Assuming routeProtector adds user to req
+      deadline: deadline ? (() => {
+        const deadlineDate = new Date(deadline);
+        deadlineDate.setHours(23, 59, 59, 999);
+        return deadlineDate;
+      })() : undefined,
+      isActive: true,
+      postedBy: req.userId
     });
 
     // Save to database
     await newJob.save();
 
     // Populate postedBy field for response
-    await newJob.populate('postedBy', 'name email');
+    await newJob.populate('postedBy', 'fullName email');
 
     return res.status(201).json({
       success: true,
-      message: isDraft ? 'Job saved as draft successfully' : 'Job posted successfully',
+      message: 'Job posted successfully',
       data: newJob
     });
 
@@ -139,6 +138,159 @@ router.post('/all', routeProtector, async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Server error while creating job posting',
+      error: error.message
+    });
+  }
+});
+
+// Get all jobs (public route)
+router.get('/all', async (req, res) => {
+  try {
+    const jobs = await Job.find({ isActive: true })
+      .populate('postedBy', 'fullName email')
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Jobs fetched successfully',
+      data: jobs
+    });
+  } catch (error) {
+    console.error('Error fetching jobs:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error while fetching jobs',
+      error: error.message
+    });
+  }
+});
+
+// Get single job by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id)
+      .populate('postedBy', 'fullName email')
+      .populate('applicants.candidate', 'fullName email');
+
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: 'Job not found'
+      });
+    }
+
+    // Increment view count
+    await job.incrementViewCount();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Job fetched successfully',
+      data: job
+    });
+  } catch (error) {
+    console.error('Error fetching job:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error while fetching job',
+      error: error.message
+    });
+  }
+});
+
+// Get jobs posted by logged-in employer
+router.get('/employer/my-jobs', routeProtector, async (req, res) => {
+  try {
+    const jobs = await Job.find({ postedBy: req.userId })
+      .populate('postedBy', 'fullName email')
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Your jobs fetched successfully',
+      data: jobs
+    });
+  } catch (error) {
+    console.error('Error fetching employer jobs:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error while fetching your jobs',
+      error: error.message
+    });
+  }
+});
+
+// Update job
+router.put('/:id', routeProtector, async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: 'Job not found'
+      });
+    }
+
+    // Check if the logged-in user is the owner of the job
+    if (job.postedBy.toString() !== req.userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'You are not authorized to update this job'
+      });
+    }
+
+    const updatedJob = await Job.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    ).populate('postedBy', 'fullName email');
+
+    return res.status(200).json({
+      success: true,
+      message: 'Job updated successfully',
+      data: updatedJob
+    });
+  } catch (error) {
+    console.error('Error updating job:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error while updating job',
+      error: error.message
+    });
+  }
+});
+
+// Delete job
+router.delete('/:id', routeProtector, async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: 'Job not found'
+      });
+    }
+
+    // Check if the logged-in user is the owner of the job
+    if (job.postedBy.toString() !== req.userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'You are not authorized to delete this job'
+      });
+    }
+
+    await Job.findByIdAndDelete(req.params.id);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Job deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting job:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error while deleting job',
       error: error.message
     });
   }

@@ -5,12 +5,39 @@ import {
   Code, Palette, Database, Megaphone, IndianRupee, PlusCircle, Zap
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const JobPortal = () => {
   const [savedJobs, setSavedJobs] = useState([]);
   const [activeCategory, setActiveCategory] = useState('all');
   const jobCarouselRef = useRef(null);
   const internshipCarouselRef = useRef(null);
+  const { user, userType, isLoggedIn, isEmployee, isCandidate } = useAuth();
+  
+  // Redirect employers to post job page or show different content
+  if (isEmployee) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="max-w-md mx-auto text-center p-8 bg-white border-2 border-black shadow-lg">
+          <Briefcase className="h-16 w-16 mx-auto mb-4 text-black" strokeWidth={2.5} />
+          <h2 className="text-2xl font-black text-gray-900 mb-4">
+            Looking to hire talent?
+          </h2>
+          <p className="text-gray-600 font-semibold mb-6">
+            As an employer, you can post jobs and find the perfect candidates for your company.
+          </p>
+          <div className="space-y-3">
+            <Link to="/post-job" className="block w-full bg-black text-white py-3 px-6 border-2 border-black hover:bg-white hover:text-black transition-colors font-bold uppercase text-sm">
+              Post a Job
+            </Link>
+            <Link to="/employer-dashboard" className="block w-full bg-white text-black py-3 px-6 border-2 border-black hover:bg-black hover:text-white transition-colors font-bold uppercase text-sm">
+              View Dashboard
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Job categories
   const categories = [
@@ -303,26 +330,44 @@ const JobPortal = () => {
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black mb-4 leading-tight">
-              Your Future Starts
-              <span className="bg-white text-black px-4 py-1 inline-block transform -skew-x-6 ml-3">
-                Here
-              </span>
-            </h2>
-            <p className="text-lg sm:text-xl text-gray-300 mb-8 font-medium">
-              77,000+ Jobs for freshers, students & graduates!
-            </p>
+            {isCandidate ? (
+              <>
+                <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black mb-4 leading-tight">
+                  Welcome back,
+                  <span className="bg-white text-black px-4 py-1 inline-block transform -skew-x-6 ml-3">
+                    {user?.fullName?.split(' ')[0]}
+                  </span>
+                </h2>
+                <p className="text-lg sm:text-xl text-gray-300 mb-8 font-medium">
+                  Discover jobs tailored for your skills and experience!
+                </p>
+              </>
+            ) : (
+              <>
+                <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black mb-4 leading-tight">
+                  Your Future Starts
+                  <span className="bg-white text-black px-4 py-1 inline-block transform -skew-x-6 ml-3">
+                    Here
+                  </span>
+                </h2>
+                <p className="text-lg sm:text-xl text-gray-300 mb-8 font-medium">
+                  77,000+ Jobs for freshers, students & graduates!
+                </p>
+              </>
+            )}
 
             {/* Hero Action Buttons */}
             <div className="flex flex-wrap items-center justify-center gap-4 mb-12">
               <Link to="/jobs" className="px-10 py-4 bg-white text-black font-black hover:bg-gray-200 transition shadow-lg flex items-center gap-2">
                 <Search className="h-5 w-5" strokeWidth={2.5} />
-                FIND JOBS
+                {isCandidate ? 'BROWSE MORE JOBS' : 'FIND JOBS'}
               </Link>
-              <Link to="/post-job" className="px-10 py-4 bg-transparent text-white font-black border-2 border-white hover:bg-white hover:text-black transition flex items-center gap-2">
-                <PlusCircle className="h-5 w-5" strokeWidth={2.5} />
-                POST JOBS
-              </Link>
+              {!isCandidate && (
+                <Link to="/cand-signup" className="px-10 py-4 bg-transparent text-white font-black border-2 border-white hover:bg-white hover:text-black transition flex items-center gap-2">
+                  <PlusCircle className="h-5 w-5" strokeWidth={2.5} />
+                  JOIN NOW
+                </Link>
+              )}
             </div>
 
             {/* Quick Stats */}

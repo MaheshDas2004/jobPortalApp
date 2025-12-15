@@ -62,19 +62,14 @@ const jobSchema = new mongoose.Schema({
   deadline: {
     type: Date
   },
-  positions: {
-    type: Number,
-    required: true,
-    min: 1,
-    default: 1
-  },
+ 
   isActive: {
     type: Boolean,
     default: true
   },
   postedBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Candidate', // Changed to Candidate as per your existing structure
+    ref: 'Employee',
     required: true
   },
   applicants: [{
@@ -108,7 +103,6 @@ jobSchema.index({ jobType: 1 });
 jobSchema.index({ experience: 1 });
 jobSchema.index({ createdAt: -1 });
 jobSchema.index({ isActive: 1 });
-jobSchema.index({ isDraft: 1 });
 
 // Virtual for application count
 jobSchema.virtual('applicationCount').get(function() {
@@ -131,19 +125,10 @@ jobSchema.methods.incrementViewCount = function() {
 jobSchema.statics.findActiveJobs = function() {
   return this.find({ 
     isActive: true,
-    isDraft: false,
     $or: [
       { deadline: { $gte: new Date() } },
       { deadline: null }
     ]
-  });
-};
-
-// Static method to find draft jobs
-jobSchema.statics.findDraftJobs = function(userId) {
-  return this.find({ 
-    postedBy: userId,
-    isDraft: true
   });
 };
 
