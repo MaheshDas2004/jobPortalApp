@@ -43,7 +43,7 @@ const jobSchema = new mongoose.Schema({
     trim: true
   }],
   description: {
-    type: String,
+    type: String,  
     required: true,
     trim: true
   },
@@ -100,7 +100,7 @@ const jobSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for better search performance
+
 jobSchema.index({ jobTitle: 'text', description: 'text', company: 'text' });
 jobSchema.index({ location: 1 });
 jobSchema.index({ workType: 1 });
