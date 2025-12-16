@@ -3,7 +3,6 @@ const router = express.Router();
 const routeProtector = require('../middlewares/routeProtector');
 const Job = require('../models/job'); // Add your Job model import
 
-// Create a new job posting
 router.post('/create', routeProtector, async (req, res) => {
   try {
     const {
@@ -22,7 +21,6 @@ router.post('/create', routeProtector, async (req, res) => {
       deadline,
     } = req.body;
 
-    // Validate required fields
 
     if (!jobTitle || !company || !location || !workType || !jobType || !experience || !salary || !description) {
       return res.status(400).json({
@@ -31,7 +29,6 @@ router.post('/create', routeProtector, async (req, res) => {
       });
     }
 
-    // Validate skills array
     if (!skills || !Array.isArray(skills) || skills.length === 0) {
       return res.status(400).json({
         success: false,
@@ -39,7 +36,6 @@ router.post('/create', routeProtector, async (req, res) => {
       });
     }
 
-    // Validate enum values
     const validWorkTypes = ['In Office', 'Remote', 'Field Work', 'Hybrid'];
     const validJobTypes = ['Full Time', 'Part Time', 'Contract', 'Internship'];
     const validExperience = ['Fresher', '0-1 Years', '1-3 Years', '3-5 Years', '5+ Years'];
@@ -79,7 +75,6 @@ router.post('/create', routeProtector, async (req, res) => {
       }
     }
 
-    // Create new job
     const newJob = new Job({
       jobTitle,
       company,
@@ -117,7 +112,6 @@ router.post('/create', routeProtector, async (req, res) => {
   } catch (error) {
     console.error('Error creating job:', error);
     
-    // Handle validation errors
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map(err => err.message);
       return res.status(400).json({
@@ -127,7 +121,6 @@ router.post('/create', routeProtector, async (req, res) => {
       });
     }
 
-    // Handle duplicate key errors
     if (error.code === 11000) {
       return res.status(400).json({
         success: false,
@@ -164,7 +157,7 @@ router.get('/all', async (req, res) => {
   }
 });
 
-// Get single job by ID
+
 router.get('/:id', async (req, res) => {
   try {
     const job = await Job.findById(req.params.id)

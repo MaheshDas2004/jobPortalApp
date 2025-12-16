@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 import {
   Search, MapPin, Briefcase, Clock, Building2, Heart,
   ChevronDown, Filter, Zap, Users, Calendar, CheckCircle2,
@@ -468,9 +469,9 @@ const Jobs = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-2 gap-2">
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-base sm:text-lg md:text-xl font-black mb-1 group-hover:underline cursor-pointer wrap-break-words">
+                            <Link to={`/jobs/${job.id}`} className="text-base sm:text-lg md:text-xl font-black mb-1 group-hover:underline cursor-pointer wrap-break-words">
                               {job.title}
-                            </h3>
+                            </Link>
                             <p className="text-xs sm:text-sm font-bold text-gray-600">{job.company}</p>
                           </div>
                           <div className="flex gap-2 sm:shrink-0 justify-center sm:justify-start">

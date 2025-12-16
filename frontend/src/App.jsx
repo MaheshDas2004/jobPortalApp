@@ -18,6 +18,7 @@ import EmployerDashboard from './pages/employer/Dashboard'
 import EHome from './pages/EHome'
 import IntroPage from './pages/InroPage'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import JobDetail from './pages/JobDetail'
 
 // Loading component for initial auth check
 const AppContent = () => {
@@ -54,7 +55,7 @@ const AppContent = () => {
 
         {/* Pages WITHOUT Footer */}
         <Route path="/jobs" element={<Jobs />} />
-
+        <Route path="/jobs/:jobId" element={<JobDetail />} />
         <Route path="/cand-signin" element={<Signin />} />
         <Route path="/emp-signin" element={<ESignin />} />
         <Route path='/cand-signup' element={<Signup />} />
