@@ -143,7 +143,6 @@ router.post('/create', routeProtector, async (req, res) => {
   }
 });
 
-// Get all jobs (public route)
 router.get('/all', async (req, res) => {
   try {
     const jobs = await Job.find({ isActive: true })

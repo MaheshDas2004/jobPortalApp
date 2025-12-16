@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import {
-  Search, MapPin, Briefcase, Clock, Building2, Heart, Share2,
+  Search, MapPin, Briefcase, Clock, Building2, Heart,
   ChevronDown, Filter, Zap, Users, Calendar, CheckCircle2,
   X, Award, TrendingUp, Menu
 } from 'lucide-react';
@@ -20,76 +21,86 @@ const Jobs = () => {
     categories: false
   });
 
-  const jobListings = [
-    {
-      id: 1,
-      title: 'Business Executive',
-      company: 'NoBrokerHood',
-      logo: '🏢',
-      color: 'from-pink-500 to-rose-500',
-      experience: 'No prior experience required',
-      location: 'Hyderabad, Surat, Mangaluru + 5',
-      workType: 'On Field',
-      jobType: 'Full Time',
-      salary: '₹ 3.5 LPA - 6 LPA',
-      tags: ['Client Support', 'Communication Skills', 'Negotiation', '+1'],
-      category: 'Fresher',
-      postedDate: 'Posted Dec 8, 2025',
-      daysLeft: '1 day left',
-      applied: 1
-    },
-    {
-      id: 2,
-      title: 'Actuarial Risk Consultant',
-      company: 'Willis Towers Watson',
-      logo: 'wtw',
-      color: 'from-purple-500 to-indigo-500',
-      experience: 'No prior experience required',
-      location: 'Gurgaon',
-      workType: 'In Office',
-      jobType: 'Full Time',
-      salary: '₹ 8 LPA - 12 LPA',
-      tags: ['Communication Skills', 'Python', 'R (Programming Language)'],
-      category: 'Fresher',
-      postedDate: 'Posted Dec 8, 2025',
-      daysLeft: '13 days left',
-      applied: 13
-    },
-    {
-      id: 3,
-      title: 'HR Consulting Analyst',
-      company: 'Willis Towers Watson',
-      logo: 'wtw',
-      color: 'from-blue-500 to-cyan-500',
-      experience: 'No prior experience required',
-      location: 'Gurgaon',
-      workType: 'In Office',
-      jobType: 'Full Time',
-      salary: '₹ 6 LPA - 10 LPA',
-      tags: ['Business Acumen', 'Communication Skills', 'Excel Data Analysis', '+1'],
-      category: 'Fresher',
-      postedDate: 'Posted Dec 8, 2025',
-      daysLeft: '13 days left',
-      applied: 13
-    },
-    {
-      id: 4,
-      title: 'Apprentice Research Analyst',
-      company: 'Factset',
-      logo: '📊',
-      color: 'from-emerald-500 to-teal-500',
-      experience: '0-2 years',
-      location: 'Hyderabad',
-      workType: 'In Office',
-      jobType: 'Full Time',
-      salary: '₹ 4 LPA - 7 LPA',
-      tags: ['Research', 'Data Analysis', 'Financial Markets'],
-      category: 'Fresher',
-      postedDate: 'Posted Dec 7, 2025',
-      daysLeft: '2 days left',
-      applied: 24
+
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await axios.get("http://localhost:3000/api/jobs/all");
+      setData(response.data);
+      console.log('Jobs fetched successfully:', response.data);
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || 
+                          err.response?.data?.error || 
+                          "Failed to fetch jobs. Please try again.";
+      setError(errorMessage);
+      console.error('Error fetching jobs:', err);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Jobs page - API response:', { data, error, loading });
+  }, [data, error, loading]);
+
+  // Transform API data to display format
+  const transformJobData = (apiJobs) => {
+    if (!apiJobs || !Array.isArray(apiJobs)) return [];
+
+    return apiJobs.map((job, index) => {
+      try {
+        const createdDate = new Date(job.createdAt || Date.now());
+        const now = new Date();
+        const daysAgo = Math.floor((now - createdDate) / (1000 * 60 * 60 * 24));
+        
+        let postedDate = `Posted ${daysAgo === 0 ? 'today' : 
+          daysAgo === 1 ? 'yesterday' : 
+          `${daysAgo} days ago`}`;
+
+        const daysLeft = Math.max(0, 30 - daysAgo);
+        
+        return {
+          id: job._id || `job-${index}`,
+          title: job.jobTitle || 'Job Title Not Available',
+          company: job.company || 'Company Not Specified',
+          experience: job.experience === 'Fresher' ? 'No prior experience required' : (job.experience || 'Experience Not Specified'),
+          location: job.location || 'Location Not Specified',
+          workType: job.workType || 'Not Specified',
+          jobType: job.jobType || 'Not Specified',
+          salary: job.salary || 'Salary Not Disclosed',
+          tags: (job.skills && Array.isArray(job.skills)) ? job.skills.slice(0, 3) : ['Skills Not Listed'],
+          category: job.experience || 'Category Not Specified',
+          postedDate: postedDate,
+          daysLeft: daysLeft > 0 ? `${daysLeft} days left` : 'Expired',
+          applied: job.applicants ? job.applicants.length : 0,
+          description: job.description || '',
+          responsibilities: job.responsibilities || '',
+          qualifications: job.qualifications || '',
+          benefits: job.benefits || '',
+          deadline: job.deadline || null,
+          postedBy: job.postedBy || null
+        };
+      } catch (err) {
+        console.error('Error transforming job data:', err);
+        return null;
+      }
+    }).filter(Boolean); // Remove any null entries
+  };
+
+  
+  // Get transformed job listings (filtering will be handled by API)
+  const jobListings = data?.success ? transformJobData(data.data) : [];
 
   
   const toggleSaveJob = (jobId) => {
@@ -151,7 +162,13 @@ const Jobs = () => {
               {selectedFilters.length}
             </span>
           </div>
-          <button className="text-xs md:text-sm font-bold hover:underline">
+          <button 
+            onClick={() => {
+              setSelectedFilters(['Live']);
+              setSearchQuery('');
+            }}
+            className="text-xs md:text-sm font-bold hover:underline"
+          >
             Clear All
           </button>
         </div>
@@ -317,6 +334,20 @@ const Jobs = () => {
             <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-300 mb-6 md:mb-8 font-medium">
               Discover thousands of opportunities and find the perfect job for your career!
             </p>
+            
+            {/* Search Bar */}
+            <div className="max-w-2xl mx-auto">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" strokeWidth={2.5} />
+                <input
+                  type="text"
+                  placeholder="Search jobs, companies, or locations..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 md:py-4 border-2 border-white bg-white text-black placeholder-gray-500 focus:border-gray-300 outline-none font-semibold text-sm md:text-base rounded-lg"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -361,23 +392,78 @@ const Jobs = () => {
 
           {/* Job Listings */}
           <div className="flex-1 min-w-0">
-            <div className="space-y-4 md:space-y-6">
-              {jobListings.map((job) => (
+            {/* Results Header */}
+            {!loading && !error && (
+              <div className="mb-4 md:mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h2 className="text-lg md:text-xl font-black">
+                    {jobListings.length} Job{jobListings.length !== 1 ? 's' : ''} Found
+                  </h2>
+                  {searchQuery && (
+                    <p className="text-sm text-gray-600 font-medium">
+                      Results for "{searchQuery}"
+                    </p>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => fetchData()}
+                    className="text-sm font-bold text-blue-600 hover:texFt-blue-800 transition flex items-center gap-1"
+                    disabled={loading}
+                  >
+                    🔄 Refresh
+                  </button>
+                  {jobListings.length > 0 && (
+                    <button 
+                      onClick={() => {
+                        setSelectedFilters(['Live']);
+                        setSearchQuery('');
+                      }}
+                      className="text-sm font-bold text-gray-600 hover:text-black transition"
+                    >
+                      Clear filters
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {loading && (
+              <div className="flex justify-center items-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
+                <span className="ml-3 text-lg font-semibold">Loading jobs...</span>
+              </div>
+            )}
+            
+            {error && (
+              <div className="bg-red-50 border-2 border-red-200 p-4 md:p-6 text-center">
+                <div className="text-red-600 font-bold mb-2">Error loading jobs</div>
+                <div className="text-red-500 text-sm mb-4">{error}</div>
+                <button 
+                  onClick={() => fetchData()}
+                  className="px-4 py-2 bg-red-600 text-white font-bold hover:bg-red-700 transition"
+                >
+                  Try Again
+                </button>
+              </div>
+            )}
+
+            {!loading && !error && jobListings.length === 0 && (
+              <div className="text-center py-12">
+                <div className="text-gray-500 text-lg font-semibold mb-2">No jobs found</div>
+                <div className="text-gray-400 text-sm">Try adjusting your filters or check back later.</div>
+              </div>
+            )}
+
+            {!loading && !error && jobListings.length > 0 && (
+              <div className="space-y-4 md:space-y-6">
+                {jobListings.map((job) => (
                 <div
                   key={job.id}
                   className="bg-white border-2 border-black shadow-lg hover:shadow-2xl transition-all group"
                 >
                   <div className="p-3 sm:p-4 md:p-6">
-                    <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
-                      {/* Logo */}
-                      <div className={`w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 shrink-0 bg-linear-to-br ${job.color} flex items-center justify-center border-2 border-black mx-auto sm:mx-0`}>
-                        {job.logo === 'wtw' ? (
-                          <span className="text-white font-black text-lg md:text-xl">wtw</span>
-                        ) : (
-                          <span className="text-2xl md:text-4xl">{job.logo}</span>
-                        )}
-                      </div>
-
+                    <div className="flex flex-col gap-3 md:gap-4">
                       {/* Job Details */}
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-2 gap-2">
@@ -396,9 +482,6 @@ const Jobs = () => {
                                 className={`h-4 w-4 md:h-5 md:w-5 ${savedJobs.includes(job.id) ? 'fill-black' : ''}`}
                                 strokeWidth={2.5}
                               />
-                            </button>
-                            <button className="p-2 border-2 border-gray-300 hover:border-black transition">
-                              <Share2 className="h-4 w-4 md:h-5 md:w-5" strokeWidth={2.5} />
                             </button>
                           </div>
                         </div>
@@ -457,8 +540,8 @@ const Jobs = () => {
                           </div>
 
                           <div className="flex items-center gap-2">
-                            <span className="text-xs md:text-sm font-black text-green-600">{job.salary}</span>
-                            <span className="text-green-600">💰</span>
+                            <span className="text-xs md:text-sm font-black text-gray-600">{job.salary}</span>
+                          
                           </div>
                         </div>
                       </div>
@@ -466,7 +549,8 @@ const Jobs = () => {
                   </div>
                 </div>
               ))}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
