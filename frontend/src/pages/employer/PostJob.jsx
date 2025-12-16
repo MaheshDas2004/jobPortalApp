@@ -4,8 +4,11 @@ import {
   FileText, Tag, Calendar, Zap, ChevronDown, Plus, X,
   Send, AlertCircle, CheckCircle2
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 const PostJob = () => {
+  const { user, isEmployee, isLoggedIn, isLoading } = useAuth();
+  
   const [formData, setFormData] = useState({
     jobTitle: '',
     company: '',
@@ -50,6 +53,16 @@ const PostJob = () => {
     { id: 'skills', label: 'Skills', icon: Tag },
     { id: 'details', label: 'Job Details', icon: FileText }
   ];
+
+
+  useEffect(() => {
+    if (user && user.companyName && !formData.company) {
+      setFormData(prev => ({
+        ...prev,
+        company: user.companyName
+      }));
+    }
+  }, [user]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -104,7 +117,11 @@ const PostJob = () => {
     setSubmitStatus(null);
 
     try {
-      // Validate required fields
+      // Check authentication
+      if (!isLoggedIn || !isEmployee) {
+        throw new Error('Please login as an employer to post jobs.');
+      }
+      
       const requiredFields = ['jobTitle', 'company', 'location', 'workType', 'jobType', 'experience', 'salary'];
       const missingFields = requiredFields.filter(field => !formData[field]);
       
@@ -112,64 +129,72 @@ const PostJob = () => {
         throw new Error('Please fill all required fields before posting the job.');
       }
 
-      // Prepare data for API
+      // Prepare data for API (remove fields that don't exist in backend model)
       const jobData = {
-        ...formData,
-        postedAt: new Date().toISOString(),
-        employerId: 'emp_123', // This would come from auth context in real app
-        status: 'active'
+        jobTitle: formData.jobTitle,
+        company: formData.company,
+        location: formData.location,
+        workType: formData.workType,
+        jobType: formData.jobType,
+        experience: formData.experience,
+        salary: formData.salary,
+        skills: formData.skills,
+        description: formData.description,
+        responsibilities: formData.responsibilities || '',
+        qualifications: formData.qualifications || '',
+        benefits: formData.benefits || '',
+        deadline: formData.deadline || null
       };
 
       console.log('Sending job data to backend:', jobData);
 
-      // Mock API call - replace with actual backend endpoint
-      const response = await fetch('http://localhost:5000/api/jobs', {
+      const response = await fetch('http://localhost:3000/api/jobs/create', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          // 'Authorization': `Bearer ${token}`, // Add auth token in real app
+          'Content-Type': 'application/json'
         },
+        credentials: 'include', // Important for cookie-based auth
         body: JSON.stringify(jobData)
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
       const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || `HTTP error! status: ${response.status}`);
+      }
       
       setSubmitStatus({
         type: 'success',
-        message: 'Job posted successfully!',
-        jobId: result.jobId
+        message: 'Job posted successfully! Redirecting to dashboard...',
+        jobId: result.data._id
       });
 
-      // Reset form after successful submission
+      // Redirect to employer dashboard after successful submission
       setTimeout(() => {
-        setFormData({
-          jobTitle: '',
-          company: '',
-          location: '',
-          workType: '',
-          jobType: '',
-          experience: '',
-          salary: '',
-          skills: [],
-          description: '',
-          responsibilities: '',
-          qualifications: '',
-          benefits: '',
-          deadline: ''
-        });
-        setCurrentStep(1);
-        setActiveSection('basic');
+        window.location.href = '/employer/dashboard';
       }, 2000);
 
     } catch (error) {
       console.error('Error submitting job:', error);
+      
+      let errorMessage = 'Failed to submit job. Please try again.';
+      
+      // Handle specific error types
+      if (error.message.includes('Please login')) {
+        errorMessage = 'Authentication required. Please login again.';
+      } else if (error.message.includes('required fields')) {
+        errorMessage = 'Please fill all required fields before posting the job.';
+      } else if (error.message.includes('Validation error')) {
+        errorMessage = 'Please check your input data and try again.';
+      } else if (error.message.includes('Network')) {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       setSubmitStatus({
         type: 'error',
-        message: error.message || 'Failed to submit job. Please try again.'
+        message: errorMessage
       });
     } finally {
       setIsSubmitting(false);
@@ -222,6 +247,43 @@ const PostJob = () => {
     setCurrentStep(stepNumber);
     setActiveSection(steps[stepNumber - 1].section);
   };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-white border-4 border-black p-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
+            <p className="font-semibold">Loading...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Authentication check
+  if (!isLoggedIn || !isEmployee) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-white border-4 border-black p-8 max-w-md w-full mx-4">
+          <div className="text-center">
+            <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" strokeWidth={2} />
+            <h2 className="text-2xl font-black mb-2">Access Denied</h2>
+            <p className="text-gray-600 font-semibold mb-6">
+              You need to be logged in as an employer to post jobs.
+            </p>
+            <button 
+              onClick={() => window.location.href = '/employer/signin'}
+              className="bg-black text-white px-6 py-3 font-bold border-2 border-black hover:bg-white hover:text-black transition-colors"
+            >
+              LOGIN AS EMPLOYER
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
