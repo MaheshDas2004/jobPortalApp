@@ -32,6 +32,27 @@ const PostJob = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
 
+  const resetForm = () => {
+    setFormData({
+      jobTitle: '',
+      company: '',
+      location: '',
+      workType: '',
+      jobType: '',
+      experience: '',
+      salary: '',
+      skills: [],
+      description: '',
+      responsibilities: '',
+      qualifications: '',
+      benefits: '',
+      deadline: ''
+    });
+    setCurrentSkill('');
+    setCurrentStep(1);
+    setActiveSection('basic');
+  };
+
   const workTypeOptions = ['In Office', 'Remote', 'Field Work', 'Hybrid'];
   const jobTypeOptions = ['Full Time', 'Part Time', 'Contract', 'Internship'];
   const experienceOptions = [
@@ -123,10 +144,12 @@ const PostJob = () => {
       }
       
       const requiredFields = ['jobTitle', 'company', 'location', 'workType', 'jobType', 'experience', 'salary'];
-      const missingFields = requiredFields.filter(field => !formData[field]);
+      const missingFields = requiredFields.filter(field => !formData[field] || formData[field].toString().trim() === '');
       
       if (missingFields.length > 0 || formData.skills.length === 0 || !formData.description.trim()) {
-        throw new Error('Please fill all required fields before posting the job.');
+        console.log('Missing fields:', missingFields);
+        console.log('Form data:', formData);
+        throw new Error(`Please fill all required fields before posting the job. Missing: ${missingFields.join(', ')}`);
       }
 
       // Prepare data for API (remove fields that don't exist in backend model)
@@ -165,14 +188,15 @@ const PostJob = () => {
       
       setSubmitStatus({
         type: 'success',
-        message: 'Job posted successfully! Redirecting to dashboard...',
+        message: 'Job posted successfully! You can post another job or view your dashboard.',
         jobId: result.data._id
       });
 
-      // Redirect to employer dashboard after successful submission
+      // Reset form after successful submission
       setTimeout(() => {
-        window.location.href = '/employer/dashboard';
-      }, 2000);
+        resetForm();
+        setSubmitStatus(null);
+      }, 3000);
 
     } catch (error) {
       console.error('Error submitting job:', error);
@@ -214,8 +238,8 @@ const PostJob = () => {
   const validateStep = (step) => {
     switch (step) {
       case 1:
-        return formData.jobTitle && formData.company && formData.location && 
-               formData.workType && formData.jobType && formData.experience && formData.salary;
+        return formData.jobTitle.trim() && formData.company.trim() && formData.location.trim() && 
+               formData.workType && formData.jobType && formData.experience && formData.salary.trim();
       case 2:
         return formData.skills.length > 0;
       case 3:
@@ -341,19 +365,48 @@ const PostJob = () => {
             <form onSubmit={handleSubmit} className="bg-white border-2 border-black p-6 sm:p-8">
               {/* Submit Status Message */}
               {submitStatus && (
-                <div className={`mb-6 p-4 border-2 ${
+                <div className={`mb-6 p-6 border-2 ${
                   submitStatus.type === 'success' 
                     ? 'bg-green-50 border-green-500 text-green-800' 
                     : 'bg-red-50 border-red-500 text-red-800'
                 } font-semibold`}>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 mb-4">
                     {submitStatus.type === 'success' ? (
-                      <CheckCircle2 className="h-5 w-5" strokeWidth={2.5} />
+                      <CheckCircle2 className="h-6 w-6" strokeWidth={2.5} />
                     ) : (
-                      <AlertCircle className="h-5 w-5" strokeWidth={2.5} />
+                      <AlertCircle className="h-6 w-6" strokeWidth={2.5} />
                     )}
-                    {submitStatus.message}
+                    <div>
+                      <p className="font-black text-lg">{submitStatus.message}</p>
+                      {submitStatus.jobId && (
+                        <p className="text-sm mt-1">Job ID: {submitStatus.jobId}</p>
+                      )}
+                      {submitStatus.type === 'success' && (
+                        <p className="text-sm mt-1 text-green-600">Form will reset automatically in 3 seconds...</p>
+                      )}
+                    </div>
                   </div>
+                  {submitStatus.type === 'success' && (
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => window.location.href = '/employer/dashboard'}
+                        className="px-4 py-2 bg-green-600 text-white font-black text-sm hover:bg-green-700 transition"
+                      >
+                        View Dashboard
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          resetForm();
+                          setSubmitStatus(null);
+                        }}
+                        className="px-4 py-2 bg-white text-green-600 border-2 border-green-600 font-black text-sm hover:bg-green-50 transition"
+                      >
+                        Post Another Job
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 

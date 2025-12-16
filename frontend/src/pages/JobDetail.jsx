@@ -2,23 +2,19 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
   MapPin, Briefcase, Clock, Building2, Heart, Calendar,
-  Users, TrendingUp, Award, CheckCircle2, Share2, Flag,
-  ArrowLeft, ExternalLink, Mail, Phone, Globe, Linkedin,
-  Twitter, Facebook, Copy, Check, AlertCircle,
-  DollarSign, Target, Zap, BookOpen, Shield, Sparkles
+  Users, TrendingUp, Award, ArrowLeft,
+  AlertCircle, DollarSign
 } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 
 const JobDetail = () => {
-
-    const {jobId}= useParams()
+  const { jobId } = useParams();
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isSaved, setIsSaved] = useState(false);
-  const [showShareMenu, setShowShareMenu] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [applying, setApplying] = useState(false);
+  const [activeTab, setActiveTab] = useState('description');
 
   useEffect(() => {
     fetchJobDetail();
@@ -45,59 +41,40 @@ const JobDetail = () => {
 
   const handleApply = async () => {
     setApplying(true);
-    // Add your apply logic here
     setTimeout(() => {
       setApplying(false);
       alert('Application submitted successfully!');
     }, 1500);
   };
 
-  const handleShare = (platform) => {
-    const url = window.location.href;
-    const title = job?.jobTitle || 'Job Opportunity';
-    
-    const shareUrls = {
-      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
-      twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`,
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
-    };
 
-    if (platform === 'copy') {
-      navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } else {
-      window.open(shareUrls[platform], '_blank', 'width=600,height=400');
-    }
-    setShowShareMenu(false);
-  };
 
   const formatDate = (dateString) => {
     if (!dateString) return 'Not specified';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { 
       year: 'numeric', 
-      month: 'long', 
+      month: 'short', 
       day: 'numeric' 
     });
   };
 
-  const calculateDaysAgo = (dateString) => {
-    if (!dateString) return 'Recently';
-    const date = new Date(dateString);
+  const calculateDaysLeft = (dateString) => {
+    if (!dateString) return 'Not specified';
+    const deadline = new Date(dateString);
     const now = new Date();
-    const daysAgo = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+    const daysLeft = Math.floor((deadline - now) / (1000 * 60 * 60 * 24));
     
-    if (daysAgo === 0) return 'Today';
-    if (daysAgo === 1) return 'Yesterday';
-    return `${daysAgo} days ago`;
+    if (daysLeft < 0) return 'Expired';
+    if (daysLeft === 0) return 'Today';
+    return daysLeft;
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-black mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-gray-800 mx-auto mb-4"></div>
           <p className="text-lg font-bold">Loading job details...</p>
         </div>
       </div>
@@ -107,13 +84,13 @@ const JobDetail = () => {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white border-4 border-red-500 p-8 max-w-md w-full text-center">
+        <div className="bg-white border-2 border-red-500 rounded-lg p-8 max-w-md w-full text-center">
           <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" strokeWidth={2} />
-          <h2 className="text-2xl font-black mb-2">Error Loading Job</h2>
+          <h2 className="text-2xl font-bold mb-2">Error Loading Job</h2>
           <p className="text-gray-600 mb-6">{error}</p>
           <button 
             onClick={() => window.history.back()}
-            className="px-6 py-3 bg-black text-white font-bold hover:bg-gray-800 transition"
+            className="px-6 py-3 bg-gray-800 text-white font-semibold rounded-lg hover:bg-gray-900 transition"
           >
             Go Back
           </button>
@@ -126,11 +103,11 @@ const JobDetail = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="text-center">
-          <h2 className="text-2xl font-black mb-2">Job Not Found</h2>
+          <h2 className="text-2xl font-bold mb-2">Job Not Found</h2>
           <p className="text-gray-600 mb-6">The job you're looking for doesn't exist.</p>
           <button 
             onClick={() => window.history.back()}
-            className="px-6 py-3 bg-black text-white font-bold hover:bg-gray-800 transition"
+            className="px-6 py-3 bg-gray-800 text-white font-semibold rounded-lg hover:bg-gray-900 transition"
           >
             Go Back to Jobs
           </button>
@@ -140,152 +117,52 @@ const JobDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="bg-black text-white relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent"></div>
-        </div>
+    <div className="min-h-screen bg-white">
+      {/* Hero Section with Background */}
+      <div className="bg-black text-white relative overflow-hidden min-h-[300px]">
+        <img 
+          src="/fog.jpeg" 
+          alt="Job Portal Background" 
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-black/70"></div>
         
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Back Button */}
           <button 
             onClick={() => window.history.back()}
-            className="flex items-center gap-2 text-white hover:text-gray-300 transition mb-6 font-bold"
+            className="flex items-center gap-2 text-white hover:text-gray-300 transition mb-6 font-semibold"
           >
-            <ArrowLeft className="h-5 w-5" strokeWidth={2.5} />
+            <ArrowLeft className="h-5 w-5" strokeWidth={2} />
             Back to All Jobs
           </button>
 
-          {/* Job Header */}
-          <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
-            <div className="flex-1">
-              <div className="flex items-start gap-4 mb-4">
-                <div className="w-16 h-16 md:w-20 md:h-20 bg-white border-4 border-white flex items-center justify-center shrink-0">
-                  <Building2 className="h-8 w-8 md:h-10 md:w-10 text-black" strokeWidth={2} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black mb-2 leading-tight">
-                    {job.jobTitle}
-                  </h1>
-                  <p className="text-lg md:text-xl font-bold text-gray-300 mb-3">
-                    {job.company}
-                  </p>
-                  <div className="flex flex-wrap gap-3 text-sm md:text-base">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4" strokeWidth={2.5} />
-                      <span className="font-semibold">{job.location}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Briefcase className="h-4 w-4" strokeWidth={2.5} />
-                      <span className="font-semibold">{job.experience}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4" strokeWidth={2.5} />
-                      <span className="font-semibold">{job.jobType}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Stats */}
-              <div className="flex flex-wrap gap-4 md:gap-6 text-sm">
-                <div className="flex items-center gap-2">
-                  <Users className="h-5 w-5" strokeWidth={2.5} />
-                  <span className="font-bold">{job.applicants?.length || 0} Applicants</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" strokeWidth={2.5} />
-                  <span className="font-bold">{job.viewCount || 0} Views</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" strokeWidth={2.5} />
-                  <span className="font-bold">Posted {calculateDaysAgo(job.createdAt)}</span>
-                </div>
-              </div>
+          <div className="flex items-start gap-4">
+            {/* Company Logo */}
+            <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center shrink-0 shadow-lg">
+              <Building2 className="h-8 w-8 text-gray-800" strokeWidth={2} />
             </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col gap-3 lg:shrink-0 lg:w-64">
-              <button
-                onClick={handleApply}
-                disabled={applying}
-                className="w-full py-4 bg-white text-black font-black text-lg hover:bg-gray-100 transition border-4 border-white flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {applying ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black"></div>
-                    Applying...
-                  </>
-                ) : (
-                  <>
-                    <Zap className="h-5 w-5" strokeWidth={2.5} />
-                    Apply Now
-                  </>
-                )}
-              </button>
-              
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setIsSaved(!isSaved)}
-                  className="flex-1 py-3 border-2 border-white text-white hover:bg-white hover:text-black transition font-bold flex items-center justify-center gap-2"
-                >
-                  <Heart 
-                    className={`h-5 w-5 ${isSaved ? 'fill-current' : ''}`} 
-                    strokeWidth={2.5} 
-                  />
-                  {isSaved ? 'Saved' : 'Save'}
-                </button>
-                
-                <div className="relative">
-                  <button
-                    onClick={() => setShowShareMenu(!showShareMenu)}
-                    className="py-3 px-4 border-2 border-white text-white hover:bg-white hover:text-black transition font-bold"
-                  >
-                    <Share2 className="h-5 w-5" strokeWidth={2.5} />
-                  </button>
-                  
-                  {showShareMenu && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white border-2 border-black shadow-lg z-50">
-                      <button
-                        onClick={() => handleShare('linkedin')}
-                        className="w-full px-4 py-3 text-left hover:bg-gray-100 font-bold text-black flex items-center gap-3 border-b-2 border-gray-200"
-                      >
-                        <Linkedin className="h-4 w-4" strokeWidth={2.5} />
-                        LinkedIn
-                      </button>
-                      <button
-                        onClick={() => handleShare('twitter')}
-                        className="w-full px-4 py-3 text-left hover:bg-gray-100 font-bold text-black flex items-center gap-3 border-b-2 border-gray-200"
-                      >
-                        <Twitter className="h-4 w-4" strokeWidth={2.5} />
-                        Twitter
-                      </button>
-                      <button
-                        onClick={() => handleShare('facebook')}
-                        className="w-full px-4 py-3 text-left hover:bg-gray-100 font-bold text-black flex items-center gap-3 border-b-2 border-gray-200"
-                      >
-                        <Facebook className="h-4 w-4" strokeWidth={2.5} />
-                        Facebook
-                      </button>
-                      <button
-                        onClick={() => handleShare('copy')}
-                        className="w-full px-4 py-3 text-left hover:bg-gray-100 font-bold text-black flex items-center gap-3"
-                      >
-                        {copied ? (
-                          <>
-                            <Check className="h-4 w-4" strokeWidth={2.5} />
-                            Copied!
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="h-4 w-4" strokeWidth={2.5} />
-                            Copy Link
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  )}
+            
+            <div className="flex-1 min-w-0">
+              <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+                {job.jobTitle}
+              </h1>
+              <div className="flex flex-wrap gap-4 text-sm text-gray-200 mb-3">
+                <div className="flex items-center gap-1 font-medium">
+                  <Building2 className="h-4 w-4" strokeWidth={2} />
+                  <span>{job.company}</span>
+                </div>
+                <div className="flex items-center gap-1 font-medium">
+                  <MapPin className="h-4 w-4" strokeWidth={2} />
+                  <span>{job.location}</span>
+                </div>
+                <div className="flex items-center gap-1 font-medium">
+                  <Briefcase className="h-4 w-4" strokeWidth={2} />
+                  <span>{job.jobType} • {job.workType}</span>
+                </div>
+                <div className="flex items-center gap-1 font-medium">
+                  <Calendar className="h-4 w-4" strokeWidth={2} />
+                  <span>Updated On: {formatDate(job.createdAt)}</span>
                 </div>
               </div>
             </div>
@@ -294,222 +171,334 @@ const JobDetail = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Job Overview */}
-            <div className="bg-white border-4 border-black p-6 md:p-8">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-black flex items-center justify-center">
-                  <BookOpen className="h-6 w-6 text-white" strokeWidth={2.5} />
-                </div>
-                <h2 className="text-2xl md:text-3xl font-black">Job Overview</h2>
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <DollarSign className="h-5 w-5" strokeWidth={2.5} />
-                    <span className="font-bold text-sm">Salary</span>
-                  </div>
-                  <p className="text-lg font-black">{job.salary || 'Not Disclosed'}</p>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <Building2 className="h-5 w-5" strokeWidth={2.5} />
-                    <span className="font-bold text-sm">Work Type</span>
-                  </div>
-                  <p className="text-lg font-black">{job.workType}</p>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <Clock className="h-5 w-5" strokeWidth={2.5} />
-                    <span className="font-bold text-sm">Job Type</span>
-                  </div>
-                  <p className="text-lg font-black">{job.jobType}</p>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <Calendar className="h-5 w-5" strokeWidth={2.5} />
-                    <span className="font-bold text-sm">Application Deadline</span>
-                  </div>
-                  <p className="text-lg font-black">{formatDate(job.deadline)}</p>
-                </div>
+            {/* Action Buttons Card */}
+            <div className="bg-white border-2 border-black shadow-lg p-5">
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setIsSaved(!isSaved)}
+                  className="p-2 bg-white border-2 border-black hover:bg-black hover:text-white transition font-bold"
+                >
+                  <Heart className={`h-5 w-5 ${isSaved ? 'fill-red-500 text-red-500' : ''}`} strokeWidth={2.5} />
+                </button>
+                <button
+                  onClick={handleApply}
+                  disabled={applying || !job.isActive || (job.deadline && new Date(job.deadline) < new Date())}
+                  className={`flex-1 py-2 font-black border-2 transition uppercase text-sm ${
+                    !job.isActive || (job.deadline && new Date(job.deadline) < new Date())
+                      ? 'bg-red-600 text-white border-red-600 cursor-not-allowed'
+                      : 'bg-black text-white border-black hover:bg-white hover:text-black disabled:opacity-50'
+                  }`}
+                >
+                  {!job.isActive || (job.deadline && new Date(job.deadline) < new Date())
+                    ? 'Job Expired'
+                    : applying
+                    ? 'Processing...'
+                    : 'Quick Apply'
+                  }
+                </button>
               </div>
             </div>
 
-            {/* Description */}
-            {job.description && (
-              <div className="bg-white border-4 border-black p-6 md:p-8">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-black flex items-center justify-center">
-                    <Sparkles className="h-6 w-6 text-white" strokeWidth={2.5} />
-                  </div>
-                  <h2 className="text-2xl md:text-3xl font-black">Job Description</h2>
-                </div>
-                <div className="prose prose-sm max-w-none">
-                  <p className="text-gray-700 font-medium leading-relaxed whitespace-pre-wrap">
-                    {job.description}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Responsibilities */}
-            {job.responsibilities && (
-              <div className="bg-white border-4 border-black p-6 md:p-8">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-black flex items-center justify-center">
-                    <Target className="h-6 w-6 text-white" strokeWidth={2.5} />
-                  </div>
-                  <h2 className="text-2xl md:text-3xl font-black">Responsibilities</h2>
-                </div>
-                <div className="prose prose-sm max-w-none">
-                  <p className="text-gray-700 font-medium leading-relaxed whitespace-pre-wrap">
-                    {job.responsibilities}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Qualifications */}
-            {job.qualifications && (
-              <div className="bg-white border-4 border-black p-6 md:p-8">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-black flex items-center justify-center">
-                    <Award className="h-6 w-6 text-white" strokeWidth={2.5} />
-                  </div>
-                  <h2 className="text-2xl md:text-3xl font-black">Qualifications</h2>
-                </div>
-                <div className="prose prose-sm max-w-none">
-                  <p className="text-gray-700 font-medium leading-relaxed whitespace-pre-wrap">
-                    {job.qualifications}
-                  </p>
+            {/* Tabs */}
+            <div className="bg-white border-2 border-black shadow-lg">
+              <div className="p-2">
+                <div className="flex">
+                  <button
+                    onClick={() => setActiveTab('description')}
+                    className={`px-6 py-3 font-black text-sm transition ${
+                      activeTab === 'description'
+                        ? 'bg-black text-white'
+                        : 'bg-white text-gray-500 hover:text-black'
+                    }`}
+                  >
+                    Job Description
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('qualifications')}
+                    className={`px-6 py-3 font-black text-sm transition ${
+                      activeTab === 'qualifications'
+                        ? 'bg-black text-white'
+                        : 'bg-white text-gray-500 hover:text-black'
+                    }`}
+                  >
+                    Qualifications
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('benefits')}
+                    className={`px-6 py-3 font-black text-sm transition ${
+                      activeTab === 'benefits'
+                        ? 'bg-black text-white'
+                        : 'bg-white text-gray-500 hover:text-black'
+                    }`}
+                  >
+                    Benefits
+                  </button>
                 </div>
               </div>
-            )}
 
-            {/* Benefits */}
-            {job.benefits && (
-              <div className="bg-white border-4 border-black p-6 md:p-8">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-black flex items-center justify-center">
-                    <Shield className="h-6 w-6 text-white" strokeWidth={2.5} />
+              {/* Tab Content */}
+              <div className="p-6">
+                {activeTab === 'description' && (
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 mb-3">Details</h3>
+                      <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                        {job.description}
+                      </p>
+                    </div>
+
+                    {job.responsibilities && (
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900 mb-3">
+                          Responsibilities of the Candidate:
+                        </h3>
+                        <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                          {job.responsibilities}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Skills Section */}
+                    {job.skills && job.skills.length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900 mb-3">Skills Required:</h3>
+                        <div className="flex flex-wrap gap-3">
+                          {job.skills.map((skill, idx) => (
+                            <span
+                              key={idx}
+                              className="px-4 py-2 bg-white border-2 border-black text-sm font-black text-black"
+                            >
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <p className="text-sm text-gray-700">
+                        ⚠️ If an employer asks you to pay any fee, please stop immediately. We do not charge any fee from the applicants and we do not allow other companies also to do so.
+                      </p>
+                    </div>
                   </div>
-                  <h2 className="text-2xl md:text-3xl font-black">Benefits</h2>
-                </div>
-                <div className="prose prose-sm max-w-none">
-                  <p className="text-gray-700 font-medium leading-relaxed whitespace-pre-wrap">
-                    {job.benefits}
-                  </p>
-                </div>
-              </div>
-            )}
+                )}
 
-            {/* Skills Required */}
-            {job.skills && job.skills.length > 0 && (
-              <div className="bg-white border-4 border-black p-6 md:p-8">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-black flex items-center justify-center">
-                    <Zap className="h-6 w-6 text-white" strokeWidth={2.5} />
-                  </div>
-                  <h2 className="text-2xl md:text-3xl font-black">Required Skills</h2>
-                </div>
-                <div className="flex flex-wrap gap-3">
-                  {job.skills.map((skill, idx) => (
-                    <span
-                      key={idx}
-                      className="px-4 py-2 bg-gray-100 border-2 border-black text-sm md:text-base font-bold hover:bg-black hover:text-white transition cursor-default"
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Right Column - Sidebar */}
-          <div className="space-y-6">
-            {/* Quick Apply Card */}
-            <div className="bg-gradient-to-br from-black to-gray-800 text-white border-4 border-black p-6 sticky top-6">
-              <h3 className="text-xl font-black mb-4">Ready to Apply?</h3>
-              <p className="text-sm font-medium mb-6 text-gray-300">
-                Join {job.applicants?.length || 0} other applicants who have already applied for this position.
-              </p>
-              <button
-                onClick={handleApply}
-                disabled={applying}
-                className="w-full py-3 bg-white text-black font-black hover:bg-gray-100 transition mb-3 disabled:opacity-50"
-              >
-                {applying ? 'Processing...' : 'Apply Now'}
-              </button>
-              <button
-                onClick={() => setIsSaved(!isSaved)}
-                className="w-full py-3 border-2 border-white hover:bg-white hover:text-black transition font-bold"
-              >
-                {isSaved ? 'Saved ✓' : 'Save for Later'}
-              </button>
-            </div>
-
-            {/* Company Info */}
-            <div className="bg-white border-4 border-black p-6">
-              <h3 className="text-xl font-black mb-4">About Company</h3>
-              <div className="space-y-3">
-                <div>
-                  <p className="text-sm font-bold text-gray-600 mb-1">Company Name</p>
-                  <p className="font-black text-lg">{job.company}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-gray-600 mb-1">Location</p>
-                  <p className="font-semibold">{job.location}</p>
-                </div>
-                {job.postedBy && (
+                {activeTab === 'qualifications' && (
                   <div>
-                    <p className="text-sm font-bold text-gray-600 mb-1">Posted By</p>
-                    <p className="font-semibold">{job.postedBy.fullName}</p>
+                    {job.qualifications ? (
+                      <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                        {job.qualifications}
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 text-center py-8">No qualifications specified.</p>
+                    )}
+                  </div>
+                )}
+
+                {activeTab === 'benefits' && (
+                  <div>
+                    {job.benefits ? (
+                      <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                        {job.benefits}
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 text-center py-8">No benefits information available.</p>
+                    )}
+                  </div>
+                )}
+
+
+              </div>
+            </div>
+
+            {/* Additional Information */}
+            <div className="bg-white border-2 border-black shadow-lg p-6">
+              <h3 className="text-xl font-black text-black mb-4 border-l-4 border-black pl-3">
+                Additional Information
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {/* Job Location */}
+                <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center">
+                      <MapPin className="h-5 w-5 text-white" strokeWidth={2} />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-sm font-semibold text-gray-600 mb-1">Job Location(s)</h4>
+                      <p className="text-base font-bold text-gray-900">{job.location}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Salary */}
+                <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center">
+                      <DollarSign className="h-5 w-5 text-white" strokeWidth={2} />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-sm font-semibold text-gray-600 mb-1">Salary</h4>
+                      <p className="text-base font-bold text-gray-900">
+                        {job.salary || 'Not Disclosed'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Work Type */}
+                <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center">
+                      <Briefcase className="h-5 w-5 text-white" strokeWidth={2} />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-sm font-semibold text-gray-600 mb-1">Work Type</h4>
+                      <p className="text-sm font-medium text-gray-700">
+                        {job.workType}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Experience Required */}
+                <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center">
+                      <Award className="h-5 w-5 text-white" strokeWidth={2} />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-sm font-semibold text-gray-600 mb-1">Experience Required</h4>
+                      <p className="text-sm font-medium text-gray-700">
+                        {job.experience}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Job Timing */}
+                <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center">
+                      <Clock className="h-5 w-5 text-white" strokeWidth={2} />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-sm font-semibold text-gray-600 mb-1">Job Type</h4>
+                      <p className="text-sm font-medium text-gray-700">
+                        {job.jobType}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Application Deadline */}
+                {job.deadline && (
+                  <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center">
+                        <Calendar className="h-5 w-5 text-white" strokeWidth={2} />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-sm font-semibold text-gray-600 mb-1">Application Deadline</h4>
+                        <p className="text-sm font-medium text-gray-700">
+                          {formatDate(job.deadline)}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
             </div>
+          </div>
 
-            {/* Job Stats */}
-            <div className="bg-white border-4 border-black p-6">
-              <h3 className="text-xl font-black mb-4">Job Statistics</h3>
+          {/* Right Column - Sidebar */}
+          <div className="space-y-6">
+            {/* Days Left Card */}
+            <div className="bg-white border-2 border-black shadow-lg p-6 text-center">
+              <div className="text-6xl font-black text-black mb-2">
+                {calculateDaysLeft(job.deadline)}
+              </div>
+              <p className="text-sm font-black text-black">Days Left</p>
+            </div>
+
+            {/* Job Statistics Card */}
+            <div className="bg-white border-2 border-black shadow-lg p-6">
+              <h3 className="text-base font-black text-black mb-4 flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-black" strokeWidth={2.5} />
+                Job Statistics
+              </h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Users className="h-5 w-5 text-gray-600" strokeWidth={2.5} />
-                    <span className="font-bold text-sm">Applicants</span>
+                    <Users className="h-4 w-4 text-gray-600" strokeWidth={2} />
+                    <span className="text-sm font-medium text-gray-600">Total Applicants</span>
                   </div>
-                  <span className="font-black text-lg">{job.applicants?.length || 0}</span>
+                  <span className="text-sm font-bold text-gray-900">
+                    {job.applicants?.length || 0}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-gray-600" strokeWidth={2} />
+                    <span className="text-sm font-medium text-gray-600">Posted On</span>
+                  </div>
+                  <span className="text-sm font-bold text-gray-900">
+                    {formatDate(job.createdAt)}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-gray-600" strokeWidth={2.5} />
-                    <span className="font-bold text-sm">Views</span>
+                    <Clock className="h-4 w-4 text-gray-600" strokeWidth={2} />
+                    <span className="text-sm font-medium text-gray-600">Job Status</span>
                   </div>
-                  <span className="font-black text-lg">{job.viewCount || 0}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-5 w-5 text-gray-600" strokeWidth={2.5} />
-                    <span className="font-bold text-sm">Posted</span>
-                  </div>
-                  <span className="font-black text-sm">{calculateDaysAgo(job.createdAt)}</span>
+                  <span className={`text-sm font-bold ${
+                    job.isActive && (!job.deadline || new Date(job.deadline) > new Date())
+                      ? 'text-green-600'
+                      : 'text-red-600'
+                  }`}>
+                    {job.isActive && (!job.deadline || new Date(job.deadline) > new Date()) 
+                      ? 'Active' 
+                      : 'Expired'
+                    }
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* Report Job */}
-            <button className="w-full py-3 border-2 border-gray-300 hover:border-red-500 hover:text-red-500 transition font-bold flex items-center justify-center gap-2">
-              <Flag className="h-4 w-4" strokeWidth={2.5} />
-              Report This Job
-            </button>
+            {/* Company Information Card */}
+            <div className="bg-white border-2 border-black shadow-lg p-6">
+              <h3 className="text-base font-black text-black mb-4 flex items-center gap-2">
+                <Building2 className="h-5 w-5 text-black" strokeWidth={2.5} />
+                Company Information
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-600 mb-1">Company Name</h4>
+                  <p className="text-sm font-medium text-gray-900">{job.company}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-600 mb-1">Job Title</h4>
+                  <p className="text-sm font-medium text-gray-900">{job.jobTitle}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-600 mb-1">Experience Required</h4>
+                  <p className="text-sm font-medium text-gray-900">{job.experience}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-600 mb-1">Work Arrangement</h4>
+                  <p className="text-sm font-medium text-gray-900">{job.workType} • {job.jobType}</p>
+                </div>
+              </div>
+            </div>
+
+
+
+
           </div>
         </div>
       </div>

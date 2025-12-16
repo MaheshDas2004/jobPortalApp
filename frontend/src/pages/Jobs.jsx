@@ -69,7 +69,23 @@ const Jobs = () => {
           daysAgo === 1 ? 'yesterday' : 
           `${daysAgo} days ago`}`;
 
-        const daysLeft = Math.max(0, 30 - daysAgo);
+        // Calculate days left based on actual deadline
+        let daysLeft = 0;
+        let daysLeftText = 'No deadline';
+        
+        if (job.deadline) {
+          const deadlineDate = new Date(job.deadline);
+          const timeDiff = deadlineDate - now;
+          daysLeft = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+          
+          if (daysLeft > 0) {
+            daysLeftText = `${daysLeft} day${daysLeft === 1 ? '' : 's'} left`;
+          } else if (daysLeft === 0) {
+            daysLeftText = 'Expires today';
+          } else {
+            daysLeftText = 'Expired';
+          }
+        }
         
         return {
           id: job._id || `job-${index}`,
@@ -81,9 +97,9 @@ const Jobs = () => {
           jobType: job.jobType || 'Not Specified',
           salary: job.salary || 'Salary Not Disclosed',
           tags: (job.skills && Array.isArray(job.skills)) ? job.skills.slice(0, 3) : ['Skills Not Listed'],
-          category: job.experience || 'Category Not Specified',
+          category: job.jobType || 'Full Time',
           postedDate: postedDate,
-          daysLeft: daysLeft > 0 ? `${daysLeft} days left` : 'Expired',
+          daysLeft: daysLeftText,
           applied: job.applicants ? job.applicants.length : 0,
           description: job.description || '',
           responsibilities: job.responsibilities || '',
@@ -519,10 +535,7 @@ const Jobs = () => {
                           ))}
                         </div>
 
-                        {/* Category Badge */}
-                        <div className="inline-block px-2 md:px-3 py-0.5 md:py-1 bg-gray-200 border border-gray-400 text-xs font-bold mb-3 md:mb-4">
-                          {job.category}
-                        </div>
+                        
 
                         {/* Footer */}
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-3 md:pt-4 border-t-2 border-gray-200 gap-2 md:gap-3">
@@ -541,8 +554,13 @@ const Jobs = () => {
                           </div>
 
                           <div className="flex items-center gap-2">
-                            <span className="text-xs md:text-sm font-black text-gray-600">{job.salary}</span>
-                          
+                            <span className="text-xs md:text-sm font-black text-gray-600 mr-3">{job.salary}</span>
+                            <Link 
+                              to={`/jobs/${job.id}`}
+                              className="px-3 md:px-4 py-1.5 md:py-2 bg-black text-white text-xs md:text-sm font-black border-2 border-black hover:bg-white hover:text-black transition"
+                            >
+                              View Details
+                            </Link>
                           </div>
                         </div>
                       </div>
