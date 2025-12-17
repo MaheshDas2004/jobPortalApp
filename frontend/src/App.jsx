@@ -3,7 +3,7 @@ import './App.css'
 import Home from './pages/Home'
 import Navbar from './components/Navbar'
 import { Route, Routes } from 'react-router-dom'
-import EventHandling from './demo/EventHandling'
+
 import AboutUs from './pages/AboutUs'
 import MainLayout from './layouts/MainLayout'
 import JobPortal from './pages/JobPortal'
@@ -19,6 +19,8 @@ import EHome from './pages/EHome'
 import IntroPage from './pages/InroPage'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import JobDetail from './pages/JobDetail'
+import ApplicationForm from './pages/candidate/ApplicationForm'
+import Profile from './pages/candidate/Profile'
 
 // Loading component for initial auth check
 const AppContent = () => {
@@ -49,7 +51,7 @@ const AppContent = () => {
           <Route path="/intro" element={<IntroPage />} />
           <Route path="/job-portal" element={<JobPortal />} />
           <Route path="/about-us" element={<AboutUs />} />
-          <Route path="/demo" element={<EventHandling />} />
+
 
         </Route>
 
@@ -64,6 +66,8 @@ const AppContent = () => {
         <Route path="/candidate-dashboard" element={<Dashboard />} />
         <Route path="/employer-dashboard" element={<EmployerDashboard />} />
         <Route path="/ehome" element={<EHome />} />
+        <Route path="/application" element={<ApplicationForm />} />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
     </div>
   );

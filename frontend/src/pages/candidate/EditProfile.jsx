@@ -1,3 +1,5 @@
+
+
 import React, { useState } from 'react';
 import {
   User, Mail, Phone, MapPin, Briefcase, GraduationCap,
@@ -6,7 +8,7 @@ import {
   Linkedin, Globe, Plus, X, ChevronDown, Check, Edit2, Camera
 } from 'lucide-react';
 
-const EventHandling = () => {
+const EditProfile = () => {
   const [profileData, setProfileData] = useState({
     fullName: '',
     email: 'user@example.com',
@@ -756,4 +758,4 @@ const EventHandling = () => {
   );
 };
 
-export default EventHandling;
+export default EditProfile;

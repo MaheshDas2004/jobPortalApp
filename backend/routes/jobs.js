@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const routeProtector = require('../middlewares/routeProtector');
-const Job = require('../models/job'); // Add your Job model import
+const { validateJobCreation, validateJobUpdate } = require('../middlewares/validateJob');
+const Job = require('../models/job');
 
-router.post('/create', routeProtector, async (req, res) => {
+router.post('/create', routeProtector, validateJobCreation, async (req, res) => {
   try {
     const {
       jobTitle,
@@ -18,62 +19,8 @@ router.post('/create', routeProtector, async (req, res) => {
       responsibilities,
       qualifications,
       benefits,
-      deadline,
+      processedDeadline
     } = req.body;
-
-
-    if (!jobTitle || !company || !location || !workType || !jobType || !experience || !salary || !description) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide all required fields'
-      });
-    }
-
-    if (!skills || !Array.isArray(skills) || skills.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide at least one skill'
-      });
-    }
-
-    const validWorkTypes = ['In Office', 'Remote', 'Field Work', 'Hybrid'];
-    const validJobTypes = ['Full Time', 'Part Time', 'Contract', 'Internship'];
-    const validExperience = ['Fresher', '0-1 Years', '1-3 Years', '3-5 Years', '5+ Years'];
-
-    if (!validWorkTypes.includes(workType)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid work type'
-      });
-    }
-
-    if (!validJobTypes.includes(jobType)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid job type'
-      });
-    }
-
-    if (!validExperience.includes(experience)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid experience level'
-      });
-    }
-
-    // Validate deadline if provided
-    if (deadline) {
-      const deadlineDate = new Date(deadline);
-      // Set time to end of day (23:59:59)
-      deadlineDate.setHours(23, 59, 59, 999);
-      
-      if (deadlineDate < new Date()) {
-        return res.status(400).json({
-          success: false,
-          message: 'Deadline cannot be in the past'
-        });
-      }
-    }
 
     const newJob = new Job({
       jobTitle,
@@ -88,19 +35,12 @@ router.post('/create', routeProtector, async (req, res) => {
       responsibilities,
       qualifications,
       benefits,
-      deadline: deadline ? (() => {
-        const deadlineDate = new Date(deadline);
-        deadlineDate.setHours(23, 59, 59, 999);
-        return deadlineDate;
-      })() : undefined,
+      deadline: processedDeadline,
       isActive: true,
       postedBy: req.userId
     });
 
-    // Save to database
     await newJob.save();
-
-    // Populate postedBy field for response
     await newJob.populate('postedBy', 'fullName email');
 
     return res.status(201).json({
@@ -212,7 +152,7 @@ router.get('/employer/my-jobs', routeProtector, async (req, res) => {
 });
 
 // Update job
-router.put('/:id', routeProtector, async (req, res) => {
+router.put('/:id', routeProtector, validateJobUpdate, async (req, res) => {
   try {
     const job = await Job.findById(req.params.id);
 
@@ -231,9 +171,16 @@ router.put('/:id', routeProtector, async (req, res) => {
       });
     }
 
+    // Use processedDeadline if it exists, otherwise use the original deadline
+    const updateData = { ...req.body };
+    if (req.body.processedDeadline) {
+      updateData.deadline = req.body.processedDeadline;
+      delete updateData.processedDeadline;
+    }
+
     const updatedJob = await Job.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
       { new: true, runValidators: true }
     ).populate('postedBy', 'fullName email');
 
@@ -244,6 +191,16 @@ router.put('/:id', routeProtector, async (req, res) => {
     });
   } catch (error) {
     console.error('Error updating job:', error);
+    
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({
+        success: false,
+        message: 'Validation error',
+        errors
+      });
+    }
+
     return res.status(500).json({
       success: false,
       message: 'Server error while updating job',

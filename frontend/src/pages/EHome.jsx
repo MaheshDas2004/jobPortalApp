@@ -104,7 +104,7 @@ const EHome = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section - Employer Welcome */}
-      <section className="bg-gradient-to-r from-gray-900 via-black to-gray-900 text-white py-16">
+      <section className="bg-linear-to-r from-gray-900 via-black to-gray-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black mb-6 leading-tight">
@@ -149,7 +149,7 @@ const EHome = () => {
             {employerStats.map((stat, index) => (
               <div key={index} className="bg-white border-2 border-black p-6 hover:shadow-lg transition-shadow">
                 <div className="flex items-center justify-between mb-4">
-                  <div className={`bg-gradient-to-r ${stat.color} text-white p-3 rounded-full`}>
+                  <div className={`bg-linear-to-r ${stat.color} text-white p-3 rounded-full`}>
                     <stat.icon className="h-6 w-6" strokeWidth={2.5} />
                   </div>
                   <span className="text-green-600 font-bold text-sm">{stat.change}</span>

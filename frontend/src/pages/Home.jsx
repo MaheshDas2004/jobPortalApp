@@ -149,7 +149,7 @@ const JobPortalHome = () => {
       <main>
         {/* Candidate Welcome Section */}
         {isCandidate && (
-          <section className="bg-gradient-to-r from-blue-50 to-purple-50 py-8 border-b-2 border-black">
+          <section className="bg-linear-to-r from-blue-50 to-purple-50 py-8 border-b-2 border-black">
             <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-15">
               <div className="flex items-center justify-between bg-white border-2 border-black p-6 shadow-lg">
                 <div>

@@ -1,12 +1,13 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { User, LogOut, LayoutDashboard, Briefcase } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import Sidebar from './Sidebar'
 import hmxLogo from '../assets/HMX.png'
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showProfileSidebar, setShowProfileSidebar] = useState(false);
   const navigate = useNavigate();
   
   const { user, userType, isLoggedIn, isEmployee, isCandidate, logout } = useAuth();
@@ -14,10 +15,28 @@ const Navbar = () => {
   const handleLogout = async () => {
     const success = await logout();
     if (success) {
-      setShowProfileMenu(false);
+      setShowProfileSidebar(false);
       setIsOpen(false);
       navigate('/');
     }
+  };
+
+  // Disable/enable scrolling when sidebar is open/closed
+  useEffect(() => {
+    if (showProfileSidebar) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showProfileSidebar]);
+
+  const toggleProfileSidebar = () => {
+    setShowProfileSidebar(!showProfileSidebar);
   };
 
   return (
@@ -76,73 +95,12 @@ const Navbar = () => {
 
           <div className="hidden lg:flex items-center gap-2 xl:gap-4 shrink-0">
             {isLoggedIn ? (
-              <div 
-                className="relative"
-                onMouseEnter={() => setShowProfileMenu(true)}
-                onMouseLeave={() => setShowProfileMenu(false)}
+              <button 
+                onClick={toggleProfileSidebar}
+                className="flex items-center justify-center w-10 h-10 bg-black text-white border-2 border-black hover:bg-white hover:text-black transition-colors"
               >
-                <button 
-                  className="flex items-center justify-center w-10 h-10 bg-black text-white border-2 border-black hover:bg-white hover:text-black transition-colors"
-                >
-                  <User className="w-5 h-5" />
-                </button>
-                
-                {showProfileMenu && (
-                  <div className="absolute right-0 top-full w-48 bg-white border-2 border-black shadow-lg">
-                    <div className="px-4 py-3 border-b-2 border-black">
-                      <p className="text-xs text-gray-600 uppercase">
-                        {isEmployee ? 'Employer' : 'Candidate'}
-                      </p>
-                      <p className="text-sm font-bold text-gray-900 truncate">{user?.fullName}</p>
-                      <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-                    </div>
-                    
-                    {isEmployee ? (
-                      <div>
-                        <Link 
-                          to="/employer-dashboard" 
-                          className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-900 hover:bg-gray-100 transition-colors uppercase"
-                        >
-                          <LayoutDashboard className="w-4 h-4" />
-                          Dashboard
-                        </Link>
-                        <Link 
-                          to="/post-job" 
-                          className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-900 hover:bg-gray-100 transition-colors uppercase"
-                        >
-                          <Briefcase className="w-4 h-4" />
-                          Post Job
-                        </Link>
-                      </div>
-                    ) : (
-                      <div>
-                        <Link 
-                          to="/candidate-dashboard" 
-                          className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-900 hover:bg-gray-100 transition-colors uppercase"
-                        >
-                          <LayoutDashboard className="w-4 h-4" />
-                          Dashboard
-                        </Link>
-                        <Link 
-                          to="/job-portal" 
-                          className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-900 hover:bg-gray-100 transition-colors uppercase"
-                        >
-                          <Briefcase className="w-4 h-4" />
-                          Browse Jobs
-                        </Link>
-                      </div>
-                    )}
-                    
-                    <button 
-                      onClick={handleLogout}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-900 hover:bg-gray-100 transition-colors uppercase text-left"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </div>
+                <User className="w-5 h-5" />
+              </button>
             ) : (
               <div className="flex gap-2">
                 <div className="relative group">
@@ -284,6 +242,29 @@ const Navbar = () => {
           </div>
         </div>
       </div>
+      
+      {/* Profile Sidebar Overlay */}
+      {showProfileSidebar && (
+        <>
+          {/* Shadow overlay */}
+          <div 
+            className="fixed inset-0  bg-black/75 z-45"
+            onClick={() => setShowProfileSidebar(false)}
+          />
+          
+          {/* Sidebar */}
+          <div className="z-50">
+            <Sidebar 
+              isOpen={showProfileSidebar}
+              onClose={() => setShowProfileSidebar(false)}
+              user={user}
+              isEmployee={isEmployee}
+              isCandidate={isCandidate}
+              onLogout={handleLogout}
+            />
+          </div>
+        </>
+      )}
     </nav>
   )
 }

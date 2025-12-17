@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, ArrowRight, CheckCircle } from 'lucide-react';
-import UseFetch from '../../hooks/UseFetch';
+// import UseFetch from '../../hooks/UseFetch';
 import { Link } from 'react-router-dom';
 
 const Signup = () => {
@@ -19,10 +19,10 @@ const Signup = () => {
   });
 
   // Custom Hook
-  const { fetchData, loading: apiLoading, error: friendlyError } = UseFetch({
-    url: "http://localhost:3000/api/auth/candidate/signup",
-    method: "POST"
-  });
+  // const { fetchData, loading: apiLoading, error: friendlyError } = UseFetch({
+  //   url: "http://localhost:3000/api/auth/candidate/signup",
+  //   method: "POST"
+  // });
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;

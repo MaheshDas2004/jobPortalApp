@@ -102,6 +102,70 @@ router.get('/isloggedin', routeProtector, async (req, res) => {
   }
 });
 
+// Get Profile Route
+router.get('/profile', routeProtector, async (req, res) => {
+  try {
+    const user = await Candidate.findById(req.userId).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({
+      success: true,
+      user
+    });
+  } catch (error) {
+    console.error("Get profile error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.put('/profile', routeProtector, async (req, res) => {
+  try {
+    console.log('Profile update request received:', req.body);
+    console.log('User ID from token:', req.userId);
+    
+    const updates = req.body;
+    
+    // Remove sensitive fields that shouldn't be updated here
+    delete updates.email;
+    delete updates.password;
+    delete updates._id;
+
+    console.log('Updates to apply:', updates);
+
+    const user = await Candidate.findByIdAndUpdate(
+      req.userId,
+      updates,
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    if (!user) {
+      console.log('User not found for ID:', req.userId);
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    console.log('Profile updated successfully for user:', user._id);
+
+    res.json({
+      success: true,
+      message: "Profile updated successfully",
+      user
+    });
+  } catch (error) {
+    console.error("Update profile error:", error);
+    if (error.name === 'ValidationError') {
+      console.log('Validation errors:', Object.values(error.errors).map(err => err.message));
+      return res.status(400).json({ 
+        message: "Invalid data provided",
+        errors: Object.values(error.errors).map(err => err.message)
+      });
+    }
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 // Logout Route
 router.post('/logout', (req, res) => {
   try {

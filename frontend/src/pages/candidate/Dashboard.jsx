@@ -1,296 +1,881 @@
-import React, { useState } from 'react';
+
+
+import React, { useState, useEffect } from 'react';
 import {
-  Search, Briefcase, MapPin, Code, TrendingUp, DollarSign, Users, LayoutGrid, Zap, ShieldCheck,
-  User, Aperture, MessageCircle, ArrowRight, Layers, TrendingDown, Menu, X, ChevronRight, Star,
-  Bell, Bookmark, Clock, CheckCircle, AlertCircle, FileText, Calendar, Activity
+  User, Mail, Phone, MapPin, Briefcase, GraduationCap,
+  Calendar, Upload, Save, Award, Code, Languages, FileText,
+  DollarSign, Target, Building2, Link as LinkIcon, Github,
+  Linkedin, Globe, Plus, X, ChevronDown, Check, Edit2, Camera
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import axios from 'axios';
 
 const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState('overview');
+  const { user, isLoading: authLoading } = useAuth();
+  const [profileData, setProfileData] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    dateOfBirth: '',
+    gender: '',
+    currentLocation: '',
+    profilePhoto: null,
+    currentJobTitle: '',
+    currentCompany: '',
+    yearsOfExperience: '',
+    currentSalary: '',
+    expectedSalary: '',
+    noticePeriod: '',
+    employmentType: '',
+    highestQualification: '',
+    fieldOfStudy: '',
+    university: '',
+    graduationYear: '',
+    skills: [],
+    languages: [],
+    resume: null,
+    portfolioUrl: '',
+    linkedinUrl: '',
+    githubUrl: '',
+    websiteUrl: '',
+    bio: '',
+    preferredJobTypes: [],
+    preferredLocations: [],
+    willingToRelocate: false
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('');
 
-  // Mock user data
-  const userData = {
-    name: 'Alex Johnson',
-    role: 'Software Engineer',
-    profileCompletion: 85,
-    avatar: 'AJ'
+  const [currentSkill, setCurrentSkill] = useState('');
+  const [currentLanguage, setCurrentLanguage] = useState('');
+  const [currentLocation, setCurrentLocation] = useState('');
+  const [activeSection, setActiveSection] = useState('personal');
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user || authLoading) return;
+      
+      setIsLoading(true);
+      try {
+        const response = await axios.get('http://localhost:3000/api/auth/candidate/profile', {
+          withCredentials: true
+        });
+        
+        if (response.data.success) {
+          const userData = response.data.user;
+          setProfileData({
+            fullName: userData.fullName || '',
+            email: userData.email || '',
+            phone: userData.phone || '',
+            dateOfBirth: userData.dateOfBirth ? userData.dateOfBirth.split('T')[0] : '',
+            gender: userData.gender || '',
+            currentLocation: userData.currentLocation || '',
+            profilePhoto: userData.profilePhoto || null,
+            currentJobTitle: userData.currentJobTitle || '',
+            currentCompany: userData.currentCompany || '',
+            yearsOfExperience: userData.yearsOfExperience || '',
+            currentSalary: userData.currentSalary || '',
+            expectedSalary: userData.expectedSalary || '',
+            noticePeriod: userData.noticePeriod || '',
+            employmentType: userData.employmentType || '',
+            highestQualification: userData.highestQualification || '',
+            fieldOfStudy: userData.fieldOfStudy || '',
+            university: userData.university || '',
+            graduationYear: userData.graduationYear || '',
+            skills: userData.skills || [],
+            languages: userData.languages || [],
+            resume: userData.resume || null,
+            portfolioUrl: userData.portfolioUrl || '',
+            linkedinUrl: userData.linkedinUrl || '',
+            githubUrl: userData.githubUrl || '',
+            websiteUrl: userData.websiteUrl || '',
+            bio: userData.bio || '',
+            preferredJobTypes: userData.preferredJobTypes || [],
+            preferredLocations: userData.preferredLocations || [],
+            willingToRelocate: userData.willingToRelocate || false
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [user, authLoading]);
+
+  const sections = [
+    { id: 'personal', name: 'Personal Info', icon: User },
+    { id: 'professional', name: 'Professional', icon: Briefcase },
+    { id: 'education', name: 'Education', icon: GraduationCap },
+    { id: 'skills', name: 'Skills & Languages', icon: Code },
+    { id: 'links', name: 'Links & Resume', icon: LinkIcon },
+    { id: 'preferences', name: 'Preferences', icon: Target }
+  ];
+
+  const employmentTypes = ['Full-Time', 'Part-Time', 'Contract', 'Internship', 'Freelance'];
+  const noticePeriods = ['Immediate', '15 Days', '30 Days', '60 Days', '90 Days'];
+  const jobTypes = ['Full-Time', 'Part-Time', 'Remote', 'Hybrid', 'Contract', 'Internship'];
+
+  const handleInputChange = (field, value) => {
+    setProfileData(prev => ({ ...prev, [field]: value }));
   };
 
-  // Recent applications
-  const applications = [
-    { id: 1, title: 'Senior React Developer', company: 'TechCorp', status: 'Under Review', date: '2 days ago', color: 'bg-yellow-400' },
-    { id: 2, title: 'Full Stack Engineer', company: 'StartupHub', status: 'Interview Scheduled', date: '5 days ago', color: 'bg-green-400' },
-    { id: 3, title: 'Frontend Lead', company: 'DesignCo', status: 'Application Sent', date: '1 week ago', color: 'bg-teal-400' },
-    { id: 4, title: 'JavaScript Developer', company: 'CodeWorks', status: 'Rejected', date: '2 weeks ago', color: 'bg-red-400' },
-  ];
+  const addSkill = () => {
+    if (currentSkill.trim() && !profileData.skills.includes(currentSkill.trim())) {
+      setProfileData(prev => ({
+        ...prev,
+        skills: [...prev.skills, currentSkill.trim()]
+      }));
+      setCurrentSkill('');
+    }
+  };
 
-  // Saved jobs
-  const savedJobs = [
-    { id: 1, title: 'Backend Engineer', company: 'DataFlow', salary: '$120k - $140k', location: 'Remote', logo: 'D' },
-    { id: 2, title: 'DevOps Specialist', company: 'CloudNine', salary: '$110k - $130k', location: 'Hybrid', logo: 'C' },
-    { id: 3, title: 'Product Manager', company: 'InnovateLab', salary: '$130k - $150k', location: 'NYC', logo: 'I' },
-  ];
+  const removeSkill = (skillToRemove) => {
+    setProfileData(prev => ({
+      ...prev,
+      skills: prev.skills.filter(skill => skill !== skillToRemove)
+    }));
+  };
 
-  // Recommended jobs
-  const recommendedJobs = [
-    { id: 1, title: 'Senior Frontend Dev', company: 'WebMasters', match: 95, salary: '$125k - $145k', logo: 'W', color: 'bg-teal-400' },
-    { id: 2, title: 'React Native Dev', company: 'MobileFirst', match: 88, salary: '$115k - $135k', logo: 'M', color: 'bg-pink-400' },
-    { id: 3, title: 'Tech Lead', company: 'FutureTech', match: 82, salary: '$140k - $160k', logo: 'F', color: 'bg-purple-400' },
-  ];
+  const addLanguage = () => {
+    if (currentLanguage.trim() && !profileData.languages.includes(currentLanguage.trim())) {
+      setProfileData(prev => ({
+        ...prev,
+        languages: [...prev.languages, currentLanguage.trim()]
+      }));
+      setCurrentLanguage('');
+    }
+  };
 
-  // Stats
-  const stats = [
-    { label: 'Applications', value: '12', change: '+3', icon: FileText, color: 'bg-teal-400' },
-    { label: 'Interviews', value: '4', change: '+2', icon: Calendar, color: 'bg-yellow-400' },
-    { label: 'Saved Jobs', value: '28', change: '+5', icon: Bookmark, color: 'bg-pink-400' },
-    { label: 'Profile Views', value: '156', change: '+12', icon: Activity, color: 'bg-purple-400' },
-  ];
+  const removeLanguage = (langToRemove) => {
+    setProfileData(prev => ({
+      ...prev,
+      languages: prev.languages.filter(lang => lang !== langToRemove)
+    }));
+  };
 
-  // Notifications
-  const notifications = [
-    { id: 1, text: 'Interview scheduled for Full Stack Engineer position', time: '1 hour ago', type: 'success' },
-    { id: 2, text: 'Your application for Senior React Developer is under review', time: '3 hours ago', type: 'info' },
-    { id: 3, text: '5 new jobs matching your profile', time: '1 day ago', type: 'info' },
-  ];
+  const addPreferredLocation = () => {
+    if (currentLocation.trim() && !profileData.preferredLocations.includes(currentLocation.trim())) {
+      setProfileData(prev => ({
+        ...prev,
+        preferredLocations: [...prev.preferredLocations, currentLocation.trim()]
+      }));
+      setCurrentLocation('');
+    }
+  };
 
-  const LogoPlaceholder = ({ letter, size = 'h-12 w-12', color = 'bg-teal-400' }) => (
-    <div className={`${size} ${color} border-4 border-black flex items-center justify-center text-black font-black text-lg`}>
-      {letter}
-    </div>
-  );
+  const removePreferredLocation = (locToRemove) => {
+    setProfileData(prev => ({
+      ...prev,
+      preferredLocations: prev.preferredLocations.filter(loc => loc !== locToRemove)
+    }));
+  };
+
+  const toggleJobType = (type) => {
+    setProfileData(prev => ({
+      ...prev,
+      preferredJobTypes: prev.preferredJobTypes.includes(type)
+        ? prev.preferredJobTypes.filter(t => t !== type)
+        : [...prev.preferredJobTypes, type]
+    }));
+  };
+
+  const handleFileUpload = (field, event) => {
+    const file = event.target.files[0];
+    if (file) {
+      handleInputChange(field, file);
+    }
+  };
+
+  const saveProfile = async () => {
+    setIsSaving(true);
+    setSaveMessage('');
+    
+    try {
+      const profileToSave = { ...profileData };
+      
+      // Handle file uploads separately (for now, we'll skip file upload implementation)
+      if (profileToSave.profilePhoto instanceof File) {
+        delete profileToSave.profilePhoto;
+      }
+      if (profileToSave.resume instanceof File) {
+        delete profileToSave.resume;
+      }
+
+      console.log('Saving profile data:', profileToSave);
+
+      const response = await axios.put('http://localhost:3000/api/auth/candidate/profile', profileToSave, {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      console.log('Save response:', response.data);
+
+      if (response.data.success) {
+        setSaveMessage('Profile updated successfully!');
+        // Update the profile data with the response to keep it in sync
+        const updatedUserData = response.data.user;
+        setProfileData(prev => ({
+          ...prev,
+          ...updatedUserData,
+          dateOfBirth: updatedUserData.dateOfBirth ? updatedUserData.dateOfBirth.split('T')[0] : prev.dateOfBirth
+        }));
+        setTimeout(() => setSaveMessage(''), 3000);
+      } else {
+        setSaveMessage('Error: ' + (response.data.message || 'Unknown error'));
+        setTimeout(() => setSaveMessage(''), 3000);
+      }
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Error saving profile. Please try again.';
+      setSaveMessage('Error: ' + errorMessage);
+      setTimeout(() => setSaveMessage(''), 3000);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+
+
+  // Show loading state while fetching data
+  if (authLoading || isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-black mx-auto mb-4"></div>
+          <p className="text-lg font-semibold">Loading your profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect if not authenticated
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-black mb-4">Please sign in to access your dashboard</h2>
+          <p className="text-gray-600">You need to be logged in to view and edit your profile.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header with background */}
-      <div className="relative bg-linear-to-br from-teal-400 via-yellow-400 to-pink-400 border-b-8 border-black overflow-hidden">
-        {/* Background pattern */}
-        <div 
-          className="absolute inset-0 opacity-10"
-          style={{
-            backgroundImage: `
-              repeating-linear-gradient(0deg, black 0px, black 3px, transparent 3px, transparent 40px),
-              repeating-linear-gradient(90deg, black 0px, black 3px, transparent 3px, transparent 40px)
-            `,
-          }}
-        ></div>
-        
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-            <div className="flex items-center gap-6">
-              <div className="h-20 w-20 bg-white border-4 border-black flex items-center justify-center font-black text-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                {userData.avatar}
-              </div>
-              <div>
-                <h1 className="text-3xl lg:text-4xl font-black uppercase mb-2">
-                  WELCOME BACK, {userData.name.split(' ')[0]}!
-                </h1>
-                <p className="text-lg font-bold uppercase">{userData.role}</p>
-              </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-black text-white py-8 border-b-4 border-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl sm:text-4xl font-black mb-2">
+                Welcome back, {profileData.fullName || user?.fullName || 'User'}!
+              </h1>
+              <p className="text-gray-300 font-semibold">Complete your profile to help employers find you</p>
             </div>
-            
-            <div className="flex flex-wrap gap-4">
-              <button className="px-6 py-3 bg-black text-white font-black uppercase border-4 border-black hover:bg-white hover:text-black transition shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none">
-                UPDATE PROFILE
+            <div className="flex flex-col items-end gap-2">
+              <button
+                onClick={saveProfile}
+                disabled={isSaving || isLoading}
+                className="flex items-center gap-2 px-6 py-3 bg-white text-black font-bold hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              >
+                <Save className="h-4 w-4" strokeWidth={2.5} />
+                {isSaving ? 'Saving...' : 'Save Profile'}
               </button>
-              <button className="px-6 py-3 bg-white text-black font-black uppercase border-4 border-black hover:bg-yellow-400 transition shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none relative">
-                <Bell className="h-5 w-5 inline mr-2" />
-                NOTIFICATIONS
-                <span className="absolute -top-2 -right-2 h-6 w-6 bg-red-400 border-2 border-black rounded-full flex items-center justify-center text-xs font-black">
-                  3
-                </span>
-              </button>
-            </div>
-          </div>
-
-          {/* Profile completion bar */}
-          <div className="mt-6 bg-white border-4 border-black p-4">
-            <div className="flex justify-between items-center mb-2">
-              <span className="font-black uppercase text-sm">PROFILE COMPLETION</span>
-              <span className="font-black text-lg">{userData.profileCompletion}%</span>
-            </div>
-            <div className="h-4 bg-gray-200 border-2 border-black">
-              <div 
-                className="h-full bg-green-400 border-r-2 border-black transition-all"
-                style={{ width: `${userData.profileCompletion}%` }}
-              ></div>
+              {saveMessage && (
+                <p className={`text-sm font-semibold ${saveMessage.includes('Error') ? 'text-red-300' : 'text-green-300'}`}>
+                  {saveMessage}
+                </p>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat, idx) => (
-            <div key={idx} className={`p-6 border-4 border-black ${stat.color} transform hover:-rotate-1 transition relative`}>
-              <stat.icon className="h-8 w-8 mb-3 stroke-3" />
-              <p className="text-4xl font-black mb-1">{stat.value}</p>
-              <p className="text-sm font-black uppercase mb-2">{stat.label}</p>
-              <span className="absolute top-2 right-2 px-2 py-1 bg-black text-white text-xs font-black border-2 border-black">
-                {stat.change}
-              </span>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid lg:grid-cols-4 gap-8">
+          {/* Sidebar Navigation */}
+          <div className="lg:col-span-1">
+            <div className="bg-white border-2 border-black p-4 sticky top-4">
+              <h3 className="text-lg font-black mb-4 pb-3 border-b-2 border-gray-200">Sections</h3>
+              <nav className="space-y-2">
+                {sections.map((section) => {
+                  const Icon = section.icon;
+                  return (
+                    <button
+                      key={section.id}
+                      onClick={() => setActiveSection(section.id)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-bold transition ${
+                        activeSection === section.id
+                          ? 'bg-black text-white'
+                          : 'bg-white text-black hover:bg-gray-100 border border-gray-300'
+                      }`}
+                    >
+                      <Icon className="h-4 w-4" strokeWidth={2.5} />
+                      {section.name}
+                    </button>
+                  );
+                })}
+              </nav>
             </div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Applications & Notifications */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Recent Applications */}
-            <section>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl lg:text-4xl font-black uppercase border-b-8 border-black inline-block pr-6">
-                  MY APPLICATIONS
-                </h2>
-                <button className="px-4 py-2 border-4 border-black font-black uppercase text-sm hover:bg-gray-200 transition">
-                  VIEW ALL
-                </button>
-              </div>
-              
-              <div className="space-y-4">
-                {applications.map((app) => (
-                  <div 
-                    key={app.id}
-                    className="bg-white border-4 border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition"
-                  >
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                      <div className="flex-1">
-                        <h3 className="text-xl font-black uppercase mb-2">{app.title}</h3>
-                        <p className="font-bold uppercase text-sm text-gray-600 mb-2">{app.company}</p>
-                        <p className="text-xs font-bold uppercase text-gray-500">{app.date}</p>
-                      </div>
-                      <div className={`px-4 py-2 ${app.color} border-4 border-black font-black uppercase text-sm whitespace-nowrap`}>
-                        {app.status}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* Recommended Jobs */}
-            <section>
-              <div className="mb-6">
-                <h2 className="text-3xl lg:text-4xl font-black uppercase border-b-8 border-black inline-block pr-6">
-                  RECOMMENDED FOR YOU
-                </h2>
-              </div>
-              
-              <div className="space-y-4">
-                {recommendedJobs.map((job) => (
-                  <div 
-                    key={job.id}
-                    className="bg-white border-4 border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition"
-                  >
-                    <div className="flex items-start justify-between gap-4 mb-4">
-                      <div className="flex items-center gap-4 flex-1">
-                        <LogoPlaceholder letter={job.logo} color={job.color} />
-                        <div>
-                          <h3 className="text-xl font-black uppercase mb-1">{job.title}</h3>
-                          <p className="font-bold uppercase text-sm text-gray-600">{job.company}</p>
-                        </div>
-                      </div>
-                      <div className="px-4 py-2 bg-green-400 border-4 border-black font-black text-sm">
-                        {job.match}% MATCH
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-3 mb-4">
-                      <span className="px-4 py-2 bg-yellow-400 border-4 border-black text-black text-sm font-black uppercase">
-                        {job.salary}
-                      </span>
-                    </div>
-                    <div className="flex gap-3">
-                      <button className="flex-1 px-4 py-3 bg-teal-400 text-black font-black uppercase border-4 border-black hover:translate-x-1 hover:translate-y-1 transition shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-none">
-                        APPLY NOW
-                      </button>
-                      <button className="px-4 py-3 border-4 border-black font-black uppercase hover:bg-gray-200 transition">
-                        <Bookmark className="h-5 w-5" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
           </div>
 
-          {/* Right Column - Sidebar */}
-          <div className="space-y-8">
-            {/* Notifications */}
-            <section>
-              <div className="mb-6">
-                <h2 className="text-2xl lg:text-3xl font-black uppercase border-b-6 border-black inline-block pr-4">
-                  ALERTS
-                </h2>
-              </div>
-              <div className="space-y-3">
-                {notifications.map((notif) => (
-                  <div 
-                    key={notif.id}
-                    className={`p-4 border-4 border-black ${notif.type === 'success' ? 'bg-green-400' : 'bg-blue-400'}`}
-                  >
-                    <p className="font-bold uppercase text-sm mb-2">{notif.text}</p>
-                    <p className="text-xs font-bold uppercase text-gray-700">{notif.time}</p>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* Saved Jobs */}
-            <section>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl lg:text-3xl font-black uppercase border-b-6 border-black inline-block pr-4">
-                  SAVED
-                </h2>
-                <button className="text-sm font-black uppercase hover:underline">
-                  SEE ALL
-                </button>
-              </div>
-              <div className="space-y-4">
-                {savedJobs.map((job) => (
-                  <div 
-                    key={job.id}
-                    className="bg-white border-4 border-black p-4 hover:bg-gray-50 transition"
-                  >
-                    <div className="flex items-start gap-3 mb-3">
-                      <LogoPlaceholder letter={job.logo} size="h-10 w-10" color="bg-pink-400" />
-                      <div className="flex-1">
-                        <h3 className="text-sm font-black uppercase mb-1 leading-tight">{job.title}</h3>
-                        <p className="text-xs font-bold uppercase text-gray-600">{job.company}</p>
+          {/* Main Content */}
+          <div className="lg:col-span-3">
+            <div className="bg-white border-2 border-black p-6 sm:p-8">
+              {/* Personal Information */}
+              {activeSection === 'personal' && (
+                <div>
+                  <h2 className="text-2xl font-black mb-6 pb-4 border-b-2 border-gray-200">
+                    Personal Information
+                  </h2>
+                  
+                  {/* Profile Photo */}
+                  <div className="mb-8 flex flex-col sm:flex-row items-center sm:items-start gap-6">
+                    <div className="relative shrink-0">
+                      <div className="w-32 h-32 bg-gray-200 border-4 border-black flex items-center justify-center overflow-hidden">
+                        {profileData.profilePhoto ? (
+                          <img src={URL.createObjectURL(profileData.profilePhoto)} alt="Profile" className="w-full h-full object-cover" />
+                        ) : (
+                          <User className="h-16 w-16 text-gray-400" strokeWidth={2} />
+                        )}
                       </div>
+                      <label className="absolute -bottom-2 -right-2 bg-black text-white p-2 cursor-pointer hover:bg-gray-800 transition duration-200 rounded-full">
+                        <Camera className="h-4 w-4" strokeWidth={2.5} />
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleFileUpload('profilePhoto', e)}
+                          className="hidden"
+                        />
+                      </label>
                     </div>
-                    <div className="flex flex-wrap gap-2 text-xs">
-                      <span className="px-2 py-1 bg-yellow-400 border-2 border-black font-black uppercase">
-                        {job.salary}
-                      </span>
-                      <span className="px-2 py-1 bg-teal-400 border-2 border-black font-black uppercase">
-                        {job.location}
-                      </span>
+                    <div className="text-center sm:text-left">
+                      <h3 className="font-black text-lg mb-1">Profile Photo</h3>
+                      <p className="text-sm font-medium text-gray-600 mb-2">Upload a professional photo</p>
+                      <p className="text-xs font-bold text-gray-500">Max size: 2MB, JPG or PNG</p>
                     </div>
                   </div>
-                ))}
-              </div>
-            </section>
 
-            {/* Quick Actions */}
-            <section className="bg-purple-400 border-4 border-black p-6">
-              <h3 className="text-2xl font-black uppercase mb-4 border-b-4 border-black pb-2">
-                QUICK ACTIONS
-              </h3>
-              <div className="space-y-3">
-                <button className="w-full px-4 py-3 bg-white border-4 border-black font-black uppercase text-sm hover:bg-yellow-400 transition text-left">
-                  → BROWSE JOBS
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                    <div>
+                      <label className="block text-sm font-black mb-2 uppercase">Full Name *</label>
+                      <input
+                        type="text"
+                        value={profileData.fullName}
+                        onChange={(e) => handleInputChange('fullName', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-black font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                        placeholder="John Doe"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-black mb-2 uppercase">Email *</label>
+                      <input
+                        type="email"
+                        value={profileData.email}
+                        disabled
+                        className="w-full px-4 py-3 border-2 border-gray-300 font-semibold bg-gray-100 cursor-not-allowed text-gray-600"
+                      />
+                    </div>                    <div>
+                      <label className="block text-sm font-black mb-2 uppercase">Phone Number *</label>
+                      <input
+                        type="tel"
+                        value={profileData.phone}
+                        onChange={(e) => handleInputChange('phone', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-black font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                        placeholder="+91 98765 43210"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-black mb-2 uppercase">Date of Birth</label>
+                      <input
+                        type="date"
+                        value={profileData.dateOfBirth}
+                        onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-black font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-black mb-2 uppercase">Gender</label>
+                      <select
+                        value={profileData.gender}
+                        onChange={(e) => handleInputChange('gender', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-black font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
+                      >
+                        <option value="">Select Gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                        <option value="prefer-not">Prefer not to say</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-black mb-2 uppercase">Current Location *</label>
+                      <input
+                        type="text"
+                        value={profileData.currentLocation}
+                        onChange={(e) => handleInputChange('currentLocation', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-black font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                        placeholder="Mumbai, India"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Professional Information */}
+              {activeSection === 'professional' && (
+                <div>
+                  <h2 className="text-2xl font-black mb-6 pb-4 border-b-2 border-gray-200">
+                    Professional Information
+                  </h2>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                    <div>
+                      <label className="block text-sm font-black mb-2 uppercase">Current Job Title *</label>
+                      <input
+                        type="text"
+                        value={profileData.currentJobTitle}
+                        onChange={(e) => handleInputChange('currentJobTitle', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-black font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                        placeholder="e.g., Software Engineer"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-black mb-2 uppercase">Current Company</label>
+                      <input
+                        type="text"
+                        value={profileData.currentCompany}
+                        onChange={(e) => handleInputChange('currentCompany', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-black font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                        placeholder="e.g., Google"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-black mb-2 uppercase">Years of Experience *</label>
+                      <select
+                        value={profileData.yearsOfExperience}
+                        onChange={(e) => handleInputChange('yearsOfExperience', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-black font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
+                      >
+                        <option value="">Select Experience</option>
+                        <option value="fresher">Fresher</option>
+                        <option value="0-1">0-1 Year</option>
+                        <option value="1-3">1-3 Years</option>
+                        <option value="3-5">3-5 Years</option>
+                        <option value="5-10">5-10 Years</option>
+                        <option value="10+">10+ Years</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-black mb-2 uppercase">Employment Type</label>
+                      <select
+                        value={profileData.employmentType}
+                        onChange={(e) => handleInputChange('employmentType', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-black font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
+                      >
+                        <option value="">Select Type</option>
+                        {employmentTypes.map(type => (
+                          <option key={type} value={type}>{type}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-black mb-2 uppercase">Current Salary (LPA)</label>
+                      <input
+                        type="text"
+                        value={profileData.currentSalary}
+                        onChange={(e) => handleInputChange('currentSalary', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-black font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                        placeholder="e.g., 8"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-black mb-2 uppercase">Expected Salary (LPA)</label>
+                      <input
+                        type="text"
+                        value={profileData.expectedSalary}
+                        onChange={(e) => handleInputChange('expectedSalary', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-black font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                        placeholder="e.g., 12"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="block text-sm font-black mb-2 uppercase">Notice Period</label>
+                      <select
+                        value={profileData.noticePeriod}
+                        onChange={(e) => handleInputChange('noticePeriod', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-black font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
+                      >
+                        <option value="">Select Notice Period</option>
+                        {noticePeriods.map(period => (
+                          <option key={period} value={period}>{period}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Education */}
+              {activeSection === 'education' && (
+                <div>
+                  <h2 className="text-2xl font-black mb-6 pb-4 border-b-2 border-gray-200">
+                    Education Details
+                  </h2>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                    <div>
+                      <label className="block text-sm font-black mb-2 uppercase">Highest Qualification *</label>
+                      <select
+                        value={profileData.highestQualification}
+                        onChange={(e) => handleInputChange('highestQualification', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-black font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
+                      >
+                        <option value="">Select Qualification</option>
+                        <option value="high-school">High School</option>
+                        <option value="diploma">Diploma</option>
+                        <option value="bachelor">Bachelor Degree</option>
+                        <option value="master">Master Degree</option>
+                        <option value="phd">PhD</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-black mb-2 uppercase">Field of Study</label>
+                      <input
+                        type="text"
+                        value={profileData.fieldOfStudy}
+                        onChange={(e) => handleInputChange('fieldOfStudy', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-black font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                        placeholder="e.g., Computer Science"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-black mb-2 uppercase">University/College</label>
+                      <input
+                        type="text"
+                        value={profileData.university}
+                        onChange={(e) => handleInputChange('university', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-black font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                        placeholder="e.g., IIT Delhi"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-black mb-2 uppercase">Graduation Year</label>
+                      <input
+                        type="number"
+                        min="1950"
+                        max="2030"
+                        value={profileData.graduationYear}
+                        onChange={(e) => handleInputChange('graduationYear', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-black font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                        placeholder="e.g., 2020"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Skills & Languages */}
+              {activeSection === 'skills' && (
+                <div>
+                  <h2 className="text-2xl font-black mb-6 pb-4 border-b-2 border-gray-200">
+                    Skills & Languages
+                  </h2>
+
+                  {/* Skills */}
+                  <div className="mb-8">
+                    <label className="block text-sm font-black mb-3 uppercase">Technical Skills *</label>
+                    <div className="flex flex-col sm:flex-row gap-2 mb-4">
+                      <input
+                        type="text"
+                        value={currentSkill}
+                        onChange={(e) => setCurrentSkill(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && addSkill()}
+                        className="flex-1 px-4 py-3 border-2 border-black font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                        placeholder="e.g., React, Python, AWS"
+                      />
+                      <button
+                        onClick={addSkill}
+                        className="px-6 py-3 bg-black text-white font-black hover:bg-gray-800 transition duration-200 flex items-center justify-center gap-2 shrink-0"
+                      >
+                        <Plus className="h-4 w-4" strokeWidth={2.5} />
+                        ADD
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {profileData.skills.map((skill, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-black text-white font-bold text-sm rounded-md"
+                        >
+                          {skill}
+                          <button 
+                            onClick={() => removeSkill(skill)}
+                            className="hover:bg-gray-700 rounded-full p-1 transition-colors duration-200"
+                          >
+                            <X className="h-3 w-3" strokeWidth={2.5} />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Languages */}
+                  <div>
+                    <label className="block text-sm font-black mb-3 uppercase">Languages</label>
+                    <div className="flex flex-col sm:flex-row gap-2 mb-4">
+                      <input
+                        type="text"
+                        value={currentLanguage}
+                        onChange={(e) => setCurrentLanguage(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && addLanguage()}
+                        className="flex-1 px-4 py-3 border-2 border-black font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                        placeholder="e.g., English, Hindi"
+                      />
+                      <button
+                        onClick={addLanguage}
+                        className="px-6 py-3 bg-black text-white font-black hover:bg-gray-800 transition duration-200 flex items-center justify-center gap-2 shrink-0"
+                      >
+                        <Plus className="h-4 w-4" strokeWidth={2.5} />
+                        ADD
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {profileData.languages.map((lang, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-gray-200 border-2 border-black font-bold text-sm rounded-md"
+                        >
+                          {lang}
+                          <button 
+                            onClick={() => removeLanguage(lang)}
+                            className="hover:bg-gray-300 rounded-full p-1 transition-colors duration-200"
+                          >
+                            <X className="h-3 w-3" strokeWidth={2.5} />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Bio */}
+                  <div className="mt-8">
+                    <label className="block text-sm font-black mb-3 uppercase">Professional Bio *</label>
+                    <textarea
+                      value={profileData.bio}
+                      onChange={(e) => handleInputChange('bio', e.target.value)}
+                      rows="6"
+                      maxLength="500"
+                      className="w-full px-4 py-3 border-2 border-black font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-vertical"
+                      placeholder="Write a brief summary about yourself, your experience, and what you are looking for..."
+                    ></textarea>
+                    <p className="text-sm font-bold text-gray-500 mt-2">{profileData.bio.length} / 500 characters</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Links & Resume */}
+              {activeSection === 'links' && (
+                <div>
+                  <h2 className="text-2xl font-black mb-6 pb-4 border-b-2 border-gray-200">
+                    Links & Resume
+                  </h2>
+
+                  {/* Resume Upload */}
+                  <div className="mb-8 p-6 border-2 border-dashed border-black bg-gray-50">
+                    <div className="text-center">
+                      <Upload className="h-12 w-12 mx-auto mb-4" strokeWidth={2} />
+                      <h3 className="font-black text-lg mb-2">Upload Resume *</h3>
+                      <p className="text-sm font-medium text-gray-600 mb-4">
+                        {profileData.resume ? profileData.resume.name : 'PDF, DOC, or DOCX (Max 5MB)'}
+                      </p>
+                      <label className="inline-block px-6 py-3 bg-black text-white font-black cursor-pointer hover:bg-gray-800 transition">
+                        {profileData.resume ? 'CHANGE RESUME' : 'CHOOSE FILE'}
+                        <input
+                          type="file"
+                          accept=".pdf,.doc,.docx"
+                          onChange={(e) => handleFileUpload('resume', e)}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Social Links */}
+                  <div className="space-y-4">
+                    <div>
+                      <label className="flex text-sm font-black mb-2 uppercase items-center gap-2">
+                        <Linkedin className="h-4 w-4" strokeWidth={2.5} />
+                        LinkedIn Profile
+                      </label>
+                      <input
+                        type="url"
+                        value={profileData.linkedinUrl}
+                        onChange={(e) => handleInputChange('linkedinUrl', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-black font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                        placeholder="https://linkedin.com/in/yourprofile"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="flex text-sm font-black mb-2 uppercase items-center gap-2">
+                        <Github className="h-4 w-4" strokeWidth={2.5} />
+                        GitHub Profile
+                      </label>
+                      <input
+                        type="url"
+                        value={profileData.githubUrl}
+                        onChange={(e) => handleInputChange('githubUrl', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-black font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                        placeholder="https://github.com/yourusername"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="flex text-sm font-black mb-2 uppercase items-center gap-2">
+                        <Globe className="h-4 w-4" strokeWidth={2.5} />
+                        Portfolio/Website
+                      </label>
+                      <input
+                        type="url"
+                        value={profileData.portfolioUrl}
+                        onChange={(e) => handleInputChange('portfolioUrl', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-black font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                        placeholder="https://yourportfolio.com"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="flex text-sm font-black mb-2 uppercase items-center gap-2">
+                        <LinkIcon className="h-4 w-4" strokeWidth={2.5} />
+                        Other Website
+                      </label>
+                      <input
+                        type="url"
+                        value={profileData.websiteUrl}
+                        onChange={(e) => handleInputChange('websiteUrl', e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-black font-semibold focus:outline-none focus:ring-2 focus:ring-black"
+                        placeholder="https://yourwebsite.com"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Preferences */}
+              {activeSection === 'preferences' && (
+                <div>
+                  <h2 className="text-2xl font-black mb-6 pb-4 border-b-2 border-gray-200">
+                    Job Preferences
+                  </h2>
+
+                  {/* Preferred Job Types */}
+                  <div className="mb-8">
+                    <label className="block text-sm font-black mb-3 uppercase">Preferred Job Types</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {jobTypes.map(type => (
+                        <button
+                          key={type}
+                          onClick={() => toggleJobType(type)}
+                          className={`px-4 py-3 font-bold text-sm border-2 transition ${
+                            profileData.preferredJobTypes.includes(type)
+                              ? 'bg-black text-white border-black'
+                              : 'bg-white text-black border-gray-300 hover:border-black'
+                          }`}
+                        >
+                          {profileData.preferredJobTypes.includes(type) && (
+                            <Check className="h-4 w-4 inline mr-2" strokeWidth={2.5} />
+                          )}
+                          {type}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Preferred Locations */}
+                  <div className="mb-8">
+                    <label className="block text-sm font-black mb-3 uppercase">Preferred Work Locations</label>
+                    <div className="flex gap-2 mb-4">
+                      <input
+                        type="text"
+                        value={currentLocation}
+                        onChange={(e) => setCurrentLocation(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && addPreferredLocation()}
+                        className="flex-1 px-4 py-3 border-2 border-black font-semibold focus:outline-none focus:ring-2 focus:ring-black"
+                        placeholder="e.g., Mumbai, Bangalore"
+                      />
+                      <button
+                        onClick={addPreferredLocation}
+                        className="px-6 py-3 bg-black text-white font-black hover:bg-gray-800 transition flex items-center gap-2"
+                      >
+                        <Plus className="h-4 w-4" strokeWidth={2.5} />
+                        ADD
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {profileData.preferredLocations.map((loc, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-gray-200 border-2 border-black font-bold text-sm"
+                        >
+                          <MapPin className="h-4 w-4" strokeWidth={2.5} />
+                          {loc}
+                          <button onClick={() => removePreferredLocation(loc)}>
+                            <X className="h-4 w-4" strokeWidth={2.5} />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Willing to Relocate */}
+                  <div>
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={profileData.willingToRelocate}
+                        onChange={(e) => handleInputChange('willingToRelocate', e.target.checked)}
+                        className="w-6 h-6 border-2 border-black"
+                      />
+                      <span className="font-black text-sm uppercase">Willing to Relocate</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {/* Save Button */}
+              <div className="mt-8 pt-8 border-t-2 border-gray-200 flex justify-end gap-4">
+                <button className="px-8 py-4 bg-white text-black font-black border-2 border-black hover:bg-gray-100 transition">
+                  CANCEL
                 </button>
-                <button className="w-full px-4 py-3 bg-white border-4 border-black font-black uppercase text-sm hover:bg-teal-400 transition text-left">
-                  → UPDATE RESUME
-                </button>
-                <button className="w-full px-4 py-3 bg-white border-4 border-black font-black uppercase text-sm hover:bg-pink-400 transition text-left">
-                  → JOB ALERTS
+                <button className="px-8 py-4 bg-black text-white font-black hover:bg-gray-800 transition flex items-center gap-2">
+                  <Save className="h-5 w-5" strokeWidth={2.5} />
+                  SAVE PROFILE
                 </button>
               </div>
-            </section>
+            </div>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 };
