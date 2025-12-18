@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require('mongoose');
 
 const applicationSchema = new mongoose.Schema(
   {
@@ -12,6 +12,77 @@ const applicationSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Candidate",
       required: true
+    },
+    fullName: {
+      type: String,
+      required: true,
+      trim: true
+    },
+
+    email: {
+      type: String,
+      required: true,
+      trim: true
+    },
+
+    mobile: {
+      type: String,
+      required: true,
+      trim: true
+    },
+
+    gender: {
+      type: String,
+      required: true
+    },
+
+    location: {
+      type: String,
+      required: true,
+      trim: true
+    },
+
+    instituteName: {
+      type: String,
+      required: true,
+      trim: true
+    },
+
+    domain: {
+      type: String,
+      required: true
+    },
+
+    course: {
+      type: String,
+      required: true
+    },
+
+    courseSpecialization: {
+      type: String,
+      required: true
+    },
+
+    graduatingYear: {
+      type: String,
+      required: true
+    },
+
+    courseDuration: {
+      type: String,
+      required: true
+    },
+
+    // Additional Information
+    differentlyAbled: {
+      type: String,
+      enum: ["Yes", "No"],
+      default: "No"
+    },
+
+    userType: {
+      type: String,
+      default: "College Students"
     },
 
     resume: {
@@ -71,4 +142,4 @@ applicationSchema.index(
   { unique: true }
 );
 
-export default mongoose.model("Application", applicationSchema);
+module.exports = mongoose.model("Application", applicationSchema);

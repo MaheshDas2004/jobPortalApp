@@ -1,10 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ArrowRight, Upload, MapPin, Info } from "lucide-react";
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import axios from 'axios';
 
-export default function ApplicationForm() {
+const ApplicationForm=()=> {
+  const { jobId } = useParams();
+  const navigate = useNavigate();
+  const { user, userType } = useAuth();
+  
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
+    fullName: "",
     email: "",
     mobile: "",
     gender: "",
@@ -22,6 +28,97 @@ export default function ApplicationForm() {
 
   const [resume, setResume] = useState(null);
   const [errors, setErrors] = useState({});
+  const [jobDetails, setJobDetails] = useState({
+    jobTitle: "",
+    company: ""
+  });
+  const [loading, setLoading] = useState(true);
+  const [candidateProfile, setCandidateProfile] = useState(null);
+
+  // Check authentication - redirect if not logged in as candidate
+  useEffect(() => {
+    if (!user || userType !== 'candidate') {
+      navigate('/cand-signin');
+    }
+  }, [user, userType, navigate]);
+
+  // Fetch job details and candidate profile on component mount
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // Fetch job details
+        const jobResponse = await axios.get(`http://localhost:3000/api/jobs/${jobId}`);
+        if (jobResponse.data.success) {
+          setJobDetails({
+            jobTitle: jobResponse.data.data.jobTitle,
+            company: jobResponse.data.data.company
+          });
+        }
+
+        // Fetch candidate profile if user is logged in
+        if (user && userType === 'candidate') {
+          try {
+            const profileResponse = await axios.get('http://localhost:3000/api/auth/profile', {
+              withCredentials: true
+            });
+            if (profileResponse.data.success) {
+              setCandidateProfile(profileResponse.data.user);
+              // Auto-fill form data from candidate profile
+              autoFillFormData(profileResponse.data.user);
+            }
+          } catch (profileError) {
+            console.log('Profile not found or error fetching profile:', profileError);
+            // Continue without auto-fill if profile fetch fails
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [jobId, user, userType]);
+
+  // Auto-fill form data from candidate profile
+  const autoFillFormData = (profile) => {
+    // Map gender values to match form options
+    const genderMapping = {
+      'male': 'Male',
+      'female': 'Female',
+      'other': 'Prefer not to say',
+      'prefer-not': 'Prefer not to say'
+    };
+
+    setFormData(prev => ({
+      ...prev,
+      fullName: profile.fullName || '',
+      email: profile.email || '',
+      mobile: profile.phone || '',
+      gender: genderMapping[profile.gender] || profile.gender || '',
+      location: profile.currentLocation || '',
+      instituteName: profile.university || '',
+      // Map additional fields if available
+      domain: profile.fieldOfStudy || '',
+      course: profile.highestQualification || '',
+      graduatingYear: profile.graduationYear || '',
+      // Keep existing form defaults for fields not in profile
+      differentlyAbled: prev.differentlyAbled,
+      userType: prev.userType,
+      courseSpecialization: prev.courseSpecialization,
+      courseDuration: prev.courseDuration,
+      termsAccepted: prev.termsAccepted
+    }));
+
+    // If profile has resume URL, you could potentially set it here
+    // Note: This would require handling existing resume files differently
+    if (profile.resume) {
+      console.log('Profile has existing resume:', profile.resume);
+      // You might want to show a message or handle existing resume
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -42,8 +139,7 @@ export default function ApplicationForm() {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.firstName.trim()) newErrors.firstName = "First name is required";
-    if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
+    if (!formData.fullName.trim()) newErrors.fullName = "Full name is required";
     if (!formData.email.trim()) newErrors.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Enter a valid email";
     if (!formData.mobile.trim()) newErrors.mobile = "Mobile is required";
@@ -60,34 +156,96 @@ export default function ApplicationForm() {
     return newErrors;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const formErrors = validateForm();
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
       return;
     }
-    console.log("Form submitted:", formData, resume);
-    alert("Application submitted successfully!");
+
+    try {
+      setLoading(true);
+      
+      // Create FormData for file upload
+      const applicationData = new FormData();
+      
+      // Add form fields
+      Object.keys(formData).forEach(key => {
+        if (formData[key]) {
+          applicationData.append(key, formData[key]);
+        }
+      });
+
+      // Add resume file
+      if (resume) {
+        applicationData.append('resume', resume);
+      }
+
+      // Submit application
+      const response = await axios.post(
+        `http://localhost:3000/api/applications/apply/${jobId}`, 
+        applicationData, 
+        {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      );
+
+      if (response.data.success) {
+        alert("Application submitted successfully!");
+        // Optional: Redirect to applications page or job details
+        // window.history.back();
+      } else {
+        throw new Error(response.data.message || "Failed to submit application");
+      }
+      
+    } catch (error) {
+      console.error("Error submitting application:", error);
+      const errorMessage = error.response?.data?.message || 
+                          error.message || 
+                          "Failed to submit application. Please try again.";
+      alert(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-4xl mx-auto bg-white border-2 border-gray-200 p-8">
-        <div className="mb-8">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="w-12 h-12 bg-black flex items-center justify-center text-white font-bold">
-              AC
-            </div>
-            <div>
-              <h2 className="font-bold text-sm">Accountant / Accounts Executive</h2>
-              <p className="text-xs text-gray-600">unstatic Pvt Ltd</p>
-            </div>
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-gray-800"></div>
+            <span className="ml-3 text-lg font-semibold">Loading application form...</span>
           </div>
-          <h1 className="text-2xl font-bold">Registration Form</h1>
-        </div>
+        ) : (
+          <>
+            <div className="mb-8">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-12 h-12 bg-black flex items-center justify-center text-white font-bold">
+                  {jobDetails.company ? jobDetails.company.charAt(0).toUpperCase() : 'JB'}
+                </div>
+                <div>
+                  <h2 className="font-bold text-sm">
+                    {jobDetails.jobTitle || 'Job Title'}
+                  </h2>
+                  <p className="text-xs text-gray-600">
+                    {jobDetails.company || 'Company Name'}
+                  </p>
+                </div>
+              </div>
+              <h1 className="text-2xl font-bold">Registration Form</h1>
+              {candidateProfile && (
+                <p className="text-sm text-green-600 mt-2">
+                  ✓ Form auto-filled with your profile data. You can modify any field as needed.
+                </p>
+              )}
+            </div>
 
-        <div className="space-y-6">
-          {/* Upload CV Section */}
+            <div className="space-y-6">
+              {/* Upload CV Section */}
           <div>
             <label className="block text-sm font-bold mb-2">
               Upload CV / Resume<span className="text-red-500">*</span>
@@ -117,35 +275,19 @@ export default function ApplicationForm() {
           {/* Basic Details */}
           <div>
             <h3 className="font-bold text-sm mb-4">Basic Details</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold mb-2">
-                  First Name<span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  placeholder="Mahesh"
-                  className="w-full px-4 py-2 border-2 border-gray-300 bg-white focus:border-black focus:outline-none"
-                />
-                {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>}
-              </div>
-              <div>
-                <label className="block text-xs font-semibold mb-2">
-                  Last Name<span className="text-gray-400 text-xs"> (if applicable)</span>
-                </label>
-                <input
-                  type="text"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  placeholder="Das"
-                  className="w-full px-4 py-2 border-2 border-gray-300 bg-white focus:border-black focus:outline-none"
-                />
-                {errors.lastName && <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>}
-              </div>
+            <div className="mb-4">
+              <label className="block text-xs font-semibold mb-2">
+                Full Name<span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="fullName"
+                value={formData.fullName}
+                onChange={handleChange}
+                placeholder="Mahesh Das"
+                className="w-full px-4 py-2 border-2 border-gray-300 bg-white focus:border-black focus:outline-none"
+              />
+              {errors.fullName && <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>}
             </div>
           </div>
 
@@ -439,14 +581,17 @@ export default function ApplicationForm() {
             <button
               type="button"
               onClick={handleSubmit}
-              className="flex-1 px-8 py-4 bg-black text-white font-bold hover:bg-gray-800 transition flex items-center justify-center space-x-2 border-2 border-black hover:bg-white hover:text-black uppercase"
+              className="flex-1 px-8 py-4 bg-black text-white font-bold hover:bg-gray-800 transition flex items-center justify-center space-x-2 border-2 border-black hover:text-black uppercase"
             >
               <span>Submit Application</span>
               <ArrowRight className="h-5 w-5" />
             </button>
           </div>
-        </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
 }
+export default ApplicationForm

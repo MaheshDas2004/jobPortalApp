@@ -3,18 +3,22 @@ import axios from 'axios';
 import {
   MapPin, Briefcase, Clock, Building2, Heart, Calendar,
   Users, TrendingUp, Award, ArrowLeft,
-  AlertCircle, DollarSign
+  AlertCircle, DollarSign, X, LogIn
 } from 'lucide-react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const JobDetail = () => {
   const { jobId } = useParams();
+  const navigate = useNavigate();
+  const { user, userType } = useAuth();
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isSaved, setIsSaved] = useState(false);
   const [applying, setApplying] = useState(false);
   const [activeTab, setActiveTab] = useState('description');
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   useEffect(() => {
     fetchJobDetail();
@@ -45,6 +49,23 @@ const JobDetail = () => {
       setApplying(false);
       alert('Application submitted successfully!');
     }, 1500);
+  };
+
+  const handleQuickApply = () => {
+    // Check if user is logged in and is a candidate
+    if (!user || userType !== 'candidate') {
+      // Show authentication modal instead of direct redirect
+      setShowAuthModal(true);
+      return;
+    }
+    
+    // If logged in as candidate, navigate to application form
+    navigate(`/job/apply/${jobId}`);
+  };
+
+  const handleSignInRedirect = () => {
+    setShowAuthModal(false);
+    navigate('/cand-signin');
   };
 
 
@@ -185,12 +206,12 @@ const JobDetail = () => {
                   <Heart className={`h-5 w-5 ${isSaved ? 'fill-red-500 text-red-500' : ''}`} strokeWidth={2.5} />
                 </button>
                 <button
-                  onClick={handleApply}
+                  onClick={handleQuickApply}
                   disabled={applying || !job.isActive || (job.deadline && new Date(job.deadline) < new Date())}
                   className={`flex-1 py-2 font-black border-2 transition uppercase text-sm ${
                     !job.isActive || (job.deadline && new Date(job.deadline) < new Date())
                       ? 'bg-red-600 text-white border-red-600 cursor-not-allowed'
-                      : 'bg-black text-white border-black hover:bg-white hover:text-black disabled:opacity-50'
+                      : 'bg-black text-white text-center border-black hover:bg-white hover:text-black disabled:opacity-50'
                   }`}
                 >
                   {!job.isActive || (job.deadline && new Date(job.deadline) < new Date())
@@ -502,6 +523,73 @@ const JobDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* Authentication Modal */}
+      {showAuthModal && (
+        <div className="fixed inset-0 bg-black/80 bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white border-4 border-black shadow-2xl max-w-md w-full">
+            {/* Modal Header */}
+            <div className="bg-black text-white px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <LogIn className="h-5 w-5" strokeWidth={2.5} />
+                <h3 className="font-black uppercase text-lg">Sign In Required</h3>
+              </div>
+              <button 
+                onClick={() => setShowAuthModal(false)}
+                className="text-white hover:text-gray-300 transition"
+              >
+                <X className="h-5 w-5" strokeWidth={2.5} />
+              </button>
+            </div>
+            
+            {/* Modal Body */}
+            <div className="p-6">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-yellow-100 border-3 border-yellow-300 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <AlertCircle className="h-8 w-8 text-yellow-600" strokeWidth={2.5} />
+                </div>
+                <h4 className="text-xl font-black text-gray-900 mb-2">
+                  Ready to Apply?
+                </h4>
+                <p className="text-gray-600 font-medium leading-relaxed">
+                  To apply for this position, you need to sign in to your candidate account. 
+                  This helps us keep track of your applications and allows employers to contact you directly.
+                </p>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={handleSignInRedirect}
+                  className="flex-1 bg-black text-white py-3 px-4 font-black border-2 border-black hover:bg-gray-800 transition uppercase text-sm flex items-center justify-center gap-2"
+                >
+                  <LogIn className="h-4 w-4" strokeWidth={2.5} />
+                  Sign In Now
+                </button>
+                <button
+                  onClick={() => setShowAuthModal(false)}
+                  className="flex-1 bg-white text-black py-3 px-4 font-black border-2 border-black hover:bg-gray-100 transition uppercase text-sm"
+                >
+                  Cancel
+                </button>
+              </div>
+              
+              <div className="mt-4 text-center">
+                <p className="text-sm text-gray-500">
+                  Don't have an account? 
+                  <Link 
+                    to="/cand-signup" 
+                    className="text-black font-bold hover:underline ml-1"
+                    onClick={() => setShowAuthModal(false)}
+                  >
+                    Sign up here
+                  </Link>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

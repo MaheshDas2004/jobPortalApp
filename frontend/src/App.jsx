@@ -66,7 +66,7 @@ const AppContent = () => {
         <Route path="/candidate-dashboard" element={<Dashboard />} />
         <Route path="/employer-dashboard" element={<EmployerDashboard />} />
         <Route path="/ehome" element={<EHome />} />
-        <Route path="/application" element={<ApplicationForm />} />
+        <Route path="/job/apply/:jobId" element={<ApplicationForm />} />
         <Route path="/profile" element={<Profile />} />
       </Routes>
     </div>
