@@ -7,7 +7,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 
 const PostJob = () => {
-  const { user, isEmployee, isLoggedIn, isLoading } = useAuth();
+  const { user, isEmployer, isLoggedIn, isLoading } = useAuth();
   
   const [formData, setFormData] = useState({
     jobTitle: '',
@@ -139,7 +139,7 @@ const PostJob = () => {
 
     try {
       // Check authentication
-      if (!isLoggedIn || !isEmployee) {
+      if (!isLoggedIn || !isEmployer) {
         throw new Error('Please login as an employer to post jobs.');
       }
       
@@ -287,7 +287,7 @@ const PostJob = () => {
   }
 
   // Authentication check
-  if (!isLoggedIn || !isEmployee) {
+  if (!isLoggedIn || !isEmployer) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="bg-white border-4 border-black p-8 max-w-md w-full mx-4">

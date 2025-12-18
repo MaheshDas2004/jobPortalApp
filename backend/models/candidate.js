@@ -50,9 +50,6 @@ const candidateSchema = new mongoose.Schema({
   currentSalary: {
     type: String
   },
-  expectedSalary: {
-    type: String
-  },
   noticePeriod: {
     type: String,
     enum: ['Immediate', '15 Days', '30 Days', '60 Days', '90 Days']

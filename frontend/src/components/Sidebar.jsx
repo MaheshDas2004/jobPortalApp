@@ -2,7 +2,7 @@ import React from "react";
 import { X, ChevronRight, TrendingUp, Star, FileText, Briefcase, List, Users, Award, Heart, Bookmark, Eye, MessageSquare, LayoutDashboard, LogOut, User } from "lucide-react";
 import { Link } from "react-router-dom";
 
-export default function Sidebar({ isOpen, onClose, user, isEmployee, isCandidate, onLogout }) {
+export default function Sidebar({ isOpen, onClose, user, isEmployer, isCandidate, onLogout }) {
 
   const menuItems = [
     { icon: FileText, label: "Registrations/Applications", section: "For Users" },
@@ -38,10 +38,10 @@ export default function Sidebar({ isOpen, onClose, user, isEmployee, isCandidate
             <h3 className="font-bold text-lg">{user?.fullName || 'User'}</h3>
             <p className="text-sm text-gray-600">{user?.email || 'user@example.com'}</p>
             <p className="text-xs text-gray-500 uppercase mt-1">
-              {isEmployee ? 'Employer' : 'Candidate'}
+              {isEmployer ? 'Employer' : 'Candidate'}
             </p>
             <Link 
-              to={isEmployee ? "/employer-dashboard" : "/candidate-dashboard"}
+              to={isEmployer ? "/employer-dashboard" : "/candidate-dashboard"}
               onClick={onClose}
               className="text-blue-600 font-semibold text-sm mt-2 flex items-center hover:underline"
             >
@@ -69,7 +69,7 @@ export default function Sidebar({ isOpen, onClose, user, isEmployee, isCandidate
         <div className="p-6 space-y-1">
           <p className="text-xs font-bold text-gray-500 uppercase mb-3">Navigation</p>
           
-          {isEmployee ? (
+          {isEmployer ? (
             <div className="space-y-2">
               <Link 
                 to="/post-job" 

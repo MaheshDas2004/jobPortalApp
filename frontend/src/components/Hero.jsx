@@ -4,7 +4,7 @@ import qt from '../assets/qt.jpeg'
 import { useAuth } from '../context/AuthContext'
 
 const Hero = ({ jobCategories = [] }) => {
-  const { user, userType, isLoggedIn, isEmployee, isCandidate } = useAuth();
+  const { user, userType, isLoggedIn, isEmployer, isCandidate } = useAuth();
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
@@ -25,7 +25,7 @@ const Hero = ({ jobCategories = [] }) => {
               50,000+ LIVE OPPORTUNITIES
             </div>
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black mb-4 sm:mb-6 leading-none tracking-tighter">
-              {isEmployee ? (
+              {isEmployer ? (
                 <>
                   Find Top
                   <br />
@@ -46,7 +46,7 @@ const Hero = ({ jobCategories = [] }) => {
               )}
             </h1>
             <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-300 mb-8 sm:mb-10 max-w-3xl mx-auto font-medium">
-              {isEmployee ? (
+              {isEmployer ? (
                 "Connect with skilled professionals and build your dream team. Post jobs, review applications, and hire faster than ever."
               ) : isCandidate ? (
                 "Ready to take the next step in your career? Discover personalized job recommendations and apply with confidence."
@@ -56,7 +56,7 @@ const Hero = ({ jobCategories = [] }) => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-8 sm:mb-10 max-w-lg mx-auto">
-              {isEmployee ? (
+              {isEmployer ? (
                 <>
                   <a href="/post-job" className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-white text-black font-black hover:bg-gray-200 transition-all text-sm sm:text-base flex items-center justify-center gap-2 shadow-2xl">
                     <Briefcase className="h-4 w-4 sm:h-5 sm:w-5" />

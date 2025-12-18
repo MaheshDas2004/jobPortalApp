@@ -12,10 +12,10 @@ const JobPortal = () => {
   const [activeCategory, setActiveCategory] = useState('all');
   const jobCarouselRef = useRef(null);
   const internshipCarouselRef = useRef(null);
-  const { user, userType, isLoggedIn, isEmployee, isCandidate } = useAuth();
+  const { user, userType, isLoggedIn, isEmployer, isCandidate } = useAuth();
   
   // Redirect employers to post job page or show different content
-  if (isEmployee) {
+  if (isEmployer) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="max-w-md mx-auto text-center p-8 bg-white border-2 border-black shadow-lg">

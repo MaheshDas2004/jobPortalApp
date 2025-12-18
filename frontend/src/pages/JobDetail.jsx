@@ -19,10 +19,32 @@ const JobDetail = () => {
   const [applying, setApplying] = useState(false);
   const [activeTab, setActiveTab] = useState('description');
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [hasApplied, setHasApplied] = useState(false);
+  const [applicationStatus, setApplicationStatus] = useState(null);
+  const [checkingApplication, setCheckingApplication] = useState(false);
 
   useEffect(() => {
     fetchJobDetail();
   }, [jobId]);
+
+  useEffect(() => {
+    // Check application status when user is logged in as candidate
+    if (user && userType === 'candidate' && jobId) {
+      checkApplicationStatus();
+    }
+  }, [user, userType, jobId]);
+
+  // Listen for page focus to refresh application status
+  useEffect(() => {
+    const handleFocus = () => {
+      if (user && userType === 'candidate' && jobId) {
+        checkApplicationStatus();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [user, userType, jobId]);
 
   const fetchJobDetail = async () => {
     setLoading(true);
@@ -31,7 +53,7 @@ const JobDetail = () => {
     try {
       const response = await axios.get(`http://localhost:3000/api/jobs/${jobId}`);
       setJob(response.data.data);
-      console.log('Job fetched successfully:', response.data);
+      // console.log('Job fetched successfully:', response.data);
     } catch (err) {
       const errorMessage = err.response?.data?.message || 
                           err.response?.data?.error || 
@@ -40,6 +62,27 @@ const JobDetail = () => {
       console.error('Error fetching job:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkApplicationStatus = async () => {
+    try {
+      const response = await axios.get(`http://localhost:3000/api/applications/check/${jobId}`, {
+        withCredentials: true // This sends HTTP-only cookies
+      });
+      setHasApplied(response.data.hasApplied);
+      setApplicationStatus(response.data.applicationStatus);
+    } catch (err) {
+      // If unauthorized or any error, silently fail and show as not applied
+      if (err.response?.status === 401) {
+        // User is not authenticated
+        setHasApplied(false);
+        setApplicationStatus(null);
+      } else {
+        console.error('Error checking application status:', err);
+        setHasApplied(false);
+        setApplicationStatus(null);
+      }
     }
   };
 
@@ -56,6 +99,11 @@ const JobDetail = () => {
     if (!user || userType !== 'candidate') {
       // Show authentication modal instead of direct redirect
       setShowAuthModal(true);
+      return;
+    }
+    
+    // Check if already applied
+    if (hasApplied) {
       return;
     }
     
@@ -206,22 +254,25 @@ const JobDetail = () => {
                   <Heart className={`h-5 w-5 ${isSaved ? 'fill-red-500 text-red-500' : ''}`} strokeWidth={2.5} />
                 </button>
                 <button
-                  onClick={handleQuickApply}
-                  disabled={applying || !job.isActive || (job.deadline && new Date(job.deadline) < new Date())}
+                  onClick={hasApplied ? null : handleQuickApply}
+                  disabled={!job.isActive || (job.deadline && new Date(job.deadline) < new Date()) || hasApplied}
                   className={`flex-1 py-2 font-black border-2 transition uppercase text-sm ${
                     !job.isActive || (job.deadline && new Date(job.deadline) < new Date())
                       ? 'bg-red-600 text-white border-red-600 cursor-not-allowed'
-                      : 'bg-black text-white text-center border-black hover:bg-white hover:text-black disabled:opacity-50'
+                      : hasApplied
+                      ? 'bg-black/85 text-white cursor-not-allowed'
+                      : 'bg-black text-white text-center border-black hover:bg-white hover:text-black'
                   }`}
                 >
                   {!job.isActive || (job.deadline && new Date(job.deadline) < new Date())
                     ? 'Job Expired'
-                    : applying
-                    ? 'Processing...'
+                    : hasApplied
+                    ? 'Already Applied'
                     : 'Quick Apply'
                   }
                 </button>
               </div>
+
             </div>
 
             {/* Tabs */}

@@ -9,7 +9,7 @@ import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 
 const EHome = () => {
-  const { user, userType, isLoggedIn, isEmployee } = useAuth();
+  const { user, userType, isLoggedIn, isEmployer } = useAuth();
 
   // Employer-specific stats
   const employerStats = [
@@ -296,7 +296,7 @@ const EHome = () => {
       <section className="py-16 bg-black text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl sm:text-4xl font-black mb-6">
-            Ready to hire your next star employee?
+            Ready to hire your next star candidate?
           </h2>
           <p className="text-xl text-gray-300 mb-8 font-medium">
             Post a job in minutes and start receiving qualified applications today.

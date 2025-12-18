@@ -10,7 +10,7 @@ const Navbar = () => {
   const [showProfileSidebar, setShowProfileSidebar] = useState(false);
   const navigate = useNavigate();
   
-  const { user, userType, isLoggedIn, isEmployee, isCandidate, logout } = useAuth();
+  const { user, userType, isLoggedIn, isEmployer, isCandidate, logout } = useAuth();
 
   const handleLogout = async () => {
     const success = await logout();
@@ -81,7 +81,7 @@ const Navbar = () => {
               </Link>
             )}
             
-            {isEmployee && (
+            {isEmployer && (
               <>
                 <Link to="/post-job" className="text-xs sm:text-sm lg:text-base font-bold text-gray-900 hover:text-gray-600 uppercase whitespace-nowrap transition-colors">
                   Post Job
@@ -173,7 +173,7 @@ const Navbar = () => {
               </Link>
             )}
             
-            {isEmployee && (
+            {isEmployer && (
               <>
                 <Link to="/post-job" onClick={() => setIsOpen(false)} className="block text-sm sm:text-base font-bold text-gray-900 hover:text-gray-600 uppercase transition-colors">
                   Post Job
@@ -189,14 +189,14 @@ const Navbar = () => {
                 <>
                   <div className="px-2 py-2 bg-gray-50 border-2 border-black">
                     <p className="text-xs text-gray-600 uppercase">
-                      {isEmployee ? 'Employer' : 'Candidate'}
+                      {isEmployer ? 'Employer' : 'Candidate'}
                     </p>
                     <p className="text-sm font-bold text-gray-900">{user?.fullName}</p>
                     <p className="text-xs text-gray-500">{user?.email}</p>
                   </div>
                   
                   <Link 
-                    to={isEmployee ? "/employer-dashboard" : "/candidate-dashboard"} 
+                    to={isEmployer ? "/employer-dashboard" : "/candidate-dashboard"} 
                     onClick={() => setIsOpen(false)} 
                     className="flex items-center gap-3 text-sm sm:text-base font-bold text-gray-900 hover:text-gray-600 uppercase py-2 transition-colors"
                   >
@@ -204,7 +204,7 @@ const Navbar = () => {
                     Dashboard
                   </Link>
                   
-                  {isEmployee && (
+                  {isEmployer && (
                     <Link to="/post-job" onClick={() => setIsOpen(false)} className="flex items-center gap-3 text-sm sm:text-base font-bold text-gray-900 hover:text-gray-600 uppercase py-2 transition-colors">
                       <Briefcase className="w-4 h-4 sm:w-5 sm:h-5" />
                       Post Job
@@ -258,7 +258,7 @@ const Navbar = () => {
               isOpen={showProfileSidebar}
               onClose={() => setShowProfileSidebar(false)}
               user={user}
-              isEmployee={isEmployee}
+              isEmployer={isEmployer}
               isCandidate={isCandidate}
               onLogout={handleLogout}
             />

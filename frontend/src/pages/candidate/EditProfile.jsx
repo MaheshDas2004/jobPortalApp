@@ -21,7 +21,6 @@ const EditProfile = () => {
     currentCompany: '',
     yearsOfExperience: '',
     currentSalary: '',
-    expectedSalary: '',
     noticePeriod: '',
     employmentType: '',
     highestQualification: '',
@@ -379,17 +378,6 @@ const EditProfile = () => {
                         onChange={(e) => handleInputChange('currentSalary', e.target.value)}
                         className="w-full px-4 py-3 border-2 border-black font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
                         placeholder="e.g., 8"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-black mb-2 uppercase">Expected Salary (LPA)</label>
-                      <input
-                        type="text"
-                        value={profileData.expectedSalary}
-                        onChange={(e) => handleInputChange('expectedSalary', e.target.value)}
-                        className="w-full px-4 py-3 border-2 border-black font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                        placeholder="e.g., 12"
                       />
                     </div>
 

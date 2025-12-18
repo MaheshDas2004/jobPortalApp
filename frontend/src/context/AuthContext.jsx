@@ -13,7 +13,7 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [userType, setUserType] = useState(null); // 'employee' or 'candidate'
+  const [userType, setUserType] = useState(null); // 'employer' or 'candidate'
   const [isLoading, setIsLoading] = useState(true);
   const [hasInitialAuthCheck, setHasInitialAuthCheck] = useState(false);
 
@@ -37,8 +37,8 @@ export const AuthProvider = ({ children }) => {
 
     try {
       // Make API call based on stored user type - SINGLE API CALL!
-      const endpoint = storedUserType === 'employee' 
-        ? "http://localhost:3000/api/auth/employee/isloggedin"
+      const endpoint = storedUserType === 'employer' 
+        ? "http://localhost:3000/api/auth/employer/isloggedin"
         : "http://localhost:3000/api/auth/candidate/isloggedin";
 
       const response = await axios.get(endpoint, { withCredentials: true });
@@ -77,8 +77,8 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       // Logout from appropriate endpoint based on user type
-      const logoutUrl = userType === 'employee' 
-        ? "http://localhost:3000/api/auth/employee/logout"
+      const logoutUrl = userType === 'employer' 
+        ? "http://localhost:3000/api/auth/employer/logout"
         : "http://localhost:3000/api/auth/candidate/logout";
       
       await axios.post(logoutUrl, {}, { withCredentials: true });
@@ -100,7 +100,7 @@ export const AuthProvider = ({ children }) => {
     userType,
     isLoading,
     isLoggedIn: !!user,
-    isEmployee: userType === 'employee',
+    isEmployer: userType === 'employer',
     isCandidate: userType === 'candidate',
     login,
     logout,

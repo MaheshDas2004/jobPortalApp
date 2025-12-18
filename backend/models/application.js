@@ -24,13 +24,13 @@ const applicationSchema = new mongoose.Schema(
       required: true,
       trim: true
     },
-
+    
     mobile: {
       type: String,
       required: true,
       trim: true
     },
-
+    
     gender: {
       type: String,
       required: true
@@ -73,7 +73,6 @@ const applicationSchema = new mongoose.Schema(
       required: true
     },
 
-    // Additional Information
     differentlyAbled: {
       type: String,
       enum: ["Yes", "No"],
@@ -86,19 +85,10 @@ const applicationSchema = new mongoose.Schema(
     },
 
     resume: {
-      type: String, // resume file path / cloud URL
-      required: true
-    },
-
-    coverLetter: {
       type: String
     },
 
-    experience: {
-      type: Number
-    },
-
-    expectedSalary: {
+    coverLetter: {
       type: String
     },
 
@@ -126,17 +116,12 @@ const applicationSchema = new mongoose.Schema(
         type: String
       }
     },
-
-    employerNote: {
-      type: String
-    }
   },
   {
     timestamps: true
   }
 );
 
-// Prevent duplicate apply
 applicationSchema.index(
   { jobId: 1, candidateId: 1 },
   { unique: true }

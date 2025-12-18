@@ -10,7 +10,7 @@ import { useAuth } from '../context/AuthContext';
 
 const IntroPage = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { user, userType, isLoggedIn, isEmployee, isCandidate } = useAuth();
+  const { user, userType, isLoggedIn, isEmployer, isCandidate } = useAuth();
 
   const recruiterFeatures = [
     { title: 'AI-Powered Matching', description: 'Smart algorithms match top candidates to your jobs automatically', icon: Sparkles },
@@ -105,7 +105,7 @@ const IntroPage = () => {
                     EXPLORE PLATFORM
                   </button>
                 </>
-              ) : isEmployee ? (
+              ) : isEmployer ? (
                 <>
                   <Link to='/post-job' className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-white text-black font-black hover:bg-gray-200 transition-all text-sm sm:text-base flex items-center justify-center gap-2 shadow-2xl">
                     <Briefcase className="h-4 w-4 sm:h-5 sm:w-5" />

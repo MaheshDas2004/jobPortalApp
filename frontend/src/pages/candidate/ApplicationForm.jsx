@@ -24,6 +24,7 @@ const ApplicationForm=()=> {
     graduatingYear: "",
     courseDuration: "",
     termsAccepted: false,
+    coverLetter: "",
   });
 
   const [resume, setResume] = useState(null);
@@ -270,6 +271,29 @@ const ApplicationForm=()=> {
               </label>
             </div>
             {errors.resume && <p className="text-red-500 text-xs mt-1">{errors.resume}</p>}
+          </div>
+
+          {/* Cover Letter Section */}
+          <div>
+            <label className="block text-sm font-bold mb-2">
+              Cover Letter <span className="text-xs text-gray-500 font-normal">(Optional)</span>
+            </label>
+            <p className="text-xs text-gray-600 mb-3">
+              Write a brief cover letter explaining why you're interested in this position and what makes you a good fit.
+            </p>
+            <textarea
+              name="coverLetter"
+              value={formData.coverLetter}
+              onChange={handleChange}
+              placeholder="Dear Hiring Manager,
+
+I am writing to express my interest in this position because..."
+              rows={6}
+              className="w-full px-4 py-3 border-2 border-gray-300 bg-white focus:border-black focus:outline-none resize-vertical"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              This helps employers understand your motivation and interest in the role.
+            </p>
           </div>
 
           {/* Basic Details */}

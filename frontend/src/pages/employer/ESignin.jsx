@@ -26,16 +26,16 @@ export default function ESignin() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await axios.post("http://localhost:3000/api/auth/employee/signin", formData, {
+      const res = await axios.post("http://localhost:3000/api/auth/employer/signin", formData, {
         withCredentials: true
       });
 
       if (res.data?.user) {
         // Store user type for AuthContext
-        localStorage.setItem('userType', 'employee');
+        localStorage.setItem('userType', 'employer');
         
         // Update auth context with user data
-        login(res.data.user, 'employee');
+        login(res.data.user, 'employer');
         
         setIsSubmitted(true);
 
@@ -99,7 +99,7 @@ export default function ESignin() {
 
           {/* Login Form Card */}
           <div className="bg-white p-4 mb-4">
-            <div className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               {/* Email Field */}
               <div>
                 <label className="block text-xs font-bold text-gray-900 mb-1 uppercase">Email Address</label>
@@ -130,7 +130,7 @@ export default function ESignin() {
 
               {/* Sign In Button */}
               <button
-                onClick={handleSubmit}
+                type="submit"
                 disabled={loading || isSubmitted}
                 className="w-full bg-black text-white font-bold py-3 px-4 border-2 border-black hover:bg-white hover:text-black transition-colors text-base mt-4 uppercase tracking-wide disabled:opacity-50"
               >
@@ -142,7 +142,7 @@ export default function ESignin() {
                 <span className="text-xs font-bold text-gray-900 hover:underline uppercase cursor-pointer">Forgot password?</span>
                 <Link to="/" className="text-xs font-bold text-gray-900 hover:underline uppercase cursor-pointer">Are you a job seeker?</Link>
               </div>
-            </div>
+            </form>
           </div>
 
           {/* Sign Up CTA */}

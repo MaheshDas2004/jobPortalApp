@@ -1,5 +1,5 @@
 const express = require('express');
-const Employee = require('../models/employee');
+const Employer = require('../models/employer');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const validateSignup = require('../middlewares/validateSignup');
@@ -12,26 +12,26 @@ router.post("/signup", validateSignup, async (req, res) => {
     try {
         const { fullName, email, mobile, password } = req.body;
 
-        const existingEmployee = await Employee.findOne({ email });
+        const existingEmployer = await Employer.findOne({ email });
 
-        if (existingEmployee) {
+        if (existingEmployer) {
             return res.status(400).json({ message: "Email already registered" });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const newEmployee = new Employee({
+        const newEmployer = new Employer({
             fullName,
             email,
             mobile: mobile || undefined, // Only include if provided
             password: hashedPassword
         });
 
-        await newEmployee.save();
+        await newEmployer.save();
 
         res.status(201).json({
             message: "Signup successful",
-            userId: newEmployee._id
+            userId: newEmployer._id
         });
 
     } catch (err) {
@@ -44,7 +44,7 @@ router.post("/signup", validateSignup, async (req, res) => {
 router.post('/signin', validateSignin, async (req, res) => {
     try {
         const { email, password } = req.body;
-        const user = await Employee.findOne({ email });
+        const user = await Employer.findOne({ email });
 
         if (!user) {
             return res.status(400).json({ message: "Invalid Email" });
@@ -87,7 +87,7 @@ router.post('/signin', validateSignin, async (req, res) => {
 // Check if user is logged in
 router.get('/isloggedin', routeProtector, async (req, res) => {
     try {
-        const user = await Employee.findById(req.userId).select("-password");
+        const user = await Employer.findById(req.userId).select("-password");
 
         if (!user) {
             return res.status(404).json({ message: "User not found" });

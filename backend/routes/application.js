@@ -3,45 +3,22 @@ const router = express.Router();
 const routeProtector = require('../middlewares/routeProtector');
 const Application = require('../models/application');
 const Job = require('../models/job');
-const multer = require('multer');
-const path = require('path');
+const { uploadResume, handleMulterError } = require('../middlewares/multerConfig');
+const { 
+  validateApplicationData, 
+  validateJobExists, 
+  checkDuplicateApplication, 
+  validateStatusUpdate 
+} = require('../middlewares/validateApplication');
 
-// Configure multer for file upload
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/resumes/'); // Make sure this directory exists
-  },
-  filename: function (req, file, cb) {
-    // Generate unique filename
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+router.post('/apply/:id', routeProtector, (req, res, next) => {
+
+  if (req.is('application/json')) {
+    return next();
   }
-});
-
-const fileFilter = (req, file, cb) => {
-  // Accept only PDF, DOC, and DOCX files
-  const allowedTypes = /pdf|doc|docx/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype) || 
-                   file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-                   file.mimetype === 'application/msword';
-
-  if (mimetype && extname) {
-    return cb(null, true);
-  } else {
-    cb(new Error('Only PDF, DOC, and DOCX files are allowed'));
-  }
-};
-
-const upload = multer({
-  storage: storage,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-  },
-  fileFilter: fileFilter
-});
-
-router.post('/apply/:id', routeProtector, upload.single('resume'), async (req, res) => {
+  return uploadResume(req, res, next);
+}, handleMulterError, validateApplicationData,validateJobExists,checkDuplicateApplication,
+  async (req, res) => {
   try {
     const { id: jobId } = req.params;
     const candidateId = req.userId;
@@ -61,47 +38,8 @@ router.post('/apply/:id', routeProtector, upload.single('resume'), async (req, r
       differentlyAbled,
       userType,
       coverLetter,
-      experience,
-      expectedSalary
+      resumePath
     } = req.body;
-
-    // Get resume file path
-    const resumePath = req.file ? req.file.path : null;
-    
-    if (!resumePath) {
-      return res.status(400).json({
-        success: false,
-        message: "Resume file is required"
-      });
-    }
-
-    // Basic validation
-    if (!fullName || !email || !mobile || !gender || !location) {
-      return res.status(400).json({
-        success: false,
-        message: "All required fields must be filled"
-      });
-    }
-    const job = await Job.findById(jobId);
-    if (!job) {
-      return res.status(404).json({
-        success: false,
-        message: "Job not found"
-      });
-    }
-
-    // Check if candidate already applied for this job
-    const existingApplication = await Application.findOne({
-      jobId,
-      candidateId
-    });
-
-    if (existingApplication) {
-      return res.status(400).json({
-        success: false,
-        message: "You have already applied for this job"
-      });
-    }
 
     // Create new application
     const newApplication = new Application({
@@ -120,16 +58,13 @@ router.post('/apply/:id', routeProtector, upload.single('resume'), async (req, r
       courseDuration,
       differentlyAbled,
       userType,
-      resume: resumePath,
+      resume: resumePath || null,
       coverLetter,
-      experience,
-      expectedSalary,
       status: 'applied'
     });
 
     const savedApplication = await newApplication.save();
 
-    // Populate the application with job and candidate details for response
     const populatedApplication = await Application.findById(savedApplication._id)
       .populate('jobId', 'jobTitle company location')
       .populate('candidateId', 'name email');
@@ -155,6 +90,32 @@ router.post('/apply/:id', routeProtector, upload.single('resume'), async (req, r
       success: false,
       message: "Failed to submit application. Please try again.",
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+router.get('/check/:jobId', routeProtector, async (req, res) => {
+  try {
+    const { jobId } = req.params;
+    const candidateId = req.userId;
+
+    const application = await Application.findOne({
+      jobId,
+      candidateId
+    });
+
+    res.status(200).json({
+      success: true,
+      hasApplied: !!application,
+      applicationStatus: application ? application.status : null,
+      applicationId: application ? application._id : null
+    });
+
+  } catch (error) {
+    console.error('Error checking application status:', error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to check application status"
     });
   }
 });
@@ -241,20 +202,11 @@ router.get('/employer/all', routeProtector, async (req, res) => {
 });
 
 // Update application status (for employers)
-router.put('/:applicationId/status', routeProtector, async (req, res) => {
+router.put('/:applicationId/status', routeProtector, validateStatusUpdate, async (req, res) => {
   try {
     const { applicationId } = req.params;
     const { status, employerNote } = req.body;
     const employerId = req.userId;
-
-    // Validate status
-    const validStatuses = ["applied", "shortlisted", "interview", "rejected", "selected"];
-    if (!validStatuses.includes(status)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid status provided"
-      });
-    }
 
     // Find the application and verify employer owns the job
     const application = await Application.findById(applicationId).populate('jobId');

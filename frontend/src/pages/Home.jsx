@@ -11,11 +11,11 @@ const JobPortalHome = () => {
   const [savedJobs, setSavedJobs] = useState([]);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const jobCarouselRef = useRef(null);
-  const { user, userType, isLoggedIn, isEmployee, isCandidate, isLoading } = useAuth();
+  const { user, userType, isLoggedIn, isEmployer, isCandidate, isLoading } = useAuth();
 
-  // Handle redirects for logged in users - only redirect employees, not candidates
+  // Handle redirects for logged in users - only redirect employers, not candidates
   useEffect(() => {
-    if (!isLoading && isLoggedIn && isEmployee) {
+    if (!isLoading && isLoggedIn && isEmployer) {
       setIsRedirecting(true);
       // Add small delay for smooth transition
       const timer = setTimeout(() => {
@@ -24,10 +24,10 @@ const JobPortalHome = () => {
       
       return () => clearTimeout(timer);
     }
-  }, [isLoading, isLoggedIn, isEmployee]);
+  }, [isLoading, isLoggedIn, isEmployer]);
 
   // Show loading state during redirect (only for employers)
-  if (isRedirecting && isEmployee) {
+  if (isRedirecting && isEmployer) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
