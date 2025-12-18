@@ -50,7 +50,7 @@ router.post('/signin', validateSignin, async (req, res) => {
     }
 
     const matchpassword = await bcrypt.compare(password, user.password);
-    
+
     if (!matchpassword) {
       return res.status(400).json({ message: "Invalid Password" });
     }
@@ -60,10 +60,10 @@ router.post('/signin', validateSignin, async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
-      
+
     res.cookie("token", token, {
-      httpOnly: true,          
-      secure: false,          
+      httpOnly: true,
+      secure: false,
       sameSite: "lax",
       maxAge: 24 * 60 * 60 * 1000
     });
@@ -84,6 +84,106 @@ router.post('/signin', validateSignin, async (req, res) => {
 });
 
 // Check if user is logged in
+// Resume Upload Route
+const { uploadResume, handleMulterError } = require('../middlewares/multerConfig');
+
+router.post('/resume', routeProtector, uploadResume, handleMulterError, async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const resumeData = {
+      url: `/uploads/resumes/${req.file.filename}`,
+      filename: req.file.originalname,
+      uploadedAt: new Date()
+    };
+
+    const user = await Candidate.findByIdAndUpdate(
+      req.userId,
+      { resume: resumeData },
+      { new: true }
+    ).select("-password");
+
+    res.json({
+      success: true,
+      message: "Resume uploaded successfully",
+      user
+    });
+  } catch (error) {
+    console.error("Resume upload error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Applied Jobs Route
+router.get('/applied-jobs', routeProtector, async (req, res) => {
+  try {
+    const applications = await Application.find({ candidateId: req.userId })
+      .populate({
+        path: 'jobId',
+        select: 'jobTitle company location jobType salary',
+        populate: { path: 'postedBy', select: 'fullName' }
+      })
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      applications
+    });
+  } catch (error) {
+    console.error("Applied jobs fetch error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Saved Jobs Route
+router.get('/saved-jobs', routeProtector, async (req, res) => {
+  try {
+    const user = await Candidate.findById(req.userId)
+      .populate({
+        path: 'savedJobs',
+        select: 'jobTitle company location jobType salary',
+        populate: { path: 'postedBy', select: 'fullName' }
+      });
+
+    res.json({
+      success: true,
+      savedJobs: user ? user.savedJobs : []
+    });
+  } catch (error) {
+    console.error("Saved jobs fetch error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Notifications Route
+router.get('/notifications', routeProtector, async (req, res) => {
+  try {
+    const notifications = await Notification.find({ userId: req.userId })
+      .sort({ createdAt: -1 });
+
+    res.json({ success: true, notifications });
+  } catch (error) {
+    console.error("Notifications fetch error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Messages Route
+router.get('/messages', routeProtector, async (req, res) => {
+  try {
+    const messages = await Message.find({
+      $or: [{ receiverId: req.userId }, { senderId: req.userId }]
+    }).sort({ createdAt: -1 });
+
+    res.json({ success: true, messages });
+  } catch (error) {
+    console.error("Messages fetch error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 router.get('/isloggedin', routeProtector, async (req, res) => {
   try {
     const user = await Candidate.findById(req.userId).select("-password");
@@ -102,12 +202,50 @@ router.get('/isloggedin', routeProtector, async (req, res) => {
   }
 });
 
+// Sidebar Stats Route
+const Application = require('../models/application');
+const Notification = require('../models/notification');
+const Message = require('../models/message');
+
+router.get('/sidebar-stats', routeProtector, async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    // Run queries in parallel for efficiency
+    const [appliedCount, user, unreadNotifications, unreadMessages] = await Promise.all([
+      Application.countDocuments({ candidateId: userId }),
+      Candidate.findById(userId).select('savedJobs'),
+      Notification.countDocuments({ userId: userId, read: false }),
+      Message.countDocuments({ receiverId: userId, read: false })
+    ]);
+
+    res.json({
+      success: true,
+      stats: {
+        appliedJobs: appliedCount,
+        savedJobs: user?.savedJobs?.length || 0,
+        notifications: unreadNotifications,
+        messages: unreadMessages
+      }
+    });
+  } catch (error) {
+    console.error("Sidebar stats error:", error);
+    // Don't fail the entire UI if stats fail, return zeros
+    res.json({
+      success: false,
+      stats: { appliedJobs: 0, savedJobs: 0, notifications: 0, messages: 0 }
+    });
+  }
+});
+
 // Get Profile Route
 router.get('/profile', routeProtector, async (req, res) => {
   try {
+    console.log("GET /profile called for userId:", req.userId);
     const user = await Candidate.findById(req.userId).select("-password");
 
     if (!user) {
+      console.log("User not found in DB for ID:", req.userId);
       return res.status(404).json({ message: "User not found" });
     }
 
@@ -125,9 +263,9 @@ router.put('/profile', routeProtector, async (req, res) => {
   try {
     console.log('Profile update request received:', req.body);
     console.log('User ID from token:', req.userId);
-    
+
     const updates = req.body;
-    
+
     // Remove sensitive fields that shouldn't be updated here
     delete updates.email;
     delete updates.password;
@@ -157,7 +295,7 @@ router.put('/profile', routeProtector, async (req, res) => {
     console.error("Update profile error:", error);
     if (error.name === 'ValidationError') {
       console.log('Validation errors:', Object.values(error.errors).map(err => err.message));
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: "Invalid data provided",
         errors: Object.values(error.errors).map(err => err.message)
       });
@@ -175,7 +313,7 @@ router.post('/logout', (req, res) => {
       sameSite: "lax",
       maxAge: 0
     });
-    
+
     res.status(200).json({ message: 'Logout successful' });
   } catch (error) {
     console.error("Logout error:", error);
