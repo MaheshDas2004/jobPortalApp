@@ -67,6 +67,10 @@ const jobSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  featured: {
+    type: Boolean,
+    default: false
+  },
   postedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Employer',

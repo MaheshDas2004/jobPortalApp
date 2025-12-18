@@ -1,15 +1,19 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Search, MapPin, Briefcase, DollarSign, Clock, Building2,
-  Heart, ExternalLink, Users, Award, ChevronRight, Eye, ChevronLeft,
+  Heart, ExternalLink, Users, Award, ChevronRight, ChevronLeft,
   Code, Palette, Database, Megaphone, IndianRupee, PlusCircle, Zap
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 
 const JobPortal = () => {
   const [savedJobs, setSavedJobs] = useState([]);
   const [activeCategory, setActiveCategory] = useState('all');
+  const [featuredJobs, setFeaturedJobs] = useState([]);
+  const [featuredInternships, setFeaturedInternships] = useState([]);
+  const [loading, setLoading] = useState(true);
   const jobCarouselRef = useRef(null);
   const internshipCarouselRef = useRef(null);
   const { user, userType, isLoggedIn, isEmployer, isCandidate } = useAuth();
@@ -49,251 +53,92 @@ const JobPortal = () => {
     { id: 'finance', name: 'Finance', icon: IndianRupee }
   ];
 
-  // Featured jobs for carousel
-  const featuredJobs = [
-    {
-      id: 1,
-      title: 'Business Executive',
-      company: 'NoBrokerHood',
-      location: 'Delhi',
-      type: 'In Office',
-      salary: '3.5 LPA - 6 LPA',
-      applied: 1,
-      views: 234,
-      color: 'from-blue-500 to-blue-600',
-      logo: '🏢'
-    },
-    {
-      id: 2,
-      title: 'Actuarial Risk Consultant',
-      company: 'Willis Towers Watson',
-      location: 'Gurgaon',
-      type: 'In Office',
-      salary: '8 LPA - 12 LPA',
-      applied: 415,
-      views: 1243,
-      color: 'from-pink-500 to-pink-600',
-      logo: '📊'
-    },
-    {
-      id: 3,
-      title: 'HR Consulting Analyst',
-      company: 'Willis Towers Watson',
-      location: 'Gurgaon',
-      type: 'In Office',
-      salary: '6 LPA - 10 LPA',
-      applied: 454,
-      views: 892,
-      color: 'from-purple-500 to-purple-600',
-      logo: '👥'
-    },
-    {
-      id: 4,
-      title: 'Apprentice Research Analyst',
-      company: 'Factset',
-      location: 'Hyderabad',
-      type: 'In Office',
-      salary: '4 LPA - 7 LPA',
-      applied: 591,
-      views: 1523,
-      color: 'from-yellow-500 to-yellow-600',
-      logo: '🔬'
-    },
-    {
-      id: 5,
-      title: 'Senior Software Engineer',
-      company: 'Infosys',
-      location: 'Pune',
-      type: 'Hybrid',
-      salary: '10 LPA - 15 LPA',
-      applied: 723,
-      views: 2134,
-      color: 'from-indigo-500 to-indigo-600',
-      logo: '💼'
-    }
-  ];
+  // Fetch featured jobs and internships
+  useEffect(() => {
+    const fetchFeaturedJobs = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get('http://localhost:3000/api/jobs/all');
+        
+        if (response.data.success) {
+          const allJobs = response.data.data;
+          
+          // Filter featured jobs (excluding internships)
+          const jobs = allJobs.filter(job => 
+            job.featured && job.jobType !== 'Internship'
+          );
+          
+          // Filter featured internships
+          const internships = allJobs.filter(job => 
+            job.featured && job.jobType === 'Internship'
+          );
+          
+          // Add UI enhancements to jobs
+          const enhancedJobs = jobs.map((job, index) => ({
+            ...job,
+            id: job._id,
+            title: job.jobTitle,
+            type: job.workType,
+            applied: job.applicants?.length || 0,
+            color: getRandomGradient(index),
+            logo: getJobIcon(job.jobTitle)
+          }));
+          
+          // Add UI enhancements to internships
+          const enhancedInternships = internships.map((internship, index) => ({
+            ...internship,
+            id: internship._id,
+            title: internship.jobTitle,
+            type: internship.workType,
+            stipend: internship.salary,
+            duration: '3-6 months', // Default duration
+            applied: internship.applicants?.length || 0,
+            color: getRandomGradient(index),
+            logo: getJobIcon(internship.jobTitle)
+          }));
+          
+          setFeaturedJobs(enhancedJobs);
+          setFeaturedInternships(enhancedInternships);
+        }
+      } catch (error) {
+        console.error('Error fetching featured jobs:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchFeaturedJobs();
+  }, []);
+  
+  // Helper function to get random gradient colors
+  const getRandomGradient = (index) => {
+    const gradients = [
+      'from-blue-500 to-blue-600',
+      'from-pink-500 to-pink-600', 
+      'from-purple-500 to-purple-600',
+      'from-yellow-500 to-yellow-600',
+      'from-indigo-500 to-indigo-600',
+      'from-green-500 to-green-600',
+      'from-red-500 to-red-600',
+      'from-teal-500 to-teal-600'
+    ];
+    return gradients[index % gradients.length];
+  };
+  
+  // Helper function to get job icon based on title
+  const getJobIcon = (title) => {
+    const lowerTitle = title.toLowerCase();
+    if (lowerTitle.includes('software') || lowerTitle.includes('developer')) return '💻';
+    if (lowerTitle.includes('data') || lowerTitle.includes('analyst')) return '📊';
+    if (lowerTitle.includes('design') || lowerTitle.includes('ui')) return '🎨';
+    if (lowerTitle.includes('marketing')) return '📢';
+    if (lowerTitle.includes('hr') || lowerTitle.includes('human')) return '👥';
+    if (lowerTitle.includes('research')) return '🔬';
+    if (lowerTitle.includes('manager') || lowerTitle.includes('executive')) return '💼';
+    return '🏢';
+  };
 
-  // Featured internships
-  const featuredInternships = [
-    {
-      id: 1,
-      title: 'Software Development Intern',
-      company: 'Google',
-      location: 'Bangalore',
-      type: 'Remote',
-      stipend: '₹50K - ₹80K/month',
-      duration: '3-6 months',
-      applied: 823,
-      views: 3421,
-      color: 'from-green-500 to-green-600',
-      logo: '💻'
-    },
-    {
-      id: 2,
-      title: 'Data Analytics Intern',
-      company: 'Microsoft',
-      location: 'Hyderabad',
-      type: 'Hybrid',
-      stipend: '₹45K - ₹70K/month',
-      duration: '6 months',
-      applied: 654,
-      views: 2134,
-      color: 'from-blue-500 to-blue-600',
-      logo: '📈'
-    },
-    {
-      id: 3,
-      title: 'UX Design Intern',
-      company: 'Adobe',
-      location: 'Noida',
-      type: 'In Office',
-      stipend: '₹35K - ₹55K/month',
-      duration: '4-6 months',
-      applied: 432,
-      views: 1876,
-      color: 'from-red-500 to-red-600',
-      logo: '🎨'
-    },
-    {
-      id: 4,
-      title: 'Marketing Intern',
-      company: 'Amazon',
-      location: 'Mumbai',
-      type: 'In Office',
-      stipend: '₹30K - ₹50K/month',
-      duration: '3 months',
-      applied: 567,
-      views: 2543,
-      color: 'from-orange-500 to-orange-600',
-      logo: '📱'
-    },
-    {
-      id: 6,
-      title: 'Backend Development Intern',
-      company: 'Flipkart',
-      location: 'Bangalore',
-      type: 'Hybrid',
-      stipend: '₹40K - ₹65K/month',
-      duration: '6 months',
-      applied: 891,
-      views: 3102,
-      color: 'from-teal-500 to-teal-600',
-      logo: '⚙️'
-    },
-    {
-      id: 7,
-      title: 'AI/ML Research Intern',
-      company: 'IBM',
-      location: 'Delhi',
-      type: 'Remote',
-      stipend: '₹55K - ₹85K/month',
-      duration: '6 months',
-      applied: 912,
-      views: 3567,
-      color: 'from-cyan-500 to-cyan-600',
-      logo: '🤖'
-    }
-  ];
 
-  // All jobs data
-  const jobs = [
-    {
-      id: 1,
-      title: 'Senior Frontend Developer',
-      company: 'TechCorp Inc',
-      location: 'San Francisco, CA',
-      type: 'Full-Time',
-      salary: '$120K - $160K',
-      experience: '5+ Years',
-      posted: '2 days ago',
-      applicants: 45,
-      description: 'We are looking for an experienced frontend developer to join our team and build amazing user interfaces with modern technologies.',
-      skills: ['React', 'TypeScript', 'Tailwind', 'Next.js'],
-      remote: true,
-      featured: true,
-      category: 'software'
-    },
-    {
-      id: 2,
-      title: 'UI/UX Designer',
-      company: 'Creative Studios',
-      location: 'New York, NY',
-      type: 'Full-Time',
-      salary: '$90K - $120K',
-      experience: '3+ Years',
-      posted: '1 day ago',
-      applicants: 62,
-      description: 'Join our creative team to design beautiful and intuitive user experiences for our products and help shape the future.',
-      skills: ['Figma', 'Sketch', 'Adobe XD', 'Prototyping'],
-      remote: false,
-      featured: false,
-      category: 'design'
-    },
-    {
-      id: 3,
-      title: 'Backend Engineer',
-      company: 'Data Solutions',
-      location: 'Austin, TX',
-      type: 'Full-Time',
-      salary: '$130K - $170K',
-      experience: '4+ Years',
-      posted: '3 days ago',
-      applicants: 38,
-      description: 'Build scalable backend systems and APIs for our enterprise clients. Work with cutting-edge technologies.',
-      skills: ['Node.js', 'Python', 'AWS', 'Docker'],
-      remote: true,
-      featured: true,
-      category: 'software'
-    },
-    {
-      id: 4,
-      title: 'Product Manager',
-      company: 'Startup Hub',
-      location: 'Seattle, WA',
-      type: 'Full-Time',
-      salary: '$140K - $180K',
-      experience: '6+ Years',
-      posted: '5 days ago',
-      applicants: 28,
-      description: 'Lead product strategy and development for our flagship SaaS platform. Drive innovation and growth.',
-      skills: ['Strategy', 'Agile', 'Analytics', 'Roadmap'],
-      remote: true,
-      featured: false,
-      category: 'marketing'
-    },
-    {
-      id: 8,
-      title: 'Data Scientist',
-      company: 'AI Innovations',
-      location: 'Boston, MA',
-      type: 'Contract',
-      salary: '$110K - $150K',
-      experience: '3+ Years',
-      posted: '1 week ago',
-      applicants: 51,
-      description: 'Analyze complex datasets and build ML models to drive business insights. Work on cutting-edge AI projects.',
-      skills: ['Python', 'ML', 'TensorFlow', 'SQL'],
-      remote: true,
-      featured: false,
-      category: 'data'
-    },
-    {
-      id: 9,
-      title: 'DevOps Engineer',
-      company: 'Cloud Systems',
-      location: 'Denver, CO',
-      type: 'Full-Time',
-      salary: '$125K - $165K',
-      experience: '4+ Years',
-      posted: '4 days ago',
-      applicants: 33,
-      description: 'Manage and optimize our cloud infrastructure and CI/CD pipelines. Ensure reliability and scalability.',
-      skills: ['Kubernetes', 'AWS', 'Terraform', 'Jenkins'],
-      remote: false,
-      featured: true,
-      category: 'software'
-    }
-  ];
 
   const toggleSaveJob = (jobId) => {
     setSavedJobs(prev =>
@@ -311,9 +156,7 @@ const JobPortal = () => {
     }
   };
 
-  const filteredJobs = activeCategory === 'all' 
-    ? jobs 
-    : jobs.filter(job => job.category === activeCategory);
+
 
   return (
     <div className="min-h-screen bg-white">
@@ -373,7 +216,7 @@ const JobPortal = () => {
             {/* Quick Stats */}
             <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto">
               <div className="text-center">
-                <p className="text-3xl sm:text-4xl font-black">{jobs.length}</p>
+                <p className="text-3xl sm:text-4xl font-black">{featuredJobs.length + featuredInternships.length}</p>
                 <p className="text-sm font-semibold text-gray-400">Open Positions</p>
               </div>
               <div className="text-center">
@@ -444,7 +287,29 @@ const JobPortal = () => {
             className="flex gap-6 overflow-x-auto pb-4"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
-            {featuredJobs.map((job) => (
+            {loading ? (
+              // Loading skeleton for jobs
+              [...Array(3)].map((_, index) => (
+                <div key={index} className="min-w-[320px] bg-white border-2 border-gray-200 shadow-lg animate-pulse">
+                  <div className="h-32 bg-gray-200"></div>
+                  <div className="p-6 space-y-4">
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                    <div className="space-y-2">
+                      <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                    <div className="h-8 bg-gray-200 rounded"></div>
+                  </div>
+                </div>
+              ))
+            ) : featuredJobs.length === 0 ? (
+              <div className="min-w-[320px] bg-white border-2 border-gray-200 shadow-lg p-8 text-center">
+                <Briefcase className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <p className="text-gray-500 font-medium">No featured jobs available</p>
+              </div>
+            ) : (
+              featuredJobs.map((job) => (
               <div
                 key={job.id}
                 className="min-w-[320px] bg-white border-2 border-black shadow-lg hover:shadow-2xl transition-all group relative overflow-hidden"
@@ -473,25 +338,25 @@ const JobPortal = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between text-xs font-bold text-gray-600 mb-4 pt-4 border-t border-gray-200">
+                  <div className="flex items-center text-xs font-bold text-gray-600 mb-4 pt-4 border-t border-gray-200">
                     <div className="flex items-center gap-1">
                       <Users className="h-4 w-4" strokeWidth={2.5} />
                       <span>{job.applied} Applied</span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Eye className="h-4 w-4" strokeWidth={2.5} />
-                      <span>{job.views} Views</span>
-                    </div>
                   </div>
 
-                  <button className="w-full py-3 bg-black text-white font-black text-sm hover:bg-gray-900 transition flex items-center justify-center gap-2">
+                  <Link 
+                    to={`/jobs/${job.id}`}
+                    className="w-full py-3 bg-black text-white font-black text-sm hover:bg-gray-900 transition flex items-center justify-center gap-2"
+                  >
                     VIEW DETAILS
                     <ExternalLink className="h-4 w-4" strokeWidth={2.5} />
-                  </button>
+                  </Link>
                 </div>
 
               </div>
-            ))}
+            ))
+            )}
           </div>
 
           <div className="text-center mt-8">
@@ -532,7 +397,29 @@ const JobPortal = () => {
             className="flex gap-6 overflow-x-auto pb-4"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
-            {featuredInternships.map((internship) => (
+            {loading ? (
+              // Loading skeleton for internships
+              [...Array(3)].map((_, index) => (
+                <div key={index} className="min-w-[320px] bg-white border-2 border-gray-200 shadow-lg animate-pulse">
+                  <div className="h-32 bg-gray-200"></div>
+                  <div className="p-6 space-y-4">
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                    <div className="space-y-2">
+                      <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                    <div className="h-8 bg-gray-200 rounded"></div>
+                  </div>
+                </div>
+              ))
+            ) : featuredInternships.length === 0 ? (
+              <div className="min-w-[320px] bg-white border-2 border-gray-200 shadow-lg p-8 text-center">
+                <Briefcase className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <p className="text-gray-500 font-medium">No featured internships available</p>
+              </div>
+            ) : (
+              featuredInternships.map((internship) => (
               <div
                 key={internship.id}
                 className="min-w-[320px] bg-white border-2 border-black shadow-lg hover:shadow-2xl transition-all group relative overflow-hidden"
@@ -565,25 +452,24 @@ const JobPortal = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between text-xs font-bold text-gray-600 mb-4 pt-4 border-t border-gray-200">
+                  <div className="flex items-center text-xs font-bold text-gray-600 mb-4 pt-4 border-t border-gray-200">
                     <div className="flex items-center gap-1">
                       <Users className="h-4 w-4" strokeWidth={2.5} />
                       <span>{internship.applied} Applied</span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Eye className="h-4 w-4" strokeWidth={2.5} />
-                      <span>{internship.views} Views</span>
-                    </div>
                   </div>
 
-                  <button className="w-full py-3 bg-black text-white font-black text-sm hover:bg-gray-900 transition flex items-center justify-center gap-2">
+                  <Link 
+                    to={`/job-detail/${internship.id}`}
+                    className="w-full py-3 bg-black text-white font-black text-sm hover:bg-gray-900 transition flex items-center justify-center gap-2"
+                  >
                     VIEW DETAILS
-                    {/* <Zap className="h-4 w-4" strokeWidth={2.5} /> */}
                     <ExternalLink className="h-4 w-4" strokeWidth={2.5} />
-                  </button>
+                  </Link>
                 </div>
               </div>
-            ))}
+            ))
+            )}
           </div>
 
           <div className="text-center mt-8">
