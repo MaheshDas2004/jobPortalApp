@@ -87,10 +87,6 @@ const jobSchema = new mongoose.Schema({
       default: 'Applied'
     }
   }],
-  viewCount: {
-    type: Number,
-    default: 0
-  }
 }, {
   timestamps: true
 });
@@ -104,7 +100,7 @@ jobSchema.index({ experience: 1 });
 jobSchema.index({ createdAt: -1 });
 jobSchema.index({ isActive: 1 });
 
-// Virtual for application count
+
 jobSchema.virtual('applicationCount').get(function() {
   return this.applicants.length;
 });
@@ -113,12 +109,6 @@ jobSchema.virtual('applicationCount').get(function() {
 jobSchema.methods.isApplicationOpen = function() {
   if (!this.deadline) return this.isActive;
   return this.isActive && new Date() <= this.deadline;
-};
-
-// Method to increment view count
-jobSchema.methods.incrementViewCount = function() {
-  this.viewCount += 1;
-  return this.save();
 };
 
 // Static method to find active jobs

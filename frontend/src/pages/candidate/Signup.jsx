@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, ArrowRight, CheckCircle } from 'lucide-react';
-// import UseFetch from '../../hooks/UseFetch';
 import { Link } from 'react-router-dom';
 
 const Signup = () => {
@@ -9,6 +8,8 @@ const Signup = () => {
 
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
+  const [apiLoading, setApiLoading] = useState(false);
+  const [friendlyError, setFriendlyError] = useState("");
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -17,12 +18,6 @@ const Signup = () => {
     confirmPassword: '',
     agreeTerms: false,
   });
-
-  // Custom Hook
-  // const { fetchData, loading: apiLoading, error: friendlyError } = UseFetch({
-  //   url: "http://localhost:3000/api/auth/candidate/signup",
-  //   method: "POST"
-  // });
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -81,23 +76,44 @@ const Signup = () => {
       return;
     }
 
-    const result = await fetchData({
-      fullName: formData.fullName,
-      email: formData.email,
-      password: formData.password,
-    });
+    setApiLoading(true);
+    setFriendlyError("");
 
-    if (result) {
-      setFormData({
-        fullName: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-        agreeTerms: false,
+    try {
+      const response = await fetch("http://localhost:3000/api/auth/candidate/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          email: formData.email,
+          password: formData.password,
+        }),
       });
 
-      setIsSubmitted(true);
-      setTimeout(() => setIsSubmitted(false), 5000);
+      const data = await response.json();
+
+      if (response.ok) {
+        setFormData({
+          fullName: "",
+          email: "",
+          password: "",
+          confirmPassword: "",
+          agreeTerms: false,
+        });
+
+        setIsSubmitted(true);
+        setTimeout(() => setIsSubmitted(false), 5000);
+      } else {
+        setFriendlyError(data.message || "Something went wrong");
+      }
+    } catch (error) {
+      console.error("Signup error:", error);
+      setFriendlyError("Network error. Please try again.");
+    } finally {
+      setApiLoading(false);
     }
   };
 

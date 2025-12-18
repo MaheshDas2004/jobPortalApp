@@ -41,7 +41,6 @@ router.post('/apply/:id', routeProtector, (req, res, next) => {
       resumePath
     } = req.body;
 
-    // Create new application
     const newApplication = new Application({
       jobId,
       candidateId,
@@ -64,6 +63,16 @@ router.post('/apply/:id', routeProtector, (req, res, next) => {
     });
 
     const savedApplication = await newApplication.save();
+
+    await Job.findByIdAndUpdate(jobId, {
+      $push: {
+        applicants: {
+          candidate: candidateId,
+          appliedAt: new Date(),
+          status: 'Applied'
+        }
+      }
+    });
 
     const populatedApplication = await Application.findById(savedApplication._id)
       .populate('jobId', 'jobTitle company location')
@@ -120,7 +129,6 @@ router.get('/check/:jobId', routeProtector, async (req, res) => {
   }
 });
 
-// Get applications for a specific job (for employers)
 router.get('/job/:jobId', routeProtector, async (req, res) => {
   try {
     const { jobId } = req.params;

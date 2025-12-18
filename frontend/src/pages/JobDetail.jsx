@@ -134,8 +134,7 @@ const JobDetail = () => {
     const now = new Date();
     const daysLeft = Math.floor((deadline - now) / (1000 * 60 * 60 * 24));
     
-    if (daysLeft < 0) return 'Expired';
-    if (daysLeft === 0) return 'Today';
+    if (daysLeft <= 0) return '0';
     return daysLeft;
   };
 
@@ -258,7 +257,7 @@ const JobDetail = () => {
                   disabled={!job.isActive || (job.deadline && new Date(job.deadline) < new Date()) || hasApplied}
                   className={`flex-1 py-2 font-black border-2 transition uppercase text-sm ${
                     !job.isActive || (job.deadline && new Date(job.deadline) < new Date())
-                      ? 'bg-red-600 text-white border-red-600 cursor-not-allowed'
+                      ? 'bg-black/85 text-white cursor-not-allowed'
                       : hasApplied
                       ? 'bg-black/85 text-white cursor-not-allowed'
                       : 'bg-black text-white text-center border-black hover:bg-white hover:text-black'

@@ -80,6 +80,7 @@ router.get('/all', async (req, res) => {
   try {
     const jobs = await Job.find({ isActive: true })
       .populate('postedBy', 'fullName email')
+      .populate('applicants.candidate', 'fullName email')
       .sort({ createdAt: -1 });
 
     return res.status(200).json({
@@ -110,10 +111,6 @@ router.get('/:id', async (req, res) => {
         message: 'Job not found'
       });
     }
-
-    // Increment view count
-    await job.incrementViewCount();
-
     return res.status(200).json({
       success: true,
       message: 'Job fetched successfully',

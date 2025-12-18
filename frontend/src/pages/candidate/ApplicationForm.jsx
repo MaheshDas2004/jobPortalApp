@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ArrowRight, Upload, MapPin, Info } from "lucide-react";
+import { ArrowRight, Upload, MapPin, Info, FileText, Trash2, CheckCircle, XCircle, X } from "lucide-react";
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
@@ -35,6 +35,8 @@ const ApplicationForm=()=> {
   });
   const [loading, setLoading] = useState(true);
   const [candidateProfile, setCandidateProfile] = useState(null);
+  const [notification, setNotification] = useState({ show: false, type: '', message: '' });
+  const [submitting, setSubmitting] = useState(false);
 
   // Check authentication - redirect if not logged in as candidate
   useEffect(() => {
@@ -133,6 +135,20 @@ const ApplicationForm=()=> {
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Validate file type
+      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      if (!allowedTypes.includes(file.type)) {
+        setErrors(prev => ({ ...prev, resume: 'Please upload a PDF, DOC, or DOCX file' }));
+        return;
+      }
+      
+      // Validate file size (5MB limit)
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        setErrors(prev => ({ ...prev, resume: 'File size must be less than 5MB' }));
+        return;
+      }
+      
       setResume(file);
       if (errors.resume) setErrors((prev) => ({ ...prev, resume: "" }));
     }
@@ -165,21 +181,44 @@ const ApplicationForm=()=> {
     }
 
     try {
-      setLoading(true);
+      setSubmitting(true);
       
       // Create FormData for file upload
       const applicationData = new FormData();
       
-      // Add form fields
+      // Add form fields with proper formatting
       Object.keys(formData).forEach(key => {
-        if (formData[key]) {
-          applicationData.append(key, formData[key]);
+        let value = formData[key];
+        
+        // Skip empty values except for boolean fields
+        if (!value && value !== false) {
+          return;
         }
+        
+        // Handle gender field - convert to lowercase for backend
+        if (key === 'gender') {
+          value = value.toLowerCase().replace(/\s+/g, '-');
+        }
+        
+        // Handle boolean fields
+        if (typeof value === 'boolean') {
+          value = value.toString();
+        }
+        
+        applicationData.append(key, value);
       });
 
-      // Add resume file
+      // Add resume file (required)
       if (resume) {
         applicationData.append('resume', resume);
+      } else {
+        throw new Error('Resume is required');
+      }
+
+      // Log FormData for debugging (optional)
+      console.log('Submitting application with data:');
+      for (let [key, value] of applicationData.entries()) {
+        console.log(key, value);
       }
 
       // Submit application
@@ -195,26 +234,75 @@ const ApplicationForm=()=> {
       );
 
       if (response.data.success) {
-        alert("Application submitted successfully!");
-        // Optional: Redirect to applications page or job details
-        // window.history.back();
+        setNotification({
+          show: true,
+          type: 'success',
+          message: 'Application submitted successfully! Redirecting...'
+        });
+        // Redirect after showing success message
+        setTimeout(() => {
+          navigate(`/jobs/${jobId}`);
+        }, 2000);
       } else {
         throw new Error(response.data.message || "Failed to submit application");
       }
       
     } catch (error) {
       console.error("Error submitting application:", error);
-      const errorMessage = error.response?.data?.message || 
-                          error.message || 
-                          "Failed to submit application. Please try again.";
-      alert(errorMessage);
+      
+      let errorMessage = "Failed to submit application. Please try again.";
+      
+      if (error.response) {
+        // Server responded with error
+        errorMessage = error.response.data?.message || errorMessage;
+      } else if (error.request) {
+        // Request was made but no response
+        errorMessage = "Network error. Please check your connection.";
+      } else {
+        // Other errors
+        errorMessage = error.message || errorMessage;
+      }
+      
+      setNotification({
+        show: true,
+        type: 'error',
+        message: errorMessage
+      });
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
+      {/* Notification */}
+      {notification.show && (
+        <div className="fixed top-4 right-4 z-50 max-w-md">
+          <div className={`rounded-lg border shadow-lg p-4 ${
+            notification.type === 'success' 
+              ? 'bg-green-50 border-green-200 text-green-800' 
+              : 'bg-red-50 border-red-200 text-red-800'
+          }`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                {notification.type === 'success' ? (
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                ) : (
+                  <XCircle className="h-5 w-5 text-red-600" />
+                )}
+                <p className="text-sm font-medium">{notification.message}</p>
+              </div>
+              <button
+                onClick={() => setNotification({ show: false, type: '', message: '' })}
+                className="text-gray-400 hover:text-gray-600 transition"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="max-w-4xl mx-auto bg-white border-2 border-gray-200 p-8">
         {loading ? (
           <div className="flex items-center justify-center py-20">
@@ -252,24 +340,62 @@ const ApplicationForm=()=> {
               Upload CV / Resume<span className="text-red-500">*</span>
             </label>
             <p className="text-xs text-gray-600 mb-3">Submit your resume in doc, docx, pdf</p>
-            <div className="border-2 border-dashed border-gray-300 p-6 text-center">
-              <input
-                type="file"
-                id="resume"
-                accept=".pdf,.doc,.docx"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-              <label
-                htmlFor="resume"
-                className="cursor-pointer flex flex-col items-center space-y-2"
-              >
-                <Upload className="h-8 w-8 text-gray-400" />
-                <span className="text-sm text-gray-600">
-                  {resume ? resume.name : "Click to upload"}
-                </span>
-              </label>
-            </div>
+            
+            {!resume ? (
+              <div className="border-2 border-dashed border-gray-300 p-6 text-center hover:border-gray-400 transition">
+                <input
+                  type="file"
+                  id="resume"
+                  accept=".pdf,.doc,.docx"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+                <label
+                  htmlFor="resume"
+                  className="cursor-pointer flex flex-col items-center space-y-2"
+                >
+                  <Upload className="h-5 w-5 text-gray-400" />
+                  <span className="text-sm text-gray-600">
+                    Click to upload
+                  </span>
+                </label>
+              </div>
+            ) : (
+              <div className="border-2 border-gray-200 bg-gray-50 p-4 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-blue-500 rounded flex items-center justify-center">
+                      <FileText className="h-5 w-5 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-900">View File</p>
+                      <p className="text-xs text-gray-500">{resume.name}</p>
+                      <p className="text-xs text-gray-400">
+                        {(resume.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setResume(null);
+                      document.getElementById('resume').value = '';
+                    }}
+                    className="p-2 text-gray-400 hover:text-red-500 transition"
+                    title="Remove file"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </button>
+                </div>
+                <input
+                  type="file"
+                  id="resume"
+                  accept=".pdf,.doc,.docx"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+              </div>
+            )}
             {errors.resume && <p className="text-red-500 text-xs mt-1">{errors.resume}</p>}
           </div>
 
@@ -285,15 +411,9 @@ const ApplicationForm=()=> {
               name="coverLetter"
               value={formData.coverLetter}
               onChange={handleChange}
-              placeholder="Dear Hiring Manager,
-
-I am writing to express my interest in this position because..."
-              rows={6}
+              rows={4}
               className="w-full px-4 py-3 border-2 border-gray-300 bg-white focus:border-black focus:outline-none resize-vertical"
             />
-            <p className="text-xs text-gray-500 mt-1">
-              This helps employers understand your motivation and interest in the role.
-            </p>
           </div>
 
           {/* Basic Details */}
@@ -308,7 +428,7 @@ I am writing to express my interest in this position because..."
                 name="fullName"
                 value={formData.fullName}
                 onChange={handleChange}
-                placeholder="Mahesh Das"
+                placeholder="Enter your full name"
                 className="w-full px-4 py-2 border-2 border-gray-300 bg-white focus:border-black focus:outline-none"
               />
               {errors.fullName && <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>}
@@ -326,7 +446,7 @@ I am writing to express my interest in this position because..."
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="mahesh.dass3309@gmail.com"
+                placeholder="your.email@example.com"
                 className="w-full px-4 py-2 border-2 border-gray-300 bg-white focus:border-black focus:outline-none"
               />
               {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
@@ -344,7 +464,7 @@ I am writing to express my interest in this position because..."
                   name="mobile"
                   value={formData.mobile}
                   onChange={handleChange}
-                  placeholder="9358310568"
+                  placeholder="Enter mobile number"
                   className="flex-1 px-4 py-2 border-2 border-gray-300 bg-white focus:border-black focus:outline-none"
                 />
               </div>
@@ -358,7 +478,7 @@ I am writing to express my interest in this position because..."
               Gender<span className="text-red-500">*</span>
             </label>
             <div className="flex flex-wrap gap-3">
-              {["Female", "Male", "Transgender", "Woman", "Intersex", "Man-Binary", "Prefer not to say"].map((g) => (
+              {["Female", "Male", "Other", "Prefer not to say"].map((g) => (
                 <button
                   key={g}
                   type="button"
@@ -387,7 +507,7 @@ I am writing to express my interest in this position because..."
                 name="location"
                 value={formData.location}
                 onChange={handleChange}
-                placeholder="Jalandhar, Punjab, India"
+                placeholder="City, State, Country"
                 className="w-full px-4 py-2 border-2 border-gray-300 bg-white focus:border-black focus:outline-none pr-10"
               />
               <MapPin className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -405,7 +525,7 @@ I am writing to express my interest in this position because..."
               name="instituteName"
               value={formData.instituteName}
               onChange={handleChange}
-              placeholder="lovely proffessional university"
+              placeholder="Enter your institute/university name"
               className="w-full px-4 py-3 border-2 border-gray-300 bg-gray-100 focus:border-black focus:outline-none"
             />
             {errors.instituteName && <p className="text-red-500 text-xs mt-1">{errors.instituteName}</p>}
@@ -474,10 +594,13 @@ I am writing to express my interest in this position because..."
                 className="w-full px-4 py-3 border-2 border-gray-300 bg-gray-100 focus:border-black focus:outline-none"
               >
                 <option value="">Select Domain</option>
-                <option value="Engineering">Engineering</option>
-                <option value="Medical">Medical</option>
-                <option value="Commerce">Commerce</option>
-                <option value="Arts">Arts</option>
+                <option value="Engineering & Technology">Engineering & Technology</option>
+                <option value="Computer Science & IT">Computer Science & IT</option>
+                <option value="Business & Management">Business & Management</option>
+                <option value="Medical & Healthcare">Medical & Healthcare</option>
+                <option value="Arts & Humanities">Arts & Humanities</option>
+                <option value="Science & Research">Science & Research</option>
+                <option value="Commerce & Finance">Commerce & Finance</option>
               </select>
               {errors.domain && <p className="text-red-500 text-xs mt-1">{errors.domain}</p>}
             </div>
@@ -497,9 +620,13 @@ I am writing to express my interest in this position because..."
                 <option value="B.Tech/BE (Bachelor of Technology / Bachelor of Engineering)">
                   B.Tech/BE (Bachelor of Technology / Bachelor of Engineering)
                 </option>
-                <option value="M.Tech/ME">M.Tech/ME</option>
-                <option value="BCA">BCA</option>
-                <option value="MCA">MCA</option>
+                <option value="M.Tech/ME (Master of Technology / Master of Engineering)">M.Tech/ME (Master of Technology / Master of Engineering)</option>
+                <option value="BCA (Bachelor of Computer Applications)">BCA (Bachelor of Computer Applications)</option>
+                <option value="MCA (Master of Computer Applications)">MCA (Master of Computer Applications)</option>
+                <option value="BSc (Bachelor of Science)">BSc (Bachelor of Science)</option>
+                <option value="MSc (Master of Science)">MSc (Master of Science)</option>
+                <option value="BBA (Bachelor of Business Administration)">BBA (Bachelor of Business Administration)</option>
+                <option value="MBA (Master of Business Administration)">MBA (Master of Business Administration)</option>
               </select>
               {errors.course && <p className="text-red-500 text-xs mt-1">{errors.course}</p>}
             </div>
@@ -517,9 +644,18 @@ I am writing to express my interest in this position because..."
               >
                 <option value="">Select Specialization</option>
                 <option value="Computer Science and Engineering">Computer Science and Engineering</option>
+                <option value="Information Technology">Information Technology</option>
+                <option value="Software Engineering">Software Engineering</option>
                 <option value="Mechanical Engineering">Mechanical Engineering</option>
                 <option value="Civil Engineering">Civil Engineering</option>
                 <option value="Electrical Engineering">Electrical Engineering</option>
+                <option value="Electronics and Communication">Electronics and Communication</option>
+                <option value="Data Science and Analytics">Data Science and Analytics</option>
+                <option value="Artificial Intelligence and Machine Learning">Artificial Intelligence and Machine Learning</option>
+                <option value="Cybersecurity">Cybersecurity</option>
+                <option value="Business Administration">Business Administration</option>
+                <option value="Finance and Accounting">Finance and Accounting</option>
+                <option value="Marketing and Sales">Marketing and Sales</option>
               </select>
               {errors.courseSpecialization && <p className="text-red-500 text-xs mt-1">{errors.courseSpecialization}</p>}
             </div>
@@ -530,7 +666,7 @@ I am writing to express my interest in this position because..."
                 Graduating Year<span className="text-red-500">*</span>
               </label>
               <div className="flex space-x-3">
-                {["2026", "2027", "2028", "2029"].map((year) => (
+                {["2024", "2025", "2026", "2027"].map((year) => (
                   <button
                     key={year}
                     type="button"
@@ -585,10 +721,10 @@ I am writing to express my interest in this position because..."
                 className="mt-1 h-5 w-5"
               />
               <span className="text-sm text-gray-700 leading-relaxed">
-                I hereby confirm my consent to receive this data mentioned in this form via any form 
-                mentioned with this recruiter for the opportunity for further analysis, processing, and 
-                outreach. Your data will ever be used by Unstatic for providing you regular and consistent 
-                updates on this opportunity. You also agree to the privacy policy and terms of use of Unstatic.
+                I hereby confirm that the information provided in this application form is accurate and complete. 
+                I consent to the processing of my personal data for recruitment purposes and agree to receive 
+                communications regarding this job opportunity. I understand that my data will be handled in 
+                accordance with applicable privacy laws and the company's privacy policy.
               </span>
             </label>
             {errors.termsAccepted && <p className="text-red-500 text-xs mt-1">{errors.termsAccepted}</p>}
@@ -605,10 +741,24 @@ I am writing to express my interest in this position because..."
             <button
               type="button"
               onClick={handleSubmit}
-              className="flex-1 px-8 py-4 bg-black text-white font-bold hover:bg-gray-800 transition flex items-center justify-center space-x-2 border-2 border-black hover:text-black uppercase"
+              disabled={submitting}
+              className={`flex-1 px-8 py-4 font-bold transition flex items-center justify-center space-x-2 border-2 uppercase ${
+                submitting 
+                  ? 'bg-gray-400 text-gray-200 border-gray-400 cursor-not-allowed'
+                  : 'bg-black text-white border-black hover:bg-gray-800'
+              }`}
             >
-              <span>Submit Application</span>
-              <ArrowRight className="h-5 w-5" />
+              {submitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <span>Submitting...</span>
+                </>
+              ) : (
+                <>
+                  <span>Submit Application</span>
+                  <ArrowRight className="h-5 w-5" />
+                </>
+              )}
             </button>
           </div>
             </div>

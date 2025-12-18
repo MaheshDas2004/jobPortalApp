@@ -57,7 +57,8 @@ const validateApplicationData = (req, res, next) => {
 
     // Gender validation
     const validGenders = ['male', 'female', 'other', 'prefer-not-to-say'];
-    if (!validGenders.includes(gender.toLowerCase())) {
+    const normalizedGender = gender.toLowerCase().replace(/\s+/g, '-');
+    if (!validGenders.includes(normalizedGender)) {
       return res.status(400).json({
         success: false,
         message: "Please select a valid gender option"
