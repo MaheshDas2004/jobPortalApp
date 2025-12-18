@@ -40,8 +40,8 @@ export default function Sidebar({ isOpen, onClose, user, isEmployer, isCandidate
             <p className="text-xs text-gray-500 uppercase mt-1">
               {isEmployer ? 'Employer' : 'Candidate'}
             </p>
-            <Link 
-              to={isEmployer ? "/employer-dashboard" : "/candidate-dashboard"}
+            <Link
+              to={isEmployer ? "/employer-dashboard" : "/profile"}
               onClick={onClose}
               className="text-blue-600 font-semibold text-sm mt-2 flex items-center hover:underline"
             >
@@ -68,11 +68,11 @@ export default function Sidebar({ isOpen, onClose, user, isEmployer, isCandidate
       <div className="flex-1 overflow-y-auto">
         <div className="p-6 space-y-1">
           <p className="text-xs font-bold text-gray-500 uppercase mb-3">Navigation</p>
-          
+
           {isEmployer ? (
             <div className="space-y-2">
-              <Link 
-                to="/post-job" 
+              <Link
+                to="/post-job"
                 onClick={onClose}
                 className="w-full flex items-center space-x-3 px-3 py-3 hover:bg-gray-100 rounded transition text-left"
               >
@@ -82,8 +82,8 @@ export default function Sidebar({ isOpen, onClose, user, isEmployer, isCandidate
             </div>
           ) : (
             <div className="space-y-2">
-              <Link 
-                to="/job-portal" 
+              <Link
+                to="/job-portal"
                 onClick={onClose}
                 className="w-full flex items-center space-x-3 px-3 py-3 hover:bg-gray-100 rounded transition text-left"
               >
@@ -95,7 +95,7 @@ export default function Sidebar({ isOpen, onClose, user, isEmployer, isCandidate
 
           <div className="mt-6 space-y-1">
             <p className="text-xs font-bold text-gray-500 uppercase mb-3">Quick Links</p>
-            
+
             {menuItems.slice(0, 5).map((item, index) => (
               <button key={index} className="w-full flex items-center space-x-3 px-3 py-3 hover:bg-gray-100 rounded transition text-left">
                 <item.icon className="h-5 w-5 text-gray-600 shrink-0" />
@@ -108,7 +108,7 @@ export default function Sidebar({ isOpen, onClose, user, isEmployer, isCandidate
 
       {/* Footer */}
       <div className="p-4 border-t-2 border-gray-200">
-        <button 
+        <button
           onClick={onLogout}
           className="w-full bg-black text-white border-2 border-black font-bold py-3 hover:bg-white cursor-pointer hover:text-black transition flex items-center justify-center gap-2"
         >

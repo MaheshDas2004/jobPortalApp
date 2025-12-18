@@ -1,21 +1,21 @@
 const mongoose = require('mongoose');
 
 const candidateSchema = new mongoose.Schema({
-  fullName: { 
-    type: String, 
+  fullName: {
+    type: String,
     required: true,
     trim: true
   },
-  email: { 
-    type: String, 
-    required: true, 
+  email: {
+    type: String,
+    required: true,
     unique: true,
     lowercase: true,
     trim: true
   },
-  password: { 
-    type: String, 
-    required: true 
+  password: {
+    type: String,
+    required: true
   },
   phone: {
     type: String,
@@ -85,7 +85,9 @@ const candidateSchema = new mongoose.Schema({
   }],
   // Links and Resume
   resume: {
-    type: String // URL or path to uploaded resume
+    url: String,
+    filename: String,
+    uploadedAt: Date
   },
   portfolioUrl: {
     type: String,
@@ -108,9 +110,40 @@ const candidateSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  // Arrays for richer data
+  educationDetails: [{
+    level: { type: String }, // e.g. "B.Tech", "High School"
+    institution: { type: String },
+    fieldOfStudy: { type: String },
+    startDate: { type: Date },
+    endDate: { type: Date },
+    grade: { type: String },
+    description: { type: String }
+  }],
+  experienceDetails: [{
+    title: { type: String },
+    company: { type: String },
+    location: { type: String },
+    startDate: { type: Date },
+    endDate: { type: Date },
+    current: { type: Boolean, default: false },
+    description: { type: String }
+  }],
+  socialLinks: [{
+    platform: { type: String }, // e.g. "LinkedIn", "GitHub", "Portfolio"
+    url: { type: String }
+  }],
+  profileCompletion: {
+    type: Number,
+    default: 0
+  },
   preferredJobTypes: [{
     type: String,
     enum: ['Full-Time', 'Part-Time', 'Remote', 'Hybrid', 'Contract', 'Internship']
+  }],
+  savedJobs: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Job'
   }],
   preferredLocations: [{
     type: String,
@@ -120,8 +153,8 @@ const candidateSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   }
-}, { 
-  timestamps: true 
+}, {
+  timestamps: true
 });
 
 module.exports = mongoose.model('Candidate', candidateSchema);

@@ -22,6 +22,13 @@ import JobDetail from './pages/JobDetail'
 import ApplicationForm from './pages/candidate/ApplicationForm'
 import Profile from './pages/candidate/Profile'
 
+// Import candidate pages
+import Resume from './pages/candidate/Resume';
+import AppliedJobs from './pages/candidate/AppliedJobs';
+import SavedJobs from './pages/candidate/SavedJobs';
+import { JobAlerts, Notifications, Messages } from './pages/candidate/ActivityPages';
+import CandidateLayout from './layouts/CandidateLayout';
+
 // Loading component for initial auth check
 const AppContent = () => {
   const { isLoading } = useAuth();
@@ -47,12 +54,9 @@ const AppContent = () => {
         {/* Pages WITH Footer */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<Home />} />
-          {/* <Route path="/dashboard" element={<Dashboard />}/> */}
           <Route path="/intro" element={<IntroPage />} />
           <Route path="/job-portal" element={<JobPortal />} />
           <Route path="/about-us" element={<AboutUs />} />
-
-
         </Route>
 
         {/* Pages WITHOUT Footer */}
@@ -63,11 +67,21 @@ const AppContent = () => {
         <Route path='/cand-signup' element={<Signup />} />
         <Route path="/emp-signup" element={<ESignup />} />
         <Route path="/post-job" element={<PostJob />} />
-        <Route path="/candidate-dashboard" element={<Dashboard />} />
+
+        {/* Candidate Dashboard Routes */}
+        <Route element={<CandidateLayout />}>
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/resume" element={<Resume />} />
+          <Route path="/jobs/applied" element={<AppliedJobs />} />
+          <Route path="/jobs/saved" element={<SavedJobs />} />
+          <Route path="/messages" element={<Messages />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/job-alerts" element={<JobAlerts />} />
+        </Route>
+
         <Route path="/employer-dashboard" element={<EmployerDashboard />} />
         <Route path="/ehome" element={<EHome />} />
         <Route path="/job/apply/:jobId" element={<ApplicationForm />} />
-        <Route path="/profile" element={<Profile />} />
       </Routes>
     </div>
   );

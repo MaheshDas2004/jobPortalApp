@@ -43,6 +43,26 @@ router.post('/create', routeProtector, validateJobCreation, async (req, res) => 
     await newJob.save();
     await newJob.populate('postedBy', 'fullName email');
 
+    // AUTO-NOTIFY: Notify relevant candidates (demo: notifying the first 5 candidates)
+    // In production, this would match skills/preferences.
+    const Candidate = require('../models/candidate');
+    const Notification = require('../models/notification');
+
+    // Find up to 5 candidates (demo limit)
+    const candidatesToNotify = await Candidate.find().limit(5).select('_id');
+
+    const notifications = candidatesToNotify.map(c => ({
+      userId: c._id,
+      userType: 'Candidate',
+      title: 'New Job Alert',
+      message: `New job posted: ${newJob.jobTitle} at ${newJob.company}`,
+      type: 'info'
+    }));
+
+    if (notifications.length > 0) {
+      await Notification.insertMany(notifications);
+    }
+
     return res.status(201).json({
       success: true,
       message: 'Job posted successfully',
@@ -51,7 +71,7 @@ router.post('/create', routeProtector, validateJobCreation, async (req, res) => 
 
   } catch (error) {
     console.error('Error creating job:', error);
-    
+
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map(err => err.message);
       return res.status(400).json({
@@ -188,7 +208,7 @@ router.put('/:id', routeProtector, validateJobUpdate, async (req, res) => {
     });
   } catch (error) {
     console.error('Error updating job:', error);
-    
+
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map(err => err.message);
       return res.status(400).json({
