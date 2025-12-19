@@ -70,7 +70,7 @@ const CandidateSidebar = ({ user, isSidebarOpen, setIsSidebarOpen }) => {
                             // PROPOSAL: Just go to /profile?edit=true for simplicity, or keep it handled in Profile.
                             // The prompt says "Opens profile editor". If I am on AppliedJobs, I probably go to Profile and open editor.
                             to="/profile?edit=true"
-                            onClick={() => setIsSidebarOpen(false)}
+                            onClick={(renderBackdrop) => setIsSidebarOpen(false)}
                             className="w-full flex items-center gap-3 px-3 py-2 text-black border-2 border-black font-bold text-sm hover:bg-black hover:text-white transition-colors"
                         >
                             <Edit2 className="w-4 h-4" />

@@ -18,7 +18,7 @@ const employerSchema = new mongoose.Schema({
         required: false,
         trim: true,
         validate: {
-            validator: function(v) {
+            validator: function (v) {
                 return !v || /^\d{10}$/.test(v);
             },
             message: 'Mobile number must be 10 digits'
@@ -27,6 +27,31 @@ const employerSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true
+    },
+    // Company profile fields
+    companyName: {
+        type: String,
+        trim: true
+    },
+    companyDescription: {
+        type: String,
+        trim: true,
+        maxlength: 2000
+    },
+    industry: {
+        type: String,
+        trim: true
+    },
+    companyLocation: {
+        type: String,
+        trim: true
+    },
+    website: {
+        type: String,
+        trim: true
+    },
+    companyLogo: {
+        type: String
     }
 }, {
     timestamps: true

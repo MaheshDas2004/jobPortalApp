@@ -4,11 +4,11 @@ const routeProtector = require('../middlewares/routeProtector');
 const Application = require('../models/application');
 const Job = require('../models/job');
 const { uploadResume, handleMulterError } = require('../middlewares/multerConfig');
-const { 
-  validateApplicationData, 
-  validateJobExists, 
-  checkDuplicateApplication, 
-  validateStatusUpdate 
+const {
+  validateApplicationData,
+  validateJobExists,
+  checkDuplicateApplication,
+  validateStatusUpdate
 } = require('../middlewares/validateApplication');
 
 router.post('/apply/:id', routeProtector, (req, res, next) => {
@@ -17,30 +17,31 @@ router.post('/apply/:id', routeProtector, (req, res, next) => {
     return next();
   }
   return uploadResume(req, res, next);
-}, handleMulterError, validateApplicationData,validateJobExists,checkDuplicateApplication,
+}, handleMulterError, validateApplicationData, validateJobExists, checkDuplicateApplication,
   async (req, res) => {
-  try {
-    const { id: jobId } = req.params;
-    const candidateId = req.userId;
-    
-    const {
-      fullName,
-      email,
-      mobile,
-      gender,
-      location,
-      instituteName,
-      domain,
-      course,
-      courseSpecialization,
-      graduatingYear,
-      courseDuration,
-      differentlyAbled,
-      userType,
-      coverLetter,
-      resumePath
-    } = req.body;
+    try {
+      const { id: jobId } = req.params;
+      const candidateId = req.userId;
 
+      const {
+        fullName,
+        email,
+        mobile,
+        gender,
+        location,
+        instituteName,
+        domain,
+        course,
+        courseSpecialization,
+        graduatingYear,
+        courseDuration,
+        differentlyAbled,
+        userType,
+        coverLetter,
+        resumePath
+      } = req.body;
+
+    // Create new application
     const newApplication = new Application({
       jobId,
       candidateId,
@@ -64,44 +65,34 @@ router.post('/apply/:id', routeProtector, (req, res, next) => {
 
     const savedApplication = await newApplication.save();
 
-    await Job.findByIdAndUpdate(jobId, {
-      $push: {
-        applicants: {
-          candidate: candidateId,
-          appliedAt: new Date(),
-          status: 'Applied'
-        }
+      const populatedApplication = await Application.findById(savedApplication._id)
+        .populate('jobId', 'jobTitle company location')
+        .populate('candidateId', 'name email');
+
+      res.status(201).json({
+        success: true,
+        message: "Application submitted successfully",
+        data: populatedApplication
+      });
+
+    } catch (error) {
+      console.error('Error applying for job:', error);
+
+      // Handle duplicate key error (in case index constraint fails)
+      if (error.code === 11000) {
+        return res.status(400).json({
+          success: false,
+          message: "You have already applied for this job"
+        });
       }
-    });
 
-    const populatedApplication = await Application.findById(savedApplication._id)
-      .populate('jobId', 'jobTitle company location')
-      .populate('candidateId', 'name email');
-
-    res.status(201).json({
-      success: true,
-      message: "Application submitted successfully",
-      data: populatedApplication
-    });
-
-  } catch (error) {
-    console.error('Error applying for job:', error);
-    
-    // Handle duplicate key error (in case index constraint fails)
-    if (error.code === 11000) {
-      return res.status(400).json({
+      res.status(500).json({
         success: false,
-        message: "You have already applied for this job"
+        message: "Failed to submit application. Please try again.",
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to submit application. Please try again.",
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  }
-});
+  });
 
 router.get('/check/:jobId', routeProtector, async (req, res) => {
   try {
@@ -135,7 +126,7 @@ router.get('/job/:jobId', routeProtector, async (req, res) => {
     const employerId = req.userId;
 
     // First verify that the job belongs to this employer
-    const job = await Job.findOne({ _id: jobId, employerId });
+    const job = await Job.findOne({ _id: jobId, postedBy: employerId });
     if (!job) {
       return res.status(404).json({
         success: false,
@@ -180,7 +171,7 @@ router.get('/employer/all', routeProtector, async (req, res) => {
     const employerId = req.userId;
 
     // Get all jobs by this employer
-    const jobs = await Job.find({ employerId }).select('_id jobTitle company');
+    const jobs = await Job.find({ postedBy: employerId }).select('_id jobTitle company');
     const jobIds = jobs.map(job => job._id);
 
     // Get all applications for these jobs
@@ -225,7 +216,7 @@ router.put('/:applicationId/status', routeProtector, validateStatusUpdate, async
       });
     }
 
-    if (application.jobId.employerId.toString() !== employerId) {
+    if (application.jobId.postedBy.toString() !== employerId) {
       return res.status(403).json({
         success: false,
         message: "You don't have permission to update this application"

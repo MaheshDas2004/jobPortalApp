@@ -4,8 +4,69 @@ import {
     User, Mail, Phone, MapPin, Briefcase, GraduationCap,
     Calendar, Upload, Save, Code, Link as LinkIcon,
     Github, Linkedin, Globe, Plus, X, Camera, X as CloseIcon,
-    Check
+    Check,
+    Link2Icon
 } from 'lucide-react';
+
+// TagInput component for skills and languages
+const TagInput = ({ label, items = [], onAdd, onRemove, placeholder }) => {
+    const [value, setValue] = React.useState('');
+
+    const handleAdd = () => {
+        const trimmed = value.trim();
+        if (!trimmed || items.includes(trimmed)) return;
+        onAdd(trimmed);
+        setValue('');
+    };
+
+    return (
+        <div className="space-y-3">
+            <label className="block text-sm font-black uppercase">
+                {label}
+            </label>
+
+            <div className="flex gap-2">
+                <input
+                    type="text"
+                    value={value}
+                    placeholder={placeholder}
+                    onChange={e => setValue(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleAdd()}
+                    className="flex-1 p-2 border-2 border-black font-medium"
+                />
+                <button
+                    onClick={handleAdd}
+                    className="px-4 py-2 bg-black text-white font-black uppercase text-sm hover:bg-gray-800"
+                >
+                    Add
+                </button>
+            </div>
+
+            {items.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                    {items.map((item, i) => (
+                        <span
+                            key={i}
+                            className="flex items-center gap-2 px-3 py-1 border-2 border-black bg-gray-100 font-bold text-sm"
+                        >
+                            {item}
+                            <button
+                                onClick={() => onRemove(item)}
+                                className="hover:text-red-600"
+                            >
+                                <X className="w-3 h-3" />
+                            </button>
+                        </span>
+                    ))}
+                </div>
+            )}
+
+            <p className="text-xs text-gray-500">
+                Press Enter or click Add
+            </p>
+        </div>
+    );
+};
 
 const EditProfilePanel = ({ isOpen, onClose, initialData, onSave }) => {
     // Initialize with defaults or initialData
@@ -37,20 +98,36 @@ const EditProfilePanel = ({ isOpen, onClose, initialData, onSave }) => {
         }
     }, [initialData]);
 
+    // Lock body scroll when panel is open
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isOpen]);
+
     if (!isOpen) return null;
 
     const sections = [
         { id: 'personal', name: 'Personal', icon: User },
-        { id: 'professional', name: 'Professional', icon: Briefcase },
+        { id: 'experience', name: 'Experience', icon: Briefcase },
         { id: 'education', name: 'Education', icon: GraduationCap },
         { id: 'skills', name: 'Skills', icon: Code },
         { id: 'social', name: 'Social', icon: LinkIcon },
+        { id: 'preferences', name: 'Preferences', icon: LinkIcon },
     ];
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
+    const handleArrayChange = (field, value) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+    };
     // Helper for arrays (skills, languages)
     const addArrayItem = (field, item) => {
         if (item && !formData[field].includes(item)) {
@@ -97,7 +174,7 @@ const EditProfilePanel = ({ isOpen, onClose, initialData, onSave }) => {
     // Render Helpers
     const renderBackdrop = () => (
         <div
-            className="fixed inset-0 bg-black/50 z-40 transition-opacity"
+            className="fixed inset-0 bg-black/50 z-[60] transition-opacity"
             onClick={onClose}
         />
     );
@@ -105,7 +182,7 @@ const EditProfilePanel = ({ isOpen, onClose, initialData, onSave }) => {
     return (
         <>
             {renderBackdrop()}
-            <div className={`fixed top-0 right-0 h-full w-full sm:w-[500px] md:w-[600px] bg-white z-50 shadow-2xl overflow-y-auto transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+            <div className={`fixed top-0 right-0 h-full w-[60vw] bg-white z-[70] shadow-2xl overflow-y-auto transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
                 {/* Header */}
                 <div className="sticky top-0 bg-white z-10 border-b-2 border-black p-4 flex items-center justify-between">
                     <h2 className="text-xl font-black uppercase">Edit Profile</h2>
@@ -124,8 +201,8 @@ const EditProfilePanel = ({ isOpen, onClose, initialData, onSave }) => {
                                     key={section.id}
                                     onClick={() => setActiveSection(section.id)}
                                     className={`flex items-center gap-2 px-4 py-2 text-sm font-bold whitespace-nowrap border-2 transition-colors ${activeSection === section.id
-                                            ? 'bg-black text-white border-black'
-                                            : 'bg-white text-black border-gray-200 hover:border-black'
+                                        ? 'bg-black text-white border-black'
+                                        : 'bg-white text-black border-gray-200 hover:border-black'
                                         }`}
                                 >
                                     <Icon className="w-4 h-4" />
@@ -138,139 +215,278 @@ const EditProfilePanel = ({ isOpen, onClose, initialData, onSave }) => {
                     {/* Content */}
                     <div className="space-y-6">
                         {activeSection === 'personal' && (
-                            <div className="space-y-4">
+                            <div className="space-y-6">
+                                {/* Profile Photo */}
                                 <div>
-                                    <label className="block text-sm font-black uppercase mb-1">Full Name</label>
-                                    <input
-                                        type="text"
-                                        value={formData.fullName || ''}
-                                        onChange={e => handleInputChange('fullName', e.target.value)}
-                                        className="w-full p-2 border-2 border-black font-bold"
-                                    />
+                                    <label className="block text-sm font-black uppercase mb-3">
+                                        Profile Photo
+                                    </label>
+
+                                    <div className="flex items-center gap-6">
+                                        {/* Preview */}
+                                        <div className="w-32 h-32 border-2 border-black rounded-md overflow-hidden bg-gray-100 flex items-center justify-center">
+                                            {formData.profilePhoto ? (
+                                                <img
+                                                    src={formData.profilePhoto}
+                                                    alt="Profile"
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                <span className="text-xs font-bold text-gray-500 text-center px-2">
+                                                    No Photo
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {/* Upload Button */}
+                                        <div>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                id="profilePhotoInput"
+                                                className="hidden"
+                                                onChange={(e) => {
+                                                    const file = e.target.files[0];
+                                                    if (!file) return;
+
+                                                    const reader = new FileReader();
+                                                    reader.onloadend = () => {
+                                                        handleInputChange('profilePhoto', reader.result);
+                                                    };
+                                                    reader.readAsDataURL(file);
+                                                }}
+                                            />
+
+                                            <label
+                                                htmlFor="profilePhotoInput"
+                                                className="inline-block px-4 py-2 border-2 border-black font-black uppercase text-sm cursor-pointer hover:bg-gray-100"
+                                            >
+                                                {formData.profilePhoto ? 'Change Photo' : 'Upload Photo'}
+                                            </label>
+
+                                            <p className="text-xs text-gray-500 mt-1">
+                                                JPG, PNG • Max 2MB
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
+
+                                {/* Info Fields */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {/* Full Name */}
+                                    <div>
+                                        <label className="block text-sm font-black uppercase mb-1">
+                                            Full Name
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.fullName || ''}
+                                            onChange={e => handleInputChange('fullName', e.target.value)}
+                                            className="w-full p-2 border-2 border-black font-bold"
+                                        />
+                                    </div>
+
+                                    {/* Email */}
+                                    <div>
+                                        <label className="block text-sm font-black uppercase mb-1">
+                                            Email
+                                        </label>
+                                        <input
+                                            type="email"
+                                            value={formData.email || ''}
+                                            disabled
+                                            className="w-full p-2 border-2 border-black font-bold bg-gray-200 text-gray-600 cursor-not-allowed"
+                                        />
+                                    </div>
+
+                                    {/* Phone */}
+                                    <div>
+                                        <label className="block text-sm font-black uppercase mb-1">
+                                            Phone
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.phone || ''}
+                                            onChange={e => handleInputChange('phone', e.target.value)}
+                                            className="w-full p-2 border-2 border-black font-bold"
+                                        />
+                                    </div>
+
+                                    {/* Location */}
+                                    <div>
+                                        <label className="block text-sm font-black uppercase mb-1">
+                                            Location
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.currentLocation || ''}
+                                            onChange={e => handleInputChange('currentLocation', e.target.value)}
+                                            className="w-full p-2 border-2 border-black font-bold"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Bio */}
                                 <div>
-                                    <label className="block text-sm font-black uppercase mb-1">Bio</label>
+                                    <label className="block text-sm font-black uppercase mb-1">
+                                        Bio
+                                    </label>
                                     <textarea
                                         value={formData.bio || ''}
                                         onChange={e => handleInputChange('bio', e.target.value)}
-                                        className="w-full p-2 border-2 border-black font-medium min-h-[100px]"
+                                        className="w-full p-2 border-2 border-black font-medium min-h-[120px]"
                                         placeholder="Tell us about yourself..."
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-black uppercase mb-1">Location</label>
-                                    <input
-                                        type="text"
-                                        value={formData.currentLocation || ''}
-                                        onChange={e => handleInputChange('currentLocation', e.target.value)}
-                                        className="w-full p-2 border-2 border-black font-bold"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-black uppercase mb-1">Phone</label>
-                                    <input
-                                        type="text"
-                                        value={formData.phone || ''}
-                                        onChange={e => handleInputChange('phone', e.target.value)}
-                                        className="w-full p-2 border-2 border-black font-bold"
                                     />
                                 </div>
                             </div>
                         )}
 
-                        {activeSection === 'professional' && (
+
+                        {activeSection === 'experience' && (
                             <div className="space-y-6">
-                                {/* Current Role */}
-                                <div className="p-4 border-2 border-gray-100 bg-gray-50">
-                                    <h3 className="font-black uppercase mb-3 text-sm">Current Role</h3>
-                                    <div className="grid grid-cols-1 gap-4">
-                                        <div>
-                                            <label className="block text-xs font-black uppercase mb-1">Job Title</label>
-                                            <input
-                                                type="text"
-                                                value={formData.currentJobTitle || ''}
-                                                onChange={e => handleInputChange('currentJobTitle', e.target.value)}
-                                                className="w-full p-2 border-2 border-black font-bold"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-black uppercase mb-1">Company</label>
-                                            <input
-                                                type="text"
-                                                value={formData.currentCompany || ''}
-                                                onChange={e => handleInputChange('currentCompany', e.target.value)}
-                                                className="w-full p-2 border-2 border-black font-bold"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-black uppercase mb-1">Years of Exp</label>
-                                            <input
-                                                type="text"
-                                                value={formData.yearsOfExperience || ''}
-                                                onChange={e => handleInputChange('yearsOfExperience', e.target.value)}
-                                                className="w-full p-2 border-2 border-black font-bold"
-                                            />
-                                        </div>
-                                    </div>
+                                <div className="flex justify-between items-center">
+                                    <h3 className="font-black uppercase text-sm">Experience</h3>
+                                    <button
+                                        onClick={() =>
+                                            addComplexItem('experienceDetails', {
+                                                title: '',
+                                                company: '',
+                                                startDate: '',
+                                                endDate: '',
+                                                description: '',
+                                                isCurrent: false,
+                                            })
+                                        }
+                                        className="text-xs bg-black text-white px-3 py-1 font-bold flex items-center gap-1"
+                                    >
+                                        <Plus className="w-3 h-3" /> Add Experience
+                                    </button>
                                 </div>
 
-                                {/* Experience Array */}
-                                <div>
-                                    <div className="flex justify-between items-center mb-2">
-                                        <h3 className="font-black uppercase text-sm">Detailed Experience</h3>
+                                {formData.experienceDetails?.map((exp, index) => (
+                                    <div
+                                        key={index}
+                                        className="relative p-5 border-2 border-black bg-gray-50/60 space-y-4"
+                                    >
+                                        {/* Remove */}
                                         <button
-                                            onClick={() => addComplexItem('experienceDetails', { title: '', company: '', startDate: '', endDate: '', description: '' })}
-                                            className="text-xs bg-black text-white px-2 py-1 font-bold flex items-center gap-1"
+                                            onClick={() => removeComplexItem('experienceDetails', index)}
+                                            className="absolute top-3 right-3 p-1 hover:bg-gray-200"
                                         >
-                                            <Plus className="w-3 h-3" /> Add
+                                            <X className="w-4 h-4" />
                                         </button>
-                                    </div>
-                                    {formData.experienceDetails?.map((exp, index) => (
-                                        <div key={index} className="mb-4 p-4 border-2 border-black relative">
-                                            <button
-                                                onClick={() => removeComplexItem('experienceDetails', index)}
-                                                className="absolute top-2 right-2 p-1 hover:bg-gray-100"
-                                            >
-                                                <X className="w-4 h-4" />
-                                            </button>
-                                            <div className="space-y-3">
+
+                                        {/* Job Title */}
+                                        <div>
+                                            <label className="block text-xs font-black uppercase mb-1">
+                                                Job Title
+                                            </label>
+                                            <input
+                                                value={exp.title || ''}
+                                                onChange={e =>
+                                                    updateComplexItem('experienceDetails', index, 'title', e.target.value)
+                                                }
+                                                placeholder="e.g. Frontend Developer"
+                                                className="w-full p-2 border-2 border-black font-bold text-sm"
+                                            />
+                                        </div>
+
+                                        {/* Company */}
+                                        <div>
+                                            <label className="block text-xs font-black uppercase mb-1">
+                                                Company
+                                            </label>
+                                            <input
+                                                value={exp.company || ''}
+                                                onChange={e =>
+                                                    updateComplexItem('experienceDetails', index, 'company', e.target.value)
+                                                }
+                                                placeholder="Company Name"
+                                                className="w-full p-2 border-2 border-black text-sm"
+                                            />
+                                        </div>
+
+                                        {/* Dates */}
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label className="block text-xs font-black uppercase mb-1">
+                                                    Start Date
+                                                </label>
                                                 <input
-                                                    placeholder="Job Title"
-                                                    value={exp.title || ''}
-                                                    onChange={e => updateComplexItem('experienceDetails', index, 'title', e.target.value)}
-                                                    className="w-full p-2 border border-black font-bold text-sm"
+                                                    type="date"
+                                                    value={exp.startDate ? exp.startDate.split('T')[0] : ''}
+                                                    onChange={e =>
+                                                        updateComplexItem('experienceDetails', index, 'startDate', e.target.value)
+                                                    }
+                                                    className="w-full p-2 border-2 border-black text-sm"
                                                 />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-xs font-black uppercase mb-1">
+                                                    End Date
+                                                </label>
                                                 <input
-                                                    placeholder="Company"
-                                                    value={exp.company || ''}
-                                                    onChange={e => updateComplexItem('experienceDetails', index, 'company', e.target.value)}
-                                                    className="w-full p-2 border border-black text-sm"
-                                                />
-                                                <div className="grid grid-cols-2 gap-2">
-                                                    <input
-                                                        type="date"
-                                                        value={exp.startDate ? exp.startDate.split('T')[0] : ''}
-                                                        onChange={e => updateComplexItem('experienceDetails', index, 'startDate', e.target.value)}
-                                                        className="w-full p-2 border border-black text-sm"
-                                                    />
-                                                    <input
-                                                        type="date"
-                                                        value={exp.endDate ? exp.endDate.split('T')[0] : ''}
-                                                        onChange={e => updateComplexItem('experienceDetails', index, 'endDate', e.target.value)}
-                                                        className="w-full p-2 border border-black text-sm"
-                                                    />
-                                                </div>
-                                                <textarea
-                                                    placeholder="Description"
-                                                    value={exp.description || ''}
-                                                    onChange={e => updateComplexItem('experienceDetails', index, 'description', e.target.value)}
-                                                    className="w-full p-2 border border-black text-sm"
+                                                    type="date"
+                                                    disabled={exp.isCurrent}
+                                                    value={
+                                                        exp.isCurrent
+                                                            ? ''
+                                                            : exp.endDate
+                                                                ? exp.endDate.split('T')[0]
+                                                                : ''
+                                                    }
+                                                    onChange={e =>
+                                                        updateComplexItem('experienceDetails', index, 'endDate', e.target.value)
+                                                    }
+                                                    className="w-full p-2 border-2 border-black text-sm disabled:bg-gray-200 disabled:cursor-not-allowed"
                                                 />
                                             </div>
                                         </div>
-                                    ))}
-                                </div>
+
+                                        {/* Current Job Toggle */}
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="checkbox"
+                                                checked={exp.isCurrent || false}
+                                                onChange={e =>
+                                                    updateComplexItem(
+                                                        'experienceDetails',
+                                                        index,
+                                                        'isCurrent',
+                                                        e.target.checked
+                                                    )
+                                                }
+                                                className="w-4 h-4 border-2 border-black"
+                                            />
+                                            <span className="text-sm font-bold">
+                                                I currently work here
+                                            </span>
+                                        </div>
+
+                                        {/* Description */}
+                                        <div>
+                                            <label className="block text-xs font-black uppercase mb-1">
+                                                Description
+                                            </label>
+                                            <textarea
+                                                value={exp.description || ''}
+                                                onChange={e =>
+                                                    updateComplexItem(
+                                                        'experienceDetails',
+                                                        index,
+                                                        'description',
+                                                        e.target.value
+                                                    )
+                                                }
+                                                placeholder="Describe your role, responsibilities, achievements, tools, impact, etc."
+                                                className="w-full p-2 border-2 border-black text-sm min-h-[110px]"
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
+
                         )}
 
                         {activeSection === 'education' && (
@@ -278,172 +494,331 @@ const EditProfilePanel = ({ isOpen, onClose, initialData, onSave }) => {
                                 <div className="flex justify-between items-center mb-2">
                                     <h3 className="font-black uppercase text-sm">Education History</h3>
                                     <button
-                                        onClick={() => addComplexItem('educationDetails', { institution: '', level: '', fieldOfStudy: '', year: '' })}
+                                        onClick={() =>
+                                            addComplexItem('educationDetails', {
+                                                institution: '',
+                                                level: '',
+                                                fieldOfStudy: '',
+                                                startYear: '',
+                                                endYear: '',
+                                                grade: '',
+                                                location: '',
+                                            })
+                                        }
                                         className="text-xs bg-black text-white px-2 py-1 font-bold flex items-center gap-1"
                                     >
                                         <Plus className="w-3 h-3" /> Add
                                     </button>
                                 </div>
+
                                 {formData.educationDetails?.map((edu, index) => (
-                                    <div key={index} className="mb-4 p-4 border-2 border-black relative">
+                                    <div
+                                        key={index}
+                                        className="mb-4 p-4 border-2 border-black relative bg-gray-50/50"
+                                    >
                                         <button
                                             onClick={() => removeComplexItem('educationDetails', index)}
                                             className="absolute top-2 right-2 p-1 hover:bg-gray-100"
                                         >
                                             <X className="w-4 h-4" />
                                         </button>
-                                        <div className="space-y-3">
-                                            <input
-                                                placeholder="Institution / School"
-                                                value={edu.institution || ''}
-                                                onChange={e => updateComplexItem('educationDetails', index, 'institution', e.target.value)}
-                                                className="w-full p-2 border border-black font-bold text-sm"
-                                            />
-                                            <div className="grid grid-cols-2 gap-2">
+
+                                        <div className="space-y-4">
+                                            {/* Institution */}
+                                            <div>
+                                                <label className="block text-xs font-black uppercase mb-1">
+                                                    Institution / School
+                                                </label>
                                                 <input
-                                                    placeholder="Level (e.g. B.Tech)"
-                                                    value={edu.level || ''}
-                                                    onChange={e => updateComplexItem('educationDetails', index, 'level', e.target.value)}
-                                                    className="w-full p-2 border border-black text-sm"
-                                                />
-                                                <input
-                                                    placeholder="Year"
-                                                    value={edu.year || ''}
-                                                    onChange={e => updateComplexItem('educationDetails', index, 'year', e.target.value)}
-                                                    className="w-full p-2 border border-black text-sm"
+                                                    value={edu.institution || ''}
+                                                    onChange={e =>
+                                                        updateComplexItem(
+                                                            'educationDetails',
+                                                            index,
+                                                            'institution',
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    className="w-full p-2 border border-black font-bold text-sm"
                                                 />
                                             </div>
-                                            <input
-                                                placeholder="Field of Study"
-                                                value={edu.fieldOfStudy || ''}
-                                                onChange={e => updateComplexItem('educationDetails', index, 'fieldOfStudy', e.target.value)}
-                                                className="w-full p-2 border border-black text-sm"
-                                            />
+
+                                            {/* Degree & Field */}
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div>
+                                                    <label className="block text-xs font-black uppercase mb-1">
+                                                        Degree / Level
+                                                    </label>
+                                                    <input
+                                                        value={edu.level || ''}
+                                                        onChange={e =>
+                                                            updateComplexItem(
+                                                                'educationDetails',
+                                                                index,
+                                                                'level',
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                        placeholder="e.g. B.Tech, M.Sc"
+                                                        className="w-full p-2 border border-black text-sm"
+                                                    />
+                                                </div>
+
+                                                <div>
+                                                    <label className="block text-xs font-black uppercase mb-1">
+                                                        Field of Study
+                                                    </label>
+                                                    <input
+                                                        value={edu.fieldOfStudy || ''}
+                                                        onChange={e =>
+                                                            updateComplexItem(
+                                                                'educationDetails',
+                                                                index,
+                                                                'fieldOfStudy',
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                        placeholder="e.g. Computer Science"
+                                                        className="w-full p-2 border border-black text-sm"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* Years */}
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div>
+                                                    <label className="block text-xs font-black uppercase mb-1">
+                                                        Start Year
+                                                    </label>
+                                                    <input
+                                                        value={edu.startYear || ''}
+                                                        onChange={e =>
+                                                            updateComplexItem(
+                                                                'educationDetails',
+                                                                index,
+                                                                'startYear',
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                        placeholder="e.g. 2019"
+                                                        className="w-full p-2 border border-black text-sm"
+                                                    />
+                                                </div>
+
+                                                <div>
+                                                    <label className="block text-xs font-black uppercase mb-1">
+                                                        End Year
+                                                    </label>
+                                                    <input
+                                                        value={edu.endYear || ''}
+                                                        onChange={e =>
+                                                            updateComplexItem(
+                                                                'educationDetails',
+                                                                index,
+                                                                'endYear',
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                        placeholder="e.g. 2023 / Present"
+                                                        className="w-full p-2 border border-black text-sm"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* Grade & Location */}
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div>
+                                                    <label className="block text-xs font-black uppercase mb-1">
+                                                        Grade / CGPA
+                                                    </label>
+                                                    <input
+                                                        value={edu.grade || ''}
+                                                        onChange={e =>
+                                                            updateComplexItem(
+                                                                'educationDetails',
+                                                                index,
+                                                                'grade',
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                        placeholder="e.g. 8.2 CGPA"
+                                                        className="w-full p-2 border border-black text-sm"
+                                                    />
+                                                </div>
+
+                                                <div>
+                                                    <label className="block text-xs font-black uppercase mb-1">
+                                                        Location
+                                                    </label>
+                                                    <input
+                                                        value={edu.location || ''}
+                                                        onChange={e =>
+                                                            updateComplexItem(
+                                                                'educationDetails',
+                                                                index,
+                                                                'location',
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                        placeholder="City, Country"
+                                                        className="w-full p-2 border border-black text-sm"
+                                                    />
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
                             </div>
+
                         )}
 
                         {activeSection === 'skills' && (
                             <div className="space-y-6">
-                                <div>
-                                    <label className="block text-sm font-black uppercase mb-2">Skills</label>
-                                    <div className="flex gap-2 mb-4">
-                                        <input
-                                            id="skill-input"
-                                            type="text"
-                                            placeholder="Add a skill"
-                                            className="flex-1 p-2 border-2 border-black"
-                                            onKeyPress={e => {
-                                                if (e.key === 'Enter') {
-                                                    addArrayItem('skills', e.target.value);
-                                                    e.target.value = '';
-                                                }
-                                            }}
-                                        />
-                                        <button
-                                            onClick={() => {
-                                                const input = document.getElementById('skill-input');
-                                                addArrayItem('skills', input.value);
-                                                input.value = '';
-                                            }}
-                                            className="bg-black text-white px-4 font-bold uppercase"
-                                        >
-                                            Add
-                                        </button>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2">
-                                        {formData.skills?.map((skill, i) => (
-                                            <span key={i} className="bg-gray-100 border border-black px-3 py-1 font-bold text-sm flex items-center gap-2">
-                                                {skill}
-                                                <button onClick={() => removeArrayItem('skills', skill)}><X className="w-3 h-3" /></button>
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-black uppercase mb-2">Languages</label>
-                                    <div className="flex gap-2 mb-4">
-                                        <input
-                                            id="lang-input"
-                                            type="text"
-                                            placeholder="Add a language"
-                                            className="flex-1 p-2 border-2 border-black"
-                                            onKeyPress={e => {
-                                                if (e.key === 'Enter') {
-                                                    addArrayItem('languages', e.target.value);
-                                                    e.target.value = '';
-                                                }
-                                            }}
-                                        />
-                                        <button
-                                            onClick={() => {
-                                                const input = document.getElementById('lang-input');
-                                                addArrayItem('languages', input.value);
-                                                input.value = '';
-                                            }}
-                                            className="bg-black text-white px-4 font-bold uppercase"
-                                        >
-                                            Add
-                                        </button>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2">
-                                        {formData.languages?.map((lang, i) => (
-                                            <span key={i} className="bg-gray-100 border border-black px-3 py-1 font-bold text-sm flex items-center gap-2">
-                                                {lang}
-                                                <button onClick={() => removeArrayItem('languages', lang)}><X className="w-3 h-3" /></button>
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
+                                <TagInput
+                                    label="Skills"
+                                    items={formData.skills || []}
+                                    onAdd={(item) => addArrayItem('skills', item)}
+                                    onRemove={(item) => removeArrayItem('skills', item)}
+                                    placeholder="e.g. React, JavaScript, Node.js"
+                                />
+                                <TagInput
+                                    label="Languages"
+                                    items={formData.languages || []}
+                                    onAdd={(item) => addArrayItem('languages', item)}
+                                    onRemove={(item) => removeArrayItem('languages', item)}
+                                    placeholder="e.g. English, Hindi"
+                                />
                             </div>
                         )}
 
                         {activeSection === 'social' && (
                             <div className="space-y-6">
-                                <div className="flex justify-between items-center mb-2">
-                                    <h3 className="font-black uppercase text-sm">Social Links</h3>
-                                    <button
-                                        onClick={() => addComplexItem('socialLinks', { platform: '', url: '' })}
-                                        className="text-xs bg-black text-white px-2 py-1 font-bold flex items-center gap-1"
-                                    >
-                                        <Plus className="w-3 h-3" /> Add
-                                    </button>
-                                </div>
-                                {formData.socialLinks?.map((link, index) => (
-                                    <div key={index} className="mb-4 p-4 border-2 border-black relative bg-gray-50/50">
-                                        <button
-                                            onClick={() => removeComplexItem('socialLinks', index)}
-                                            className="absolute top-2 right-2 p-1 hover:bg-gray-100"
+                                <h3 className="font-black uppercase text-sm mb-2">Social Links</h3>
+
+                                {['LinkedIn', 'GitHub', 'Twitter', 'Portfolio', 'Other'].map((platform) => {
+                                    const existingIndex = formData.socialLinks?.findIndex(
+                                        (link) => link.platform === platform
+                                    );
+
+                                    const existingLink =
+                                        existingIndex !== -1 ? formData.socialLinks[existingIndex] : null;
+
+                                    return (
+                                        <div
+                                            key={platform}
+                                            className="flex items-center gap-2 p-3 border-2 border-black bg-gray-50/50"
                                         >
-                                            <X className="w-4 h-4" />
-                                        </button>
-                                        <div className="grid grid-cols-1 gap-2">
-                                            <select
-                                                value={link.platform || ''}
-                                                onChange={e => updateComplexItem('socialLinks', index, 'platform', e.target.value)}
-                                                className="w-full p-2 border border-black font-bold text-sm"
-                                            >
-                                                <option value="">Select Platform</option>
-                                                <option value="LinkedIn">LinkedIn</option>
-                                                <option value="GitHub">GitHub</option>
-                                                <option value="Twitter">Twitter</option>
-                                                <option value="Portfolio">Portfolio</option>
-                                                <option value="Other">Other</option>
-                                            </select>
+                                            <div className="w-28 font-bold text-sm">
+                                                {platform}
+                                            </div>
+
                                             <input
-                                                placeholder="URL"
-                                                value={link.url || ''}
-                                                onChange={e => updateComplexItem('socialLinks', index, 'url', e.target.value)}
-                                                className="w-full p-2 border border-black text-sm"
+                                                placeholder={`${platform} URL`}
+                                                value={existingLink?.url || ''}
+                                                onChange={(e) => {
+                                                    if (existingIndex === -1) {
+                                                        addComplexItem('socialLinks', {
+                                                            platform,
+                                                            url: e.target.value,
+                                                        });
+                                                    } else {
+                                                        updateComplexItem(
+                                                            'socialLinks',
+                                                            existingIndex,
+                                                            'url',
+                                                            e.target.value
+                                                        );
+                                                    }
+                                                }}
+                                                className="flex-1 p-2 border border-black text-sm"
                                             />
+
+                                            {existingIndex === -1 ? (
+                                                <button
+                                                    onClick={() =>
+                                                        addComplexItem('socialLinks', {
+                                                            platform,
+                                                            url: '',
+                                                        })
+                                                    }
+                                                    className="p-2 border-2 border-black bg-black text-white hover:bg-gray-800"
+                                                >
+                                                    <Plus className="w-4 h-4" />
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={() =>
+                                                        removeComplexItem('socialLinks', existingIndex)
+                                                    }
+                                                    className="p-2 border-2 border-black hover:bg-gray-100"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            )}
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
+                        {activeSection === 'preferences' && (
+                            <div className="space-y-8">
+                                {/* Preferred Job Roles */}
+                                <TagInput
+                                    label="Preferred Job Roles"
+                                    items={formData.preferredRoles || []}
+                                    onAdd={(item) => addArrayItem('preferredRoles', item)}
+                                    onRemove={(item) => removeArrayItem('preferredRoles', item)}
+                                    placeholder="e.g. Frontend Developer, Backend Engineer"
+                                />
+
+                                {/* Preferred Job Areas / Domains */}
+                                <TagInput
+                                    label="Preferred Job Areas"
+                                    items={formData.preferredAreas || []}
+                                    onAdd={(item) => addArrayItem('preferredAreas', item)}
+                                    onRemove={(item) => removeArrayItem('preferredAreas', item)}
+                                    placeholder="e.g. Web Development, Data Science"
+                                />
+
+                                {/* Preferred Locations */}
+                                <TagInput
+                                    label="Preferred Locations"
+                                    items={formData.preferredLocations || []}
+                                    onAdd={(item) => addArrayItem('preferredLocations', item)}
+                                    onRemove={(item) => removeArrayItem('preferredLocations', item)}
+                                    placeholder="e.g. Bangalore, Remote, Delhi NCR"
+                                />
+
+                                {/* Expected Package */}
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-black uppercase">
+                                        Expected Package (CTC)
+                                    </label>
+
+                                    <select
+                                        value={formData.expectedPackage || ''}
+                                        onChange={e =>
+                                            handleInputChange('expectedPackage', e.target.value)
+                                        }
+                                        className="w-1/2 p-2 border-2 border-black font-bold bg-white"
+                                    >
+                                        <option value="">Select Expected Package</option>
+                                        <option value="Below 3 LPA">Below 3 LPA</option>
+                                        <option value="3–5 LPA">3–5 LPA</option>
+                                        <option value="5–8 LPA">5–8 LPA</option>
+                                        <option value="8–12 LPA">8–12 LPA</option>
+                                        <option value="12–20 LPA">12–20 LPA</option>
+                                        <option value="20+ LPA">20+ LPA</option>
+                                        <option value="Negotiable">Negotiable</option>
+                                    </select>
+
+                                    <p className="text-xs text-gray-500">
+                                        This helps recruiters match suitable roles
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
                     </div>
                 </div>
 
