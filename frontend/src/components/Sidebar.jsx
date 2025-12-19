@@ -4,11 +4,18 @@ import { Link } from "react-router-dom";
 
 export default function Sidebar({ isOpen, onClose, user, isEmployer, isCandidate, onLogout }) {
 
-  const menuItems = [
+  const candidateMenuItems = [
     { icon: FileText, label: "Registrations/Applications", section: "For Users" },
     // { icon: Briefcase, label: "My Jobs & Internships" },
     { icon: MessageSquare, label: "My Rounds" },
     // { icon: Heart, label: "Watchlist" },
+  ];
+
+  const employerMenuItems = [
+    { icon: Users, label: "Manage Applications", section: "For Employers" },
+    { icon: Briefcase, label: "My Posted Jobs" },
+    { icon: TrendingUp, label: "Analytics" },
+    // { icon: Star, label: "Shortlisted Candidates" },
   ];
 
   if (!isOpen) {
@@ -35,7 +42,9 @@ export default function Sidebar({ isOpen, onClose, user, isEmployer, isCandidate
             <User className="w-8 h-8" />
           </div>
           <div className="flex-1">
-            <h3 className="font-bold text-lg">{user?.fullName || 'User'}</h3>
+            <h3 className="font-bold text-lg">
+              {isEmployer ? (user?.companyName || user?.fullName || 'Employer') : (user?.fullName || 'User')}
+            </h3>
             <p className="text-sm text-gray-600">{user?.email || 'user@example.com'}</p>
             <p className="text-xs text-gray-500 uppercase mt-1">
               {isEmployer ? 'Employer' : 'Candidate'}
@@ -96,7 +105,7 @@ export default function Sidebar({ isOpen, onClose, user, isEmployer, isCandidate
           <div className="mt-6 space-y-1">
             <p className="text-xs font-bold text-gray-500 uppercase mb-3">Quick Links</p>
 
-            {menuItems.slice(0, 5).map((item, index) => (
+            {(isEmployer ? employerMenuItems : candidateMenuItems).slice(0, 5).map((item, index) => (
               <button key={index} className="w-full flex items-center space-x-3 px-3 py-3 hover:bg-gray-100 rounded transition text-left">
                 <item.icon className="h-5 w-5 text-gray-600 shrink-0" />
                 <span className="text-sm font-medium text-gray-800">{item.label}</span>

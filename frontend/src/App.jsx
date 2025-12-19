@@ -28,6 +28,7 @@ import AppliedJobs from './pages/candidate/AppliedJobs';
 import SavedJobs from './pages/candidate/SavedJobs';
 import { JobAlerts, Notifications, Messages } from './pages/candidate/ActivityPages';
 import CandidateLayout from './layouts/CandidateLayout';
+import EmployerLayout from './layouts/EmployerLayout';
 
 // Loading component for initial auth check
 const AppContent = () => {
@@ -66,7 +67,6 @@ const AppContent = () => {
         <Route path="/emp-signin" element={<ESignin />} />
         <Route path='/cand-signup' element={<Signup />} />
         <Route path="/emp-signup" element={<ESignup />} />
-        <Route path="/post-job" element={<PostJob />} />
 
         {/* Candidate Dashboard Routes */}
         <Route element={<CandidateLayout />}>
@@ -79,7 +79,11 @@ const AppContent = () => {
           <Route path="/job-alerts" element={<JobAlerts />} />
         </Route>
 
-        <Route path="/employer-dashboard" element={<EmployerDashboard />} />
+        {/* Employer Dashboard Routes */}
+        <Route element={<EmployerLayout />}>
+          <Route path="/employer-dashboard" element={<EmployerDashboard />} />
+          <Route path="/post-job" element={<PostJob />} />
+        </Route>
         <Route path="/ehome" element={<EHome />} />
         <Route path="/job/apply/:jobId" element={<ApplicationForm />} />
       </Routes>
