@@ -66,10 +66,14 @@ export default function Sidebar({ isOpen, onClose, user, isEmployer, isCandidate
           <p className="text-xs text-gray-600 mb-2">
             on opportunities to create an impact!
           </p>
-          <button className="text-blue-600 font-semibold text-sm flex items-center hover:underline">
+          <Link
+            to={isEmployer ? "/employer-dashboard" : "/profile"}
+            onClick={onClose}
+            className="text-blue-600 font-semibold text-sm flex items-center hover:underline"
+          >
             Complete my profile
             <ChevronRight className="h-4 w-4 ml-1" />
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -88,6 +92,22 @@ export default function Sidebar({ isOpen, onClose, user, isEmployer, isCandidate
                 <Briefcase className="h-5 w-5 text-gray-600 shrink-0" />
                 <span className="text-sm font-medium text-gray-800 uppercase">Post Job</span>
               </Link>
+              <Link
+                to="/view-jobs"
+                onClick={onClose}
+                className="w-full flex items-center space-x-3 px-3 py-3 hover:bg-gray-100 rounded transition text-left"
+              >
+                <Eye className="h-5 w-5 text-gray-600 shrink-0" />
+                <span className="text-sm font-medium text-gray-800 uppercase">My Jobs</span>
+              </Link>
+              <Link
+                to="/manage-applications"
+                onClick={onClose}
+                className="w-full flex items-center space-x-3 px-3 py-3 hover:bg-gray-100 rounded transition text-left"
+              >
+                <Users className="h-5 w-5 text-gray-600 shrink-0" />
+                <span className="text-sm font-medium text-gray-800 uppercase">Applications</span>
+              </Link>
             </div>
           ) : (
             <div className="space-y-2">
@@ -99,18 +119,73 @@ export default function Sidebar({ isOpen, onClose, user, isEmployer, isCandidate
                 <Briefcase className="h-5 w-5 text-gray-600 shrink-0" />
                 <span className="text-sm font-medium text-gray-800 uppercase">Browse Jobs</span>
               </Link>
+              <Link
+                to="/jobs/applied"
+                onClick={onClose}
+                className="w-full flex items-center space-x-3 px-3 py-3 hover:bg-gray-100 rounded transition text-left"
+              >
+                <FileText className="h-5 w-5 text-gray-600 shrink-0" />
+                <span className="text-sm font-medium text-gray-800 uppercase">Applied Jobs</span>
+              </Link>
+              <Link
+                to="/jobs/saved"
+                onClick={onClose}
+                className="w-full flex items-center space-x-3 px-3 py-3 hover:bg-gray-100 rounded transition text-left"
+              >
+                <Bookmark className="h-5 w-5 text-gray-600 shrink-0" />
+                <span className="text-sm font-medium text-gray-800 uppercase">Saved Jobs</span>
+              </Link>
             </div>
           )}
 
           <div className="mt-6 space-y-1">
-            <p className="text-xs font-bold text-gray-500 uppercase mb-3">Quick Links</p>
+            <p className="text-xs font-bold text-gray-500 uppercase mb-3">Quick Actions</p>
 
-            {(isEmployer ? employerMenuItems : candidateMenuItems).slice(0, 5).map((item, index) => (
-              <button key={index} className="w-full flex items-center space-x-3 px-3 py-3 hover:bg-gray-100 rounded transition text-left">
-                <item.icon className="h-5 w-5 text-gray-600 shrink-0" />
-                <span className="text-sm font-medium text-gray-800">{item.label}</span>
-              </button>
-            ))}
+            {isEmployer ? (
+              <div className="space-y-2">
+                <button 
+                  onClick={() => {
+                    onClose();
+                    alert('Analytics feature coming soon!');
+                  }}
+                  className="w-full flex items-center space-x-3 px-3 py-3 hover:bg-gray-100 rounded transition text-left"
+                >
+                  <TrendingUp className="h-5 w-5 text-gray-600 shrink-0" />
+                  <span className="text-sm font-medium text-gray-800">Analytics</span>
+                </button>
+                <button 
+                  onClick={() => {
+                    onClose();
+                    alert('Company Profile feature coming soon!');
+                  }}
+                  className="w-full flex items-center space-x-3 px-3 py-3 hover:bg-gray-100 rounded transition text-left"
+                >
+                  <User className="h-5 w-5 text-gray-600 shrink-0" />
+                  <span className="text-sm font-medium text-gray-800">Company Profile</span>
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Link
+                  to="/resume"
+                  onClick={onClose}
+                  className="w-full flex items-center space-x-3 px-3 py-3 hover:bg-gray-100 rounded transition text-left"
+                >
+                  <FileText className="h-5 w-5 text-gray-600 shrink-0" />
+                  <span className="text-sm font-medium text-gray-800">My Resume</span>
+                </Link>
+                <button 
+                  onClick={() => {
+                    onClose();
+                    alert('Messages feature coming soon!');
+                  }}
+                  className="w-full flex items-center space-x-3 px-3 py-3 hover:bg-gray-100 rounded transition text-left"
+                >
+                  <MessageSquare className="h-5 w-5 text-gray-600 shrink-0" />
+                  <span className="text-sm font-medium text-gray-800">Messages</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
