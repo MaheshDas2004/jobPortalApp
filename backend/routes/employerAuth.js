@@ -120,4 +120,53 @@ router.post('/logout', (req, res) => {
     }
 });
 
+// Update employer profile
+router.put('/profile', routeProtector, async (req, res) => {
+    try {
+        const {
+            fullName,
+            mobile,
+            companyName,
+            companyDescription,
+            industry,
+            companyLocation,
+            website
+        } = req.body;
+
+        const updateData = {};
+        if (fullName) updateData.fullName = fullName;
+        if (mobile !== undefined) updateData.mobile = mobile;
+        if (companyName !== undefined) updateData.companyName = companyName;
+        if (companyDescription !== undefined) updateData.companyDescription = companyDescription;
+        if (industry !== undefined) updateData.industry = industry;
+        if (companyLocation !== undefined) updateData.companyLocation = companyLocation;
+        if (website !== undefined) updateData.website = website;
+
+        const updatedEmployer = await Employer.findByIdAndUpdate(
+            req.userId,
+            updateData,
+            { new: true, runValidators: true }
+        ).select('-password');
+
+        if (!updatedEmployer) {
+            return res.status(404).json({ message: "Employer not found" });
+        }
+
+        res.status(200).json({
+            message: "Profile updated successfully",
+            user: updatedEmployer
+        });
+
+    } catch (error) {
+        console.error("Profile update error:", error);
+
+        if (error.name === 'ValidationError') {
+            const errors = Object.values(error.errors).map(err => err.message);
+            return res.status(400).json({ message: "Validation error", errors });
+        }
+
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
 module.exports = router;
