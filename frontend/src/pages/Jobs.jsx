@@ -30,15 +30,15 @@ const Jobs = () => {
   const fetchData = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const response = await axios.get("http://localhost:3000/api/jobs/all");
       setData(response.data);
       console.log('Jobs fetched successfully:', response.data);
     } catch (err) {
-      const errorMessage = err.response?.data?.message || 
-                          err.response?.data?.error || 
-                          "Failed to fetch jobs. Please try again.";
+      const errorMessage = err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Failed to fetch jobs. Please try again.";
       setError(errorMessage);
       console.error('Error fetching jobs:', err);
     } finally {
@@ -64,20 +64,20 @@ const Jobs = () => {
         const createdDate = new Date(job.createdAt || Date.now());
         const now = new Date();
         const daysAgo = Math.floor((now - createdDate) / (1000 * 60 * 60 * 24));
-        
-        let postedDate = `Posted ${daysAgo === 0 ? 'today' : 
-          daysAgo === 1 ? 'yesterday' : 
-          `${daysAgo} days ago`}`;
+
+        let postedDate = `Posted ${daysAgo === 0 ? 'today' :
+          daysAgo === 1 ? 'yesterday' :
+            `${daysAgo} days ago`}`;
 
         // Calculate days left based on actual deadline
         let daysLeft = 0;
         let daysLeftText = 'No deadline';
-        
+
         if (job.deadline) {
           const deadlineDate = new Date(job.deadline);
           const timeDiff = deadlineDate - now;
           daysLeft = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
-          
+
           if (daysLeft > 0) {
             daysLeftText = `${daysLeft} day${daysLeft === 1 ? '' : 's'} left`;
           } else if (daysLeft === 0) {
@@ -86,7 +86,7 @@ const Jobs = () => {
             daysLeftText = 'Expired';
           }
         }
-        
+
         return {
           id: job._id || `job-${index}`,
           title: job.jobTitle || 'Job Title Not Available',
@@ -115,11 +115,10 @@ const Jobs = () => {
     }).filter(Boolean); // Remove any null entries
   };
 
-  
-  // Get transformed job listings (filtering will be handled by API)
-  const jobListings = data?.success ? transformJobData(data.data) : [];
 
-  
+
+
+
   const toggleSaveJob = (jobId) => {
     setSavedJobs(prev =>
       prev.includes(jobId) ? prev.filter(id => id !== jobId) : [...prev, jobId]
@@ -127,10 +126,34 @@ const Jobs = () => {
   };
 
   const toggleFilter = (filter) => {
-    setSelectedFilters(prev =>
-      prev.includes(filter) ? prev.filter(f => f !== filter) : [...prev, filter]
-    );
+    setSelectedFilters(prev => {
+      // If adding 'Live' (resetting basically) or toggling it off
+      if (filter === 'Live') {
+        return prev.includes('Live') ? [] : ['Live'];
+      }
+
+      let newFilters;
+      if (prev.includes(filter)) {
+        newFilters = prev.filter(f => f !== filter);
+      } else {
+        newFilters = [...prev, filter];
+      }
+
+      // If we have custom filters, remove 'Live'
+      if (newFilters.length > 0 && newFilters.includes('Live') && filter !== 'Live') {
+        return newFilters.filter(f => f !== 'Live');
+      }
+
+      // If no filters left, default to 'Live' (optional, but good for UX)
+      if (newFilters.length === 0) {
+        return ['Live'];
+      }
+
+      return newFilters;
+    });
   };
+
+  const [sortBy, setSortBy] = useState('Most Recent');
 
   const toggleDropdown = (dropdown) => {
     setOpenDropdowns(prev => ({
@@ -138,6 +161,107 @@ const Jobs = () => {
       [dropdown]: !prev[dropdown]
     }));
   };
+
+  // Helper to parse salary for sorting
+  const parseSalary = (salaryStr) => {
+    if (!salaryStr) return 0;
+    // Extract first number found (e.g. "50k-80k" -> 50000, "12 LPA" -> 1200000)
+    const matches = salaryStr.match(/(\d+)/);
+    if (!matches) return 0;
+
+    let val = parseInt(matches[0]);
+    if (salaryStr.toLowerCase().includes('lpa')) val *= 100000;
+    else if (salaryStr.toLowerCase().includes('k')) val *= 1000;
+
+    return val;
+  };
+
+  const getFilteredAndSortedJobs = () => {
+    if (!data?.data) return [];
+
+    let filtered = data.data.filter(job => {
+      // 1. Search Query
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const title = job.jobTitle?.toLowerCase() || '';
+        const company = job.company?.toLowerCase() || '';
+        const loc = job.location?.toLowerCase() || '';
+        if (!title.includes(query) && !company.includes(query) && !loc.includes(query)) {
+          return false;
+        }
+      }
+
+      // 2. Selected Filters
+      const activeDetails = selectedFilters.filter(f => f !== 'Live');
+
+      if (activeDetails.length > 0) {
+        const matchesFilter = activeDetails.every(filter => {
+          // Check Status
+          if (['Expired', 'Closed'].includes(filter)) {
+            if (filter === 'Expired') {
+              return job.deadline && new Date(job.deadline) < new Date();
+            }
+            return true;
+          }
+          if (filter === 'Recent') {
+            const created = new Date(job.createdAt);
+            const weekAgo = new Date();
+            weekAgo.setDate(weekAgo.getDate() - 7);
+            return created > weekAgo;
+          }
+
+          // Check Work Type
+          if (['In Office', 'Remote', 'Field Work', 'Hybrid'].includes(filter)) {
+            return job.workType === filter;
+          }
+
+          // Check Job Type
+          if (['Full Time', 'Part Time', 'Flexible', 'Contract'].includes(filter)) {
+            return job.jobType === filter;
+          }
+
+          // Check Location
+          if (['Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Pune', 'Gurgaon'].includes(filter)) {
+            // Case insensitive check
+            return job.location?.toLowerCase().includes(filter.toLowerCase());
+          }
+
+          // Check Skills
+          if (['Communication', 'Python', 'JavaScript', 'React', 'Node.js', 'SQL', 'Excel'].includes(filter)) {
+            return job.skills?.includes(filter);
+          }
+
+          return true;
+        });
+
+        if (!matchesFilter) return false;
+      }
+      return true;
+    });
+
+    // 3. Sorting
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'Most Recent':
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        case 'Most Applied':
+          return (b.applicants?.length || 0) - (a.applicants?.length || 0);
+        case 'Ending Soon':
+          // Sort deadline ascending, but null/past deadlines at end?
+          if (!a.deadline) return 1;
+          if (!b.deadline) return -1;
+          return new Date(a.deadline) - new Date(b.deadline);
+        case 'Salary: High to Low':
+          return parseSalary(b.salary) - parseSalary(a.salary);
+        default:
+          return 0;
+      }
+    });
+
+    return transformJobData(filtered);
+  };
+
+  const jobListings = getFilteredAndSortedJobs();
 
   const filterCategories = [
     {
@@ -179,7 +303,7 @@ const Jobs = () => {
               {selectedFilters.length}
             </span>
           </div>
-          <button 
+          <button
             onClick={() => {
               setSelectedFilters(['Live']);
               setSearchQuery('');
@@ -198,14 +322,14 @@ const Jobs = () => {
 
         {/* Sort By */}
         <div className="mb-6 pb-6 border-b-2 border-gray-200">
-          <button 
+          <button
             onClick={() => toggleDropdown('sortBy')}
             className="w-full flex items-center justify-between text-xs md:text-sm font-black mb-3"
           >
-            <span>Sort By</span>
-            <ChevronDown 
-              className={`h-4 w-4 transition-transform ${openDropdowns.sortBy ? 'rotate-180' : ''}`} 
-              strokeWidth={2.5} 
+            <span>Sort By: <span className="text-gray-500 font-normal">{sortBy}</span></span>
+            <ChevronDown
+              className={`h-4 w-4 transition-transform ${openDropdowns.sortBy ? 'rotate-180' : ''}`}
+              strokeWidth={2.5}
             />
           </button>
           {openDropdowns.sortBy && (
@@ -214,8 +338,10 @@ const Jobs = () => {
                 <label
                   key={idx}
                   className="flex items-center gap-2 cursor-pointer group"
+                  onClick={() => setSortBy(option)}
                 >
-                  <div className="w-4 h-4 md:w-5 md:h-5 border-2 border-black flex items-center justify-center bg-white shrink-0">
+                  <div className={`w-4 h-4 md:w-5 md:h-5 border-2 border-black flex items-center justify-center ${sortBy === option ? 'bg-black' : 'bg-white'} shrink-0`}>
+                    {sortBy === option && <CheckCircle2 className="h-3 w-3 text-white" strokeWidth={3} />}
                   </div>
                   <span className="text-xs md:text-sm font-semibold group-hover:underline">
                     {option}
@@ -232,7 +358,7 @@ const Jobs = () => {
             key={idx}
             className={`mb-6 ${idx !== filterCategories.length - 1 ? 'pb-6 border-b-2 border-gray-200' : ''}`}
           >
-            <button 
+            <button
               onClick={() => toggleDropdown(category.title.toLowerCase())}
               className="w-full flex items-center justify-between text-xs md:text-sm font-black mb-4"
             >
@@ -244,9 +370,9 @@ const Jobs = () => {
                   </span>
                 )}
               </div>
-              <ChevronDown 
-                className={`h-4 w-4 transition-transform ${openDropdowns[category.title.toLowerCase()] ? 'rotate-180' : ''}`} 
-                strokeWidth={2.5} 
+              <ChevronDown
+                className={`h-4 w-4 transition-transform ${openDropdowns[category.title.toLowerCase()] ? 'rotate-180' : ''}`}
+                strokeWidth={2.5}
               />
             </button>
 
@@ -262,7 +388,7 @@ const Jobs = () => {
                     />
                   </div>
                 )}
-                
+
                 {category.options.map((option, optIdx) => (
                   <label
                     key={optIdx}
@@ -270,9 +396,8 @@ const Jobs = () => {
                     onClick={() => toggleFilter(option)}
                   >
                     <div
-                      className={`w-4 h-4 md:w-5 md:h-5 border-2 border-black flex items-center justify-center shrink-0 ${
-                        selectedFilters.includes(option) ? 'bg-black' : 'bg-white'
-                      }`}
+                      className={`w-4 h-4 md:w-5 md:h-5 border-2 border-black flex items-center justify-center shrink-0 ${selectedFilters.includes(option) ? 'bg-black' : 'bg-white'
+                        }`}
                     >
                       {selectedFilters.includes(option) && (
                         <CheckCircle2 className="h-3 w-3 text-white" strokeWidth={3} />
@@ -290,14 +415,14 @@ const Jobs = () => {
 
         {/* Categories Section */}
         <div className="mb-6">
-          <button 
+          <button
             onClick={() => toggleDropdown('categories')}
             className="w-full flex items-center justify-between text-xs md:text-sm font-black mb-4"
           >
             <span>Categories</span>
-            <ChevronDown 
-              className={`h-4 w-4 transition-transform ${openDropdowns.categories ? 'rotate-180' : ''}`} 
-              strokeWidth={2.5} 
+            <ChevronDown
+              className={`h-4 w-4 transition-transform ${openDropdowns.categories ? 'rotate-180' : ''}`}
+              strokeWidth={2.5}
             />
           </button>
 
@@ -339,7 +464,7 @@ const Jobs = () => {
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-linear-to-b from-black/70 via-black/60 to-black"></div>
         </div>
-        
+
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 md:py-16">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black mb-3 md:mb-4 leading-tight">
@@ -351,7 +476,7 @@ const Jobs = () => {
             <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-300 mb-6 md:mb-8 font-medium">
               Discover thousands of opportunities and find the perfect job for your career!
             </p>
-            
+
             {/* Search Bar */}
             <div className="max-w-2xl mx-auto">
               <div className="relative">
@@ -423,7 +548,7 @@ const Jobs = () => {
                   )}
                 </div>
                 <div className="flex gap-2">
-                  <button 
+                  <button
                     onClick={() => fetchData()}
                     className="text-sm font-bold text-blue-600 hover:texFt-blue-800 transition flex items-center gap-1"
                     disabled={loading}
@@ -431,7 +556,7 @@ const Jobs = () => {
                     🔄 Refresh
                   </button>
                   {jobListings.length > 0 && (
-                    <button 
+                    <button
                       onClick={() => {
                         setSelectedFilters(['Live']);
                         setSearchQuery('');
@@ -451,12 +576,12 @@ const Jobs = () => {
                 <span className="ml-3 text-lg font-semibold">Loading jobs...</span>
               </div>
             )}
-            
+
             {error && (
               <div className="bg-red-50 border-2 border-red-200 p-4 md:p-6 text-center">
                 <div className="text-red-600 font-bold mb-2">Error loading jobs</div>
                 <div className="text-red-500 text-sm mb-4">{error}</div>
-                <button 
+                <button
                   onClick={() => fetchData()}
                   className="px-4 py-2 bg-red-600 text-white font-bold hover:bg-red-700 transition"
                 >
@@ -475,105 +600,105 @@ const Jobs = () => {
             {!loading && !error && jobListings.length > 0 && (
               <div className="space-y-4 md:space-y-6">
                 {jobListings.map((job) => (
-                <div
-                  key={job.id}
-                  className="bg-white border-2 border-black shadow-lg hover:shadow-2xl transition-all group"
-                >
-                  <div className="p-3 sm:p-4 md:p-6">
-                    <div className="flex flex-col gap-3 md:gap-4">
-                      {/* Job Details */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-2 gap-2">
-                          <div className="flex-1 min-w-0">
-                            <Link to={`/jobs/${job.id}`} className="text-base sm:text-lg md:text-xl font-black mb-1 group-hover:underline cursor-pointer wrap-break-words">
-                              {job.title}
-                            </Link>
-                            <p className="text-xs sm:text-sm font-bold text-gray-600">{job.company}</p>
-                          </div>
-                          <div className="flex gap-2 sm:shrink-0 justify-center sm:justify-start">
-                            <button
-                              onClick={() => toggleSaveJob(job.id)}
-                              className="p-2 border-2 border-gray-300 hover:border-black transition"
-                            >
-                              <Heart
-                                className={`h-4 w-4 md:h-5 md:w-5 ${savedJobs.includes(job.id) ? 'fill-black' : ''}`}
-                                strokeWidth={2.5}
-                              />
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Job Meta Info */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3 mb-3 md:mb-4">
-                          <div className="flex items-center gap-2 text-xs md:text-sm font-semibold text-gray-700">
-                            <Briefcase className="h-3.5 w-3.5 md:h-4 md:w-4 shrink-0" strokeWidth={2.5} />
-                            <span className="truncate">{job.experience}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-xs md:text-sm font-semibold text-gray-700">
-                            <MapPin className="h-3.5 w-3.5 md:h-4 md:w-4 shrink-0" strokeWidth={2.5} />
-                            <span className="truncate">{job.location}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-xs md:text-sm font-semibold text-gray-700">
-                            <Building2 className="h-3.5 w-3.5 md:h-4 md:w-4 shrink-0" strokeWidth={2.5} />
-                            <span className="truncate">{job.workType}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-xs md:text-sm font-semibold text-gray-700">
-                            <Clock className="h-3.5 w-3.5 md:h-4 md:w-4 shrink-0" strokeWidth={2.5} />
-                            <span className="truncate">{job.jobType}</span>
-                          </div>
-                        </div>
-
-                        {/* Tags */}
-                        <div className="flex flex-wrap gap-1.5 md:gap-2 mb-3 md:mb-4">
-                          {job.tags.map((tag, idx) => (
-                            <span
-                              key={idx}
-                              className="px-2 md:px-3 py-0.5 md:py-1 bg-gray-100 border border-gray-300 text-xs font-bold"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-
-                        
-
-                        {/* Footer */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-3 md:pt-4 border-t-2 border-gray-200 gap-2 md:gap-3">
-                          <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-6 text-xs md:text-sm">
-                            <div>
-                              <span className="font-semibold text-gray-600">{job.postedDate}</span>
+                  <div
+                    key={job.id}
+                    className="bg-white border-2 border-black shadow-lg hover:shadow-2xl transition-all group"
+                  >
+                    <div className="p-3 sm:p-4 md:p-6">
+                      <div className="flex flex-col gap-3 md:gap-4">
+                        {/* Job Details */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-2 gap-2">
+                            <div className="flex-1 min-w-0">
+                              <Link to={`/jobs/${job.id}`} className="text-base sm:text-lg md:text-xl font-black mb-1 group-hover:underline cursor-pointer wrap-break-words">
+                                {job.title}
+                              </Link>
+                              <p className="text-xs sm:text-sm font-bold text-gray-600">{job.company}</p>
                             </div>
-                            <div className="flex items-center gap-1.5 md:gap-2">
-                              <Clock className="h-3.5 w-3.5 md:h-4 md:w-4 text-blue-600 shrink-0" strokeWidth={2.5} />
-                              <span className="font-bold text-blue-600">{job.daysLeft}</span>
-                            </div>
-                            <div className="flex items-center gap-1.5 md:gap-2">
-                              <Users className="h-3.5 w-3.5 md:h-4 md:w-4 text-blue-600 shrink-0" strokeWidth={2.5} />
-                              <span className="font-bold text-blue-600">{job.applied} Applied</span>
+                            <div className="flex gap-2 sm:shrink-0 justify-center sm:justify-start">
+                              <button
+                                onClick={() => toggleSaveJob(job.id)}
+                                className="p-2 border-2 border-gray-300 hover:border-black transition"
+                              >
+                                <Heart
+                                  className={`h-4 w-4 md:h-5 md:w-5 ${savedJobs.includes(job.id) ? 'fill-black' : ''}`}
+                                  strokeWidth={2.5}
+                                />
+                              </button>
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs md:text-sm font-black text-gray-600 mr-3">{job.salary}</span>
-                            <Link 
-                              to={`/jobs/${job.id}`}
-                              className="px-3 md:px-4 py-1.5 md:py-2 bg-black text-white text-xs md:text-sm font-black border-2 border-black hover:bg-white hover:text-black transition"
-                            >
-                              View Details
-                            </Link>
+                          {/* Job Meta Info */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3 mb-3 md:mb-4">
+                            <div className="flex items-center gap-2 text-xs md:text-sm font-semibold text-gray-700">
+                              <Briefcase className="h-3.5 w-3.5 md:h-4 md:w-4 shrink-0" strokeWidth={2.5} />
+                              <span className="truncate">{job.experience}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs md:text-sm font-semibold text-gray-700">
+                              <MapPin className="h-3.5 w-3.5 md:h-4 md:w-4 shrink-0" strokeWidth={2.5} />
+                              <span className="truncate">{job.location}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs md:text-sm font-semibold text-gray-700">
+                              <Building2 className="h-3.5 w-3.5 md:h-4 md:w-4 shrink-0" strokeWidth={2.5} />
+                              <span className="truncate">{job.workType}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs md:text-sm font-semibold text-gray-700">
+                              <Clock className="h-3.5 w-3.5 md:h-4 md:w-4 shrink-0" strokeWidth={2.5} />
+                              <span className="truncate">{job.jobType}</span>
+                            </div>
+                          </div>
+
+                          {/* Tags */}
+                          <div className="flex flex-wrap gap-1.5 md:gap-2 mb-3 md:mb-4">
+                            {job.tags.map((tag, idx) => (
+                              <span
+                                key={idx}
+                                className="px-2 md:px-3 py-0.5 md:py-1 bg-gray-100 border border-gray-300 text-xs font-bold"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+
+
+
+                          {/* Footer */}
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-3 md:pt-4 border-t-2 border-gray-200 gap-2 md:gap-3">
+                            <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-6 text-xs md:text-sm">
+                              <div>
+                                <span className="font-semibold text-gray-600">{job.postedDate}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5 md:gap-2">
+                                <Clock className="h-3.5 w-3.5 md:h-4 md:w-4 text-blue-600 shrink-0" strokeWidth={2.5} />
+                                <span className="font-bold text-blue-600">{job.daysLeft}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5 md:gap-2">
+                                <Users className="h-3.5 w-3.5 md:h-4 md:w-4 text-blue-600 shrink-0" strokeWidth={2.5} />
+                                <span className="font-bold text-blue-600">{job.applied} Applied</span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs md:text-sm font-black text-gray-600 mr-3">{job.salary}</span>
+                              <Link
+                                to={`/jobs/${job.id}`}
+                                className="px-3 md:px-4 py-1.5 md:py-2 bg-black text-white text-xs md:text-sm font-black border-2 border-black hover:bg-white hover:text-black transition"
+                              >
+                                View Details
+                              </Link>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
               </div>
             )}
           </div>
         </div>
       </div>
-      
+
       {/* Bottom Spacing */}
       <div className="pb-8 md:pb-12"></div>
     </div>
