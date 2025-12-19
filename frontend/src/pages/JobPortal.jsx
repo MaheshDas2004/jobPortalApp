@@ -460,7 +460,7 @@ const JobPortal = () => {
                   </div>
 
                   <Link 
-                    to={`/job-detail/${internship.id}`}
+                    to={`/jobs/${internship.id}`}
                     className="w-full py-3 bg-black text-white font-black text-sm hover:bg-gray-900 transition flex items-center justify-center gap-2"
                   >
                     VIEW DETAILS
