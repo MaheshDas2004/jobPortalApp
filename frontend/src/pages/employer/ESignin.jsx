@@ -40,7 +40,7 @@ export default function ESignin() {
         setIsSubmitted(true);
 
         setTimeout(() => {
-          navigate("/"); // redirect to home page
+          navigate("/employer-dashboard"); // redirect directly to employer dashboard
         }, 1500);
       }
     } catch (err) {

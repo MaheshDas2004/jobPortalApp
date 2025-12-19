@@ -15,7 +15,6 @@ import PostJob from './pages/employer/PostJob'
 import Signup from './pages/candidate/Signup'
 import Dashboard from './pages/candidate/Dashboard'
 import EmployerDashboard from './pages/employer/Dashboard'
-import EHome from './pages/EHome'
 import IntroPage from './pages/InroPage'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import JobDetail from './pages/JobDetail'
@@ -84,7 +83,6 @@ const AppContent = () => {
           <Route path="/employer-dashboard" element={<EmployerDashboard />} />
           <Route path="/post-job" element={<PostJob />} />
         </Route>
-        <Route path="/ehome" element={<EHome />} />
         <Route path="/job/apply/:jobId" element={<ApplicationForm />} />
       </Routes>
     </div>

@@ -23,6 +23,28 @@ const JobDetail = () => {
   const [applicationStatus, setApplicationStatus] = useState(null);
   const [checkingApplication, setCheckingApplication] = useState(false);
 
+  // Check if current user is the employer who posted this job
+  const isJobOwner = userType === 'employer' && job && user && (
+    job.employer === user._id || 
+    job.employer?._id === user._id ||
+    job.employerId === user._id ||
+    job.postedBy === user._id ||
+    job.postedBy?._id === user._id
+  );
+  
+  // Debug logging to help identify the issue
+  useEffect(() => {
+    if (job && user && userType === 'employer') {
+      console.log('Debug - Job owner check:');
+      console.log('User ID:', user._id);
+      console.log('User Type:', userType);
+      console.log('Job employer:', job.employer);
+      console.log('Job employerId:', job.employerId);
+      console.log('Job postedBy:', job.postedBy);
+      console.log('Is Job Owner:', isJobOwner);
+    }
+  }, [job, user, userType, isJobOwner]);
+
   useEffect(() => {
     fetchJobDetail();
   }, [jobId]);
@@ -243,36 +265,38 @@ const JobDetail = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Action Buttons Card */}
-            <div className="bg-white border-2 border-black shadow-lg p-5">
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setIsSaved(!isSaved)}
-                  className="p-2 bg-white border-2 border-black hover:bg-black hover:text-white transition font-bold"
-                >
-                  <Heart className={`h-5 w-5 ${isSaved ? 'fill-red-500 text-red-500' : ''}`} strokeWidth={2.5} />
-                </button>
-                <button
-                  onClick={hasApplied ? null : handleQuickApply}
-                  disabled={!job.isActive || (job.deadline && new Date(job.deadline) < new Date()) || hasApplied}
-                  className={`flex-1 py-2 font-black border-2 transition uppercase text-sm ${
-                    !job.isActive || (job.deadline && new Date(job.deadline) < new Date())
-                      ? 'bg-black/85 text-white cursor-not-allowed'
+            {/* Action Buttons Card - Hide entirely for job owner */}
+            {!isJobOwner && (
+              <div className="bg-white border-2 border-black shadow-lg p-5">
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setIsSaved(!isSaved)}
+                    className="p-2 bg-white border-2 border-black hover:bg-black hover:text-white transition font-bold"
+                  >
+                    <Heart className={`h-5 w-5 ${isSaved ? 'fill-red-500 text-red-500' : ''}`} strokeWidth={2.5} />
+                  </button>
+                  
+                  <button
+                    onClick={hasApplied ? null : handleQuickApply}
+                    disabled={!job.isActive || (job.deadline && new Date(job.deadline) < new Date()) || hasApplied}
+                    className={`flex-1 py-2 font-black border-2 transition uppercase text-sm ${
+                      !job.isActive || (job.deadline && new Date(job.deadline) < new Date())
+                        ? 'bg-black/85 text-white cursor-not-allowed'
+                        : hasApplied
+                        ? 'bg-black/85 text-white cursor-not-allowed'
+                        : 'bg-black text-white text-center border-black hover:bg-white hover:text-black'
+                    }`}
+                  >
+                    {!job.isActive || (job.deadline && new Date(job.deadline) < new Date())
+                      ? 'Job Expired'
                       : hasApplied
-                      ? 'bg-black/85 text-white cursor-not-allowed'
-                      : 'bg-black text-white text-center border-black hover:bg-white hover:text-black'
-                  }`}
-                >
-                  {!job.isActive || (job.deadline && new Date(job.deadline) < new Date())
-                    ? 'Job Expired'
-                    : hasApplied
-                    ? 'Already Applied'
-                    : 'Quick Apply'
-                  }
-                </button>
+                      ? 'Already Applied'
+                      : 'Quick Apply'
+                    }
+                  </button>
+                </div>
               </div>
-
-            </div>
+            )}
 
             {/* Tabs */}
             <div className="bg-white border-2 border-black shadow-lg">
@@ -509,7 +533,7 @@ const JobDetail = () => {
                     <span className="text-sm font-medium text-gray-600">Total Applicants</span>
                   </div>
                   <span className="text-sm font-bold text-gray-900">
-                    {job.applicants?.length || 0}
+                    {job.applicationCount || job.applicants?.length || job.totalApplications || 0}
                   </span>
                 </div>
 
@@ -574,8 +598,8 @@ const JobDetail = () => {
         </div>
       </div>
 
-      {/* Authentication Modal */}
-      {showAuthModal && (
+      {/* Authentication Modal - only show for non-job-owners */}
+      {showAuthModal && !isJobOwner && (
         <div className="fixed inset-0 bg-black/80 bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white border-4 border-black shadow-2xl max-w-md w-full">
             {/* Modal Header */}

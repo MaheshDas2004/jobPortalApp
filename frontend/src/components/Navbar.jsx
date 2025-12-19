@@ -43,7 +43,11 @@ const Navbar = () => {
     <nav className="bg-white border-b-2 border-black sticky top-0 z-50 w-full">
       <div className="w-full px-3 sm:px-4 lg:px-6 py-2 sm:py-3">
         <div className="flex justify-between items-center">
-          <Link to="/" className="flex items-center shrink-0 gap-1 sm:gap-2">
+          {/* Logo - conditional redirect based on user type */}
+          <Link 
+            to={isEmployer ? "/employer-dashboard" : "/"} 
+            className="flex items-center shrink-0 gap-1 sm:gap-2"
+          >
             <img 
               src={hmxLogo} 
               alt="Hire Matrix" 
@@ -57,9 +61,12 @@ const Navbar = () => {
           </Link>
 
           <div className="hidden lg:flex items-center gap-4 xl:gap-8">
-            <Link to="/" className="text-xs sm:text-sm lg:text-base font-bold text-gray-900 hover:text-gray-600 uppercase whitespace-nowrap transition-colors">
-              Home
-            </Link>
+            {/* Show Home only for candidates or non-logged-in users */}
+            {(!isLoggedIn || isCandidate) && (
+              <Link to="/" className="text-xs sm:text-sm lg:text-base font-bold text-gray-900 hover:text-gray-600 uppercase whitespace-nowrap transition-colors">
+                Home
+              </Link>
+            )}
             <Link to="/about-us" className="text-xs sm:text-sm lg:text-base font-bold text-gray-900 hover:text-gray-600 uppercase whitespace-nowrap transition-colors">
               About Us
             </Link>
@@ -148,9 +155,12 @@ const Navbar = () => {
         <div className={`lg:hidden overflow-hidden transition-all duration-300 ${isOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'}`}>
           <div className="mt-4 sm:mt-6 pb-4 sm:pb-6 border-t-2 border-black pt-4 sm:pt-6 space-y-3 sm:space-y-4">
             {/* Common Links */}
-            <Link to="/" onClick={() => setIsOpen(false)} className="block text-sm sm:text-base font-bold text-gray-900 hover:text-gray-600 uppercase transition-colors">
-              Home
-            </Link>
+            {/* Show Home only for candidates or non-logged-in users */}
+            {(!isLoggedIn || isCandidate) && (
+              <Link to="/" onClick={() => setIsOpen(false)} className="block text-sm sm:text-base font-bold text-gray-900 hover:text-gray-600 uppercase transition-colors">
+                Home
+              </Link>
+            )}
             <Link to="/about-us" onClick={() => setIsOpen(false)} className="block text-sm sm:text-base font-bold text-gray-900 hover:text-gray-600 uppercase transition-colors">
               About Us
             </Link>

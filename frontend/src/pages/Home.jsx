@@ -9,35 +9,10 @@ import { useAuth } from '../context/AuthContext';
 
 const JobPortalHome = () => {
   const [savedJobs, setSavedJobs] = useState([]);
-  const [isRedirecting, setIsRedirecting] = useState(false);
   const jobCarouselRef = useRef(null);
   const { user, userType, isLoggedIn, isEmployer, isCandidate, isLoading } = useAuth();
 
-  // Handle redirects for logged in users - only redirect employers, not candidates
-  useEffect(() => {
-    if (!isLoading && isLoggedIn && isEmployer) {
-      setIsRedirecting(true);
-      // Add small delay for smooth transition
-      const timer = setTimeout(() => {
-        window.location.href = '/ehome';
-      }, 800);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [isLoading, isLoggedIn, isEmployer]);
-
-  // Show loading state during redirect (only for employers)
-  if (isRedirecting && isEmployer) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-black border-t-transparent mx-auto mb-4"></div>
-          <h2 className="text-2xl font-black text-gray-900 mb-2">Redirecting to Employer Dashboard...</h2>
-          <p className="text-gray-600 font-semibold">Please wait a moment</p>
-        </div>
-      </div>
-    );
-  }
+  // Home page is now only for candidates - employers go directly to dashboard
 
   const valueProps = [
     { title: 'Easy Search', description: 'Simple and fast job discovery', icon: Search },
