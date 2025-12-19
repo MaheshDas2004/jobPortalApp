@@ -65,6 +65,17 @@ router.post('/apply/:id', routeProtector, (req, res, next) => {
 
     const savedApplication = await newApplication.save();
 
+    // Update the Job document to add this candidate to the applicants array
+    await Job.findByIdAndUpdate(jobId, {
+      $push: {
+        applicants: {
+          candidate: candidateId,
+          appliedAt: new Date(),
+          status: 'Applied'
+        }
+      }
+    });
+
       const populatedApplication = await Application.findById(savedApplication._id)
         .populate('jobId', 'jobTitle company location')
         .populate('candidateId', 'name email');

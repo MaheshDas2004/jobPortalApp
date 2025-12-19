@@ -89,21 +89,13 @@ const EmployerSidebar = ({ user, isSidebarOpen, setIsSidebarOpen }) => {
                             <span>Post New Job</span>
                         </Link>
                         <Link
-                            to="/manage-jobs"
+                            to="/view-jobs"
                             onClick={() => setIsSidebarOpen(false)}
-                            className={`flex items-center gap-3 px-3 py-2 text-black border-2 border-black font-bold text-sm ${isActive('/manage-jobs') ? 'bg-gray-200' : ''}`}
+                            className={`flex items-center gap-3 px-3 py-2 text-black border-2 border-black font-bold text-sm ${isActive('/view-jobs') ? 'bg-gray-200' : ''}`}
                         >
                             <Briefcase className="w-4 h-4" />
                             <span>My Jobs</span>
                             {sidebarStats.activeJobs > 0 && <span className="ml-auto bg-black text-white text-xs px-2 py-0.5 font-black">{sidebarStats.activeJobs}</span>}
-                        </Link>
-                        <Link
-                            to="/job-analytics"
-                            onClick={() => setIsSidebarOpen(false)}
-                            className={`flex items-center gap-3 px-3 py-2 text-black border-2 border-black font-bold text-sm ${isActive('/job-analytics') ? 'bg-gray-200' : ''}`}
-                        >
-                            <Eye className="w-4 h-4" />
-                            <span>Job Analytics</span>
                         </Link>
                     </div>
                 </div>

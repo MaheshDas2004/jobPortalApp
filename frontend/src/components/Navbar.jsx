@@ -93,6 +93,9 @@ const Navbar = () => {
                 <Link to="/post-job" className="text-xs sm:text-sm lg:text-base font-bold text-gray-900 hover:text-gray-600 uppercase whitespace-nowrap transition-colors">
                   Post Job
                 </Link>
+                <Link to="/manage-applications" className="text-xs sm:text-sm lg:text-base font-bold text-gray-900 hover:text-gray-600 uppercase whitespace-nowrap transition-colors">
+                  Applications
+                </Link>
                 <Link to="/employer-dashboard" className="text-xs sm:text-sm lg:text-base font-bold text-gray-900 hover:text-gray-600 uppercase whitespace-nowrap transition-colors">
                   Dashboard
                 </Link>
@@ -187,6 +190,9 @@ const Navbar = () => {
               <>
                 <Link to="/post-job" onClick={() => setIsOpen(false)} className="block text-sm sm:text-base font-bold text-gray-900 hover:text-gray-600 uppercase transition-colors">
                   Post Job
+                </Link>
+                <Link to="/manage-applications" onClick={() => setIsOpen(false)} className="block text-sm sm:text-base font-bold text-gray-900 hover:text-gray-600 uppercase transition-colors">
+                  Applications
                 </Link>
                 <Link to="/employer-dashboard" onClick={() => setIsOpen(false)} className="block text-sm sm:text-base font-bold text-gray-900 hover:text-gray-600 uppercase transition-colors">
                   Dashboard

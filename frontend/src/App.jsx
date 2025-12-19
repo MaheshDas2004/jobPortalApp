@@ -15,6 +15,8 @@ import PostJob from './pages/employer/PostJob'
 import Signup from './pages/candidate/Signup'
 import Dashboard from './pages/candidate/Dashboard'
 import EmployerDashboard from './pages/employer/Dashboard'
+import ManageApplications from './pages/employer/ManageApplications'
+import ViewJobs from './pages/employer/ViewJobs'
 import IntroPage from './pages/InroPage'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import JobDetail from './pages/JobDetail'
@@ -82,6 +84,8 @@ const AppContent = () => {
         <Route element={<EmployerLayout />}>
           <Route path="/employer-dashboard" element={<EmployerDashboard />} />
           <Route path="/post-job" element={<PostJob />} />
+          <Route path="/view-jobs" element={<ViewJobs />} />
+          <Route path="/manage-applications" element={<ManageApplications />} />
         </Route>
         <Route path="/job/apply/:jobId" element={<ApplicationForm />} />
       </Routes>

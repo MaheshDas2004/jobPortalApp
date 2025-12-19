@@ -26,7 +26,7 @@ const EmployerDashboard = () => {
   const [viewingApplication, setViewingApplication] = useState(null);
   const [showProfilePanel, setShowProfilePanel] = useState(false);
 
-  // Calculate dashboard metrics from real data
+  // Calculate dashboard metrics from real dat
   const dashboardStats = {
     activeJobs: jobs.filter(job => job.isActive).length,
     totalApplications: applications.length,
