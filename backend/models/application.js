@@ -24,13 +24,13 @@ const applicationSchema = new mongoose.Schema(
       required: true,
       trim: true
     },
-    
+
     mobile: {
       type: String,
       required: true,
       trim: true
     },
-    
+
     gender: {
       type: String,
       required: true
@@ -96,10 +96,8 @@ const applicationSchema = new mongoose.Schema(
       type: String,
       enum: [
         "applied",
-        "shortlisted",
-        "interview",
-        "rejected",
-        "selected"
+        "accepted",
+        "rejected"
       ],
       default: "applied"
     },

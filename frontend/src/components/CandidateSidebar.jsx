@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { getSocket } from '../utils/socket';
 
 const CandidateSidebar = ({ user, isSidebarOpen, setIsSidebarOpen }) => {
     const location = useLocation();
@@ -30,6 +31,24 @@ const CandidateSidebar = ({ user, isSidebarOpen, setIsSidebarOpen }) => {
             }
         };
         fetchStats();
+
+        // Socket listeners for real-time updates
+        const socket = getSocket();
+        if (socket) {
+            socket.on('notification', () => {
+                setSidebarStats(prev => ({ ...prev, notifications: prev.notifications + 1 }));
+            });
+            socket.on('message', () => {
+                setSidebarStats(prev => ({ ...prev, messages: prev.messages + 1 }));
+            });
+        }
+
+        return () => {
+            if (socket) {
+                socket.off('notification');
+                socket.off('message');
+            }
+        };
     }, [location.pathname]); // Refetch on navigation
 
     const isActive = (path) => location.pathname === path;

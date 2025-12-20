@@ -3,6 +3,9 @@ const router = express.Router();
 const routeProtector = require('../middlewares/routeProtector');
 const Application = require('../models/application');
 const Job = require('../models/job');
+const Notification = require('../models/notification');
+const Message = require('../models/message');
+const { sendToUser } = require('../config/socket');
 const { uploadResume, handleMulterError } = require('../middlewares/multerConfig');
 const {
   validateApplicationData,
@@ -120,6 +123,45 @@ router.get('/check/:jobId', routeProtector, async (req, res) => {
   }
 });
 
+// Get single application by ID (for employers)
+router.get('/:applicationId', routeProtector, async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+    const employerId = req.userId;
+
+    const application = await Application.findById(applicationId)
+      .populate('jobId', 'jobTitle company location postedBy')
+      .populate('candidateId', 'fullName email phone');
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: "Application not found"
+      });
+    }
+
+    // Verify the employer owns the job this application is for
+    if (application.jobId.postedBy.toString() !== employerId) {
+      return res.status(403).json({
+        success: false,
+        message: "You don't have permission to view this application"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: application
+    });
+
+  } catch (error) {
+    console.error('Error fetching application:', error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch application details"
+    });
+  }
+});
+
 // Get applications for a specific job (for employers)
 router.get('/job/:jobId', routeProtector, async (req, res) => {
   try {
@@ -209,7 +251,10 @@ router.put('/:applicationId/status', routeProtector, validateStatusUpdate, async
     const employerId = req.userId;
 
     // Find the application and verify employer owns the job
-    const application = await Application.findById(applicationId).populate('jobId');
+    const application = await Application.findById(applicationId)
+      .populate('jobId')
+      .populate('candidateId', 'fullName email');
+
     if (!application) {
       return res.status(404).json({
         success: false,
@@ -224,13 +269,75 @@ router.put('/:applicationId/status', routeProtector, validateStatusUpdate, async
       });
     }
 
+    // Normalize status to lowercase for storage
+    const normalizedStatus = status.toLowerCase();
+
     // Update the application
-    application.status = status;
+    application.status = normalizedStatus;
     if (employerNote) {
       application.employerNote = employerNote;
     }
 
     await application.save();
+
+    // Create notification for the candidate
+    const candidateId = application.candidateId._id;
+    const jobTitle = application.jobId.jobTitle;
+    const companyName = application.jobId.company;
+
+    if (normalizedStatus === 'accepted') {
+      // Success notification for accepted
+      await Notification.create({
+        userId: candidateId,
+        userType: 'Candidate',
+        title: '🎉 Congratulations!',
+        message: `Your application for ${jobTitle} at ${companyName} has been accepted. Our HR team will contact you shortly.`,
+        type: 'success'
+      });
+
+      // Auto-send message from employer to candidate
+      await Message.create({
+        senderId: employerId,
+        senderModel: 'Employer',
+        receiverId: candidateId,
+        receiverModel: 'Candidate',
+        content: `Your application for ${jobTitle} has been shortlisted. Our HR team will contact you shortly.`,
+        jobId: application.jobId._id,
+        applicationId: application._id,
+        read: false
+      });
+
+      // Emit real-time events
+      sendToUser(candidateId.toString(), 'notification', {
+        title: '🎉 Congratulations!',
+        message: `Your application for ${jobTitle} at ${companyName} has been accepted. Our HR team will contact you shortly.`,
+        type: 'success'
+      });
+
+      sendToUser(candidateId.toString(), 'message', {
+        senderId: employerId,
+        senderModel: 'Employer',
+        content: `Your application for ${jobTitle} has been shortlisted. Our HR team will contact you shortly.`,
+        jobId: application.jobId._id,
+        applicationId: application._id
+      });
+    } else if (normalizedStatus === 'rejected') {
+      // Motivational notification for rejected
+      await Notification.create({
+        userId: candidateId,
+        userType: 'Candidate',
+        title: 'Application Update',
+        message: `Thank you for applying to ${jobTitle} at ${companyName}. While this role wasn't a match, keep improving and applying. Better opportunities are ahead!`,
+        type: 'info'
+      });
+
+      // Emit real-time event
+      sendToUser(candidateId.toString(), 'notification', {
+        title: 'Application Update',
+        message: `Thank you for applying to ${jobTitle} at ${companyName}. While this role wasn't a match, keep improving and applying. Better opportunities are ahead!`,
+        type: 'info'
+      });
+    }
 
     // Return updated application
     const updatedApplication = await Application.findById(applicationId)

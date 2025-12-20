@@ -15,12 +15,16 @@ import PostJob from './pages/employer/PostJob'
 import Signup from './pages/candidate/Signup'
 import Dashboard from './pages/candidate/Dashboard'
 import EmployerDashboard from './pages/employer/Dashboard'
+import ApplicationDetails from './pages/employer/ApplicationDetails'
+import EmployerMessages from './pages/employer/Messages'
 import EHome from './pages/EHome'
 import IntroPage from './pages/InroPage'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import JobDetail from './pages/JobDetail'
 import ApplicationForm from './pages/candidate/ApplicationForm'
 import Profile from './pages/candidate/Profile'
+import { useEffect } from 'react'
+import { initSocket, disconnectSocket } from './utils/socket'
 
 // Import candidate pages
 import Resume from './pages/candidate/Resume';
@@ -31,7 +35,19 @@ import CandidateLayout from './layouts/CandidateLayout';
 
 // Loading component for initial auth check
 const AppContent = () => {
-  const { isLoading } = useAuth();
+  const { isLoading, user } = useAuth();
+
+  useEffect(() => {
+    if (user && user.id) {
+      initSocket(user.id);
+    } else {
+      disconnectSocket();
+    }
+
+    return () => {
+      disconnectSocket();
+    };
+  }, [user]);
 
   // Show loading only during initial auth check
   if (isLoading) {
@@ -70,6 +86,7 @@ const AppContent = () => {
 
         {/* Candidate Dashboard Routes */}
         <Route element={<CandidateLayout />}>
+          <Route path="/candidate-dashboard" element={<Dashboard />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/resume" element={<Resume />} />
           <Route path="/jobs/applied" element={<AppliedJobs />} />
@@ -79,7 +96,10 @@ const AppContent = () => {
           <Route path="/job-alerts" element={<JobAlerts />} />
         </Route>
 
+        {/* Employer Routes */}
         <Route path="/employer-dashboard" element={<EmployerDashboard />} />
+        <Route path="/employer/application/:applicationId" element={<ApplicationDetails />} />
+        <Route path="/employer-messages" element={<EmployerMessages />} />
         <Route path="/ehome" element={<EHome />} />
         <Route path="/job/apply/:jobId" element={<ApplicationForm />} />
       </Routes>

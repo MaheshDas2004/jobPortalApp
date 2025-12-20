@@ -146,7 +146,7 @@ const validateStatusUpdate = (req, res, next) => {
     const { status, employerNote } = req.body;
 
     // Validate status
-    const validStatuses = ["applied", "shortlisted", "interview", "rejected", "selected"];
+    const validStatuses = ["applied", "accepted", "rejected", "shortlisted", "interview", "selected"];
     if (!status || !validStatuses.includes(status)) {
       return res.status(400).json({
         success: false,

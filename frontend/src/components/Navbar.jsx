@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { User, LogOut, LayoutDashboard, Briefcase } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import Sidebar from './Sidebar'
@@ -9,7 +9,8 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showProfileSidebar, setShowProfileSidebar] = useState(false);
   const navigate = useNavigate();
-  
+  const location = useLocation();
+
   const { user, userType, isLoggedIn, isEmployer, isCandidate, logout } = useAuth();
 
   const handleLogout = async () => {
@@ -36,6 +37,12 @@ const Navbar = () => {
   }, [showProfileSidebar]);
 
   const toggleProfileSidebar = () => {
+    // Disable sidebar on dashboard routes
+    const isDashboard = location.pathname.startsWith('/candidate-dashboard') ||
+      location.pathname.startsWith('/employer-dashboard');
+
+    if (isDashboard) return;
+
     setShowProfileSidebar(!showProfileSidebar);
   };
 
@@ -44,10 +51,10 @@ const Navbar = () => {
       <div className="w-full px-3 sm:px-4 lg:px-6 py-2 sm:py-3">
         <div className="flex justify-between items-center">
           <Link to="/" className="flex items-center shrink-0 gap-1 sm:gap-2">
-            <img 
-              src={hmxLogo} 
-              alt="Hire Matrix" 
-              className="h-8 w-8 sm:h-12 sm:w-12 lg:h-15 lg:w-27 object-contain" 
+            <img
+              src={hmxLogo}
+              alt="Hire Matrix"
+              className="h-8 w-8 sm:h-12 sm:w-12 lg:h-15 lg:w-27 object-contain"
             />
             <div className="flex flex-col">
               <h1 className="text-base sm:text-xl lg:text-3xl font-extrabold text-gray-900 leading-tight">
@@ -63,7 +70,7 @@ const Navbar = () => {
             <Link to="/about-us" className="text-xs sm:text-sm lg:text-base font-bold text-gray-900 hover:text-gray-600 uppercase whitespace-nowrap transition-colors">
               About Us
             </Link>
-            
+
             {!isLoggedIn && (
               <>
                 <Link to="/job-portal" className="text-xs sm:text-sm lg:text-base font-bold text-gray-900 hover:text-gray-600 uppercase whitespace-nowrap transition-colors">
@@ -74,13 +81,13 @@ const Navbar = () => {
                 </Link>
               </>
             )}
-            
+
             {isCandidate && (
               <Link to="/job-portal" className="text-xs sm:text-sm lg:text-base font-bold text-gray-900 hover:text-gray-600 uppercase whitespace-nowrap transition-colors">
                 Browse Jobs
               </Link>
             )}
-            
+
             {isEmployer && (
               <>
                 <Link to="/post-job" className="text-xs sm:text-sm lg:text-base font-bold text-gray-900 hover:text-gray-600 uppercase whitespace-nowrap transition-colors">
@@ -89,13 +96,16 @@ const Navbar = () => {
                 <Link to="/employer-dashboard" className="text-xs sm:text-sm lg:text-base font-bold text-gray-900 hover:text-gray-600 uppercase whitespace-nowrap transition-colors">
                   Dashboard
                 </Link>
+                <Link to="/employer-messages" className="text-xs sm:text-sm lg:text-base font-bold text-gray-900 hover:text-gray-600 uppercase whitespace-nowrap transition-colors">
+                  Messages
+                </Link>
               </>
             )}
           </div>
 
           <div className="hidden lg:flex items-center gap-2 xl:gap-4 shrink-0">
             {isLoggedIn ? (
-              <button 
+              <button
                 onClick={toggleProfileSidebar}
                 className="flex items-center justify-center w-10 h-10 bg-black text-white border-2 border-black hover:bg-white hover:text-black transition-colors"
               >
@@ -133,7 +143,7 @@ const Navbar = () => {
             )}
           </div>
 
-          <button 
+          <button
             onClick={() => setIsOpen(!isOpen)}
             className="lg:hidden flex flex-col gap-1 sm:gap-1.5 p-2 z-50"
             aria-label="Toggle menu"
@@ -154,7 +164,7 @@ const Navbar = () => {
             <Link to="/about-us" onClick={() => setIsOpen(false)} className="block text-sm sm:text-base font-bold text-gray-900 hover:text-gray-600 uppercase transition-colors">
               About Us
             </Link>
-            
+
             {/* Role-based Links */}
             {!isLoggedIn && (
               <>
@@ -166,13 +176,13 @@ const Navbar = () => {
                 </Link>
               </>
             )}
-            
+
             {isCandidate && (
               <Link to="/job-portal" onClick={() => setIsOpen(false)} className="block text-sm sm:text-base font-bold text-gray-900 hover:text-gray-600 uppercase transition-colors">
                 Browse Jobs
               </Link>
             )}
-            
+
             {isEmployer && (
               <>
                 <Link to="/post-job" onClick={() => setIsOpen(false)} className="block text-sm sm:text-base font-bold text-gray-900 hover:text-gray-600 uppercase transition-colors">
@@ -194,23 +204,23 @@ const Navbar = () => {
                     <p className="text-sm font-bold text-gray-900">{user?.fullName}</p>
                     <p className="text-xs text-gray-500">{user?.email}</p>
                   </div>
-                  
-                  <Link 
-                    to={isEmployer ? "/employer-dashboard" : "/candidate-dashboard"} 
-                    onClick={() => setIsOpen(false)} 
+
+                  <Link
+                    to={isEmployer ? "/employer-dashboard" : "/candidate-dashboard"}
+                    onClick={() => setIsOpen(false)}
                     className="flex items-center gap-3 text-sm sm:text-base font-bold text-gray-900 hover:text-gray-600 uppercase py-2 transition-colors"
                   >
                     <LayoutDashboard className="w-4 h-4 sm:w-5 sm:h-5" />
                     Dashboard
                   </Link>
-                  
+
                   {isEmployer && (
                     <Link to="/post-job" onClick={() => setIsOpen(false)} className="flex items-center gap-3 text-sm sm:text-base font-bold text-gray-900 hover:text-gray-600 uppercase py-2 transition-colors">
                       <Briefcase className="w-4 h-4 sm:w-5 sm:h-5" />
                       Post Job
                     </Link>
                   )}
-                  
+
                   <button onClick={handleLogout} className="flex items-center gap-3 text-sm sm:text-base font-bold text-gray-900 hover:text-gray-600 uppercase py-2 transition-colors text-left">
                     <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
                     Logout
@@ -242,19 +252,19 @@ const Navbar = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Profile Sidebar Overlay */}
       {showProfileSidebar && (
         <>
           {/* Shadow overlay */}
-          <div 
+          <div
             className="fixed inset-0  bg-black/75 z-45"
             onClick={() => setShowProfileSidebar(false)}
           />
-          
+
           {/* Sidebar */}
           <div className="z-50">
-            <Sidebar 
+            <Sidebar
               isOpen={showProfileSidebar}
               onClose={() => setShowProfileSidebar(false)}
               user={user}

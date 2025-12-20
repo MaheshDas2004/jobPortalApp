@@ -6,6 +6,9 @@ const validateSignup = require('../middlewares/validateSignup');
 const jwt = require('jsonwebtoken');
 const validateSignin = require('../middlewares/validateSignin');
 const routeProtector = require('../middlewares/routeProtector');
+const Application = require('../models/application');
+const Notification = require('../models/notification');
+const Message = require('../models/message');
 
 // Signup Route
 router.post("/signup", validateSignup, async (req, res) => {
@@ -184,6 +187,49 @@ router.get('/messages', routeProtector, async (req, res) => {
   }
 });
 
+const { sendToUser } = require('../config/socket');
+
+router.post('/messages', routeProtector, async (req, res) => {
+  try {
+    const { receiverId, receiverModel, content, jobId, applicationId } = req.body;
+    const senderId = req.userId;
+    // Assume sender model based on logic or pass it. For now, we can check if it's an employer or candidate.
+    // However, the senderId comes from routeProtector which is generic.
+    // In this app, employers send to candidates and vice versa.
+
+    // Check if sender is Employer (simple check if they are in the Employer collection)
+    const Employer = require('../models/employer');
+    const isEmployer = await Employer.exists({ _id: senderId });
+    const senderModel = isEmployer ? 'Employer' : 'Candidate';
+
+    const newMessage = new Message({
+      senderId,
+      senderModel,
+      receiverId,
+      receiverModel,
+      content,
+      jobId,
+      applicationId
+    });
+
+    await newMessage.save();
+
+    // Emit real-time event to receiver
+    sendToUser(receiverId, 'message', {
+      ...newMessage._doc,
+      senderId: { _id: senderId, fullName: isEmployer ? (await Employer.findById(senderId)).fullName : (await Candidate.findById(senderId)).fullName }
+    });
+
+    res.status(201).json({
+      success: true,
+      message: newMessage
+    });
+  } catch (error) {
+    console.error("Message send error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
 router.get('/isloggedin', routeProtector, async (req, res) => {
   try {
     const user = await Candidate.findById(req.userId).select("-password");
@@ -203,10 +249,6 @@ router.get('/isloggedin', routeProtector, async (req, res) => {
 });
 
 // Sidebar Stats Route
-const Application = require('../models/application');
-const Notification = require('../models/notification');
-const Message = require('../models/message');
-
 router.get('/sidebar-stats', routeProtector, async (req, res) => {
   try {
     const userId = req.userId;
