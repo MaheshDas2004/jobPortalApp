@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Briefcase, Users, Eye, TrendingUp, Plus, Search,
   MoreVertical, Calendar, MapPin, Clock, DollarSign,
@@ -13,6 +14,7 @@ const API_BASE = 'http://localhost:3000/api';
 
 const EmployerDashboard = () => {
   const { user, checkAuthStatus } = useAuth();
+  const navigate = useNavigate();
 
   // State for jobs and applications
   const [jobs, setJobs] = useState([]);
@@ -143,18 +145,21 @@ const EmployerDashboard = () => {
 
     const appStyles = {
       applied: 'bg-blue-100 text-blue-800 border-blue-300',
-      shortlisted: 'bg-purple-100 text-purple-800 border-purple-300',
-      interview: 'bg-orange-100 text-orange-800 border-orange-300',
-      rejected: 'bg-red-100 text-red-800 border-red-300',
-      selected: 'bg-green-100 text-green-800 border-green-300'
+      accepted: 'bg-green-100 text-green-800 border-green-300',
+      rejected: 'bg-red-100 text-red-800 border-red-300'
     };
 
     const styles = type === 'job' ? jobStyles : appStyles;
-    const style = styles[status?.toLowerCase()] || styles.applied;
+    const normalizedStatus = status?.toLowerCase();
+    const style = styles[normalizedStatus] || 'bg-gray-100 text-gray-800 border-gray-300';
+
+    const displayText = normalizedStatus === 'applied' ? 'New' :
+      normalizedStatus === 'accepted' ? 'Accepted' :
+        normalizedStatus === 'rejected' ? 'Rejected' : status;
 
     return (
       <span className={`px-2 py-1 text-xs font-bold border ${style} uppercase`}>
-        {status === 'applied' ? 'New' : status}
+        {displayText}
       </span>
     );
   };
@@ -386,7 +391,7 @@ const EmployerDashboard = () => {
                       <div className="flex justify-between items-center mt-3">
                         <span className="text-xs text-gray-400 font-semibold">{formatDate(application.createdAt)}</span>
                         <button
-                          onClick={() => setViewingApplication(application)}
+                          onClick={() => navigate(`/employer/application/${application._id}`)}
                           className="text-xs font-bold text-black hover:text-gray-600 transition-colors uppercase flex items-center gap-1"
                         >
                           View Application <ChevronRight className="h-3 w-3" />
@@ -713,7 +718,19 @@ const EditJobModal = ({ job, onClose, onSave }) => {
 
 // Application Detail Panel Component
 const ApplicationDetailPanel = ({ application, onClose, onStatusUpdate }) => {
-  const statusOptions = ['applied', 'shortlisted', 'interview', 'rejected', 'selected'];
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const handleStatusChange = async (newStatus) => {
+    if (isUpdating) return;
+    setIsUpdating(true);
+    try {
+      await onStatusUpdate(application._id, newStatus);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const isAlreadyDecided = application.status === 'accepted' || application.status === 'rejected';
 
   return (
     <>
@@ -791,7 +808,7 @@ const ApplicationDetailPanel = ({ application, onClose, onStatusUpdate }) => {
             <div className="mb-6">
               <h4 className="font-black uppercase text-sm mb-3">Resume</h4>
               <a
-                href={application.resume}
+                href={application.resume?.startsWith('http') ? application.resume : `${API_BASE.replace('/api', '')}${application.resume}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2 border-2 border-black font-bold text-sm hover:bg-black hover:text-white"
@@ -801,23 +818,38 @@ const ApplicationDetailPanel = ({ application, onClose, onStatusUpdate }) => {
             </div>
           )}
 
-          {/* Status Update */}
+          {/* Decision Buttons */}
           <div className="border-t-2 border-black pt-6">
-            <h4 className="font-black uppercase text-sm mb-3">Update Status</h4>
-            <div className="flex flex-wrap gap-2">
-              {statusOptions.map((status) => (
+            <h4 className="font-black uppercase text-sm mb-4">Decision</h4>
+
+            {isAlreadyDecided ? (
+              <div className={`p-4 border-2 text-center ${application.status === 'accepted'
+                ? 'bg-green-50 border-green-300'
+                : 'bg-red-50 border-red-300'
+                }`}>
+                <p className="font-bold text-lg">
+                  {application.status === 'accepted' ? '✅ Accepted' : '❌ Rejected'}
+                </p>
+                <p className="text-sm text-gray-600 mt-1">This application has been decided</p>
+              </div>
+            ) : (
+              <div className="flex gap-4">
                 <button
-                  key={status}
-                  onClick={() => onStatusUpdate(application._id, status)}
-                  className={`px-3 py-2 text-xs font-bold uppercase border-2 transition-colors ${application.status === status
-                      ? 'bg-black text-white border-black'
-                      : 'border-gray-300 hover:border-black'
-                    }`}
+                  onClick={() => handleStatusChange('accepted')}
+                  disabled={isUpdating}
+                  className="flex-1 py-3 bg-green-600 text-white font-black uppercase text-sm border-2 border-green-700 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  {status === 'applied' ? 'New' : status}
+                  {isUpdating ? 'Processing...' : '✅ Accept'}
                 </button>
-              ))}
-            </div>
+                <button
+                  onClick={() => handleStatusChange('rejected')}
+                  disabled={isUpdating}
+                  className="flex-1 py-3 bg-red-600 text-white font-black uppercase text-sm border-2 border-red-700 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isUpdating ? 'Processing...' : '❌ Reject'}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

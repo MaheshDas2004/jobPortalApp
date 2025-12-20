@@ -24,9 +24,17 @@ app.use("/api/auth/candidate", require("./routes/auth"));
 app.use("/api/jobs", require("./routes/jobs"));
 app.use("/api/auth/employer", require("./routes/employerAuth"));
 app.use("/api/applications", require("./routes/application"));
+app.use("/api/notifications", require("./routes/notification"));
+app.use("/api/messages", require("./routes/message"));
+
+const http = require('http');
+const { initSocket } = require('./config/socket');
+
+const server = http.createServer(app);
+initSocket(server);
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });

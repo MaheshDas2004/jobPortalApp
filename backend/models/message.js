@@ -28,6 +28,14 @@ const messageSchema = new mongoose.Schema({
     read: {
         type: Boolean,
         default: false
+    },
+    jobId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Job'
+    },
+    applicationId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Application'
     }
 }, {
     timestamps: true

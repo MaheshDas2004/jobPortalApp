@@ -6,6 +6,9 @@ const validateSignup = require('../middlewares/validateSignup');
 const jwt = require('jsonwebtoken');
 const validateSignin = require('../middlewares/validateSignin');
 const routeProtector = require('../middlewares/routeProtector');
+const Application = require('../models/application');
+const Notification = require('../models/notification');
+const Message = require('../models/message');
 
 // Signup Route
 router.post("/signup", validateSignup, async (req, res) => {
@@ -157,32 +160,7 @@ router.get('/saved-jobs', routeProtector, async (req, res) => {
   }
 });
 
-// Notifications Route
-router.get('/notifications', routeProtector, async (req, res) => {
-  try {
-    const notifications = await Notification.find({ userId: req.userId })
-      .sort({ createdAt: -1 });
 
-    res.json({ success: true, notifications });
-  } catch (error) {
-    console.error("Notifications fetch error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-// Messages Route
-router.get('/messages', routeProtector, async (req, res) => {
-  try {
-    const messages = await Message.find({
-      $or: [{ receiverId: req.userId }, { senderId: req.userId }]
-    }).sort({ createdAt: -1 });
-
-    res.json({ success: true, messages });
-  } catch (error) {
-    console.error("Messages fetch error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
 
 router.get('/isloggedin', routeProtector, async (req, res) => {
   try {
@@ -203,10 +181,6 @@ router.get('/isloggedin', routeProtector, async (req, res) => {
 });
 
 // Sidebar Stats Route
-const Application = require('../models/application');
-const Notification = require('../models/notification');
-const Message = require('../models/message');
-
 router.get('/sidebar-stats', routeProtector, async (req, res) => {
   try {
     const userId = req.userId;

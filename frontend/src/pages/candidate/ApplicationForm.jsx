@@ -4,11 +4,11 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
 
-const ApplicationForm=()=> {
+const ApplicationForm = () => {
   const { jobId } = useParams();
   const navigate = useNavigate();
   const { user, userType } = useAuth();
-  
+
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -35,6 +35,8 @@ const ApplicationForm=()=> {
   });
   const [loading, setLoading] = useState(true);
   const [candidateProfile, setCandidateProfile] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [notification, setNotification] = useState({ show: false, type: '', message: '' });
   const [submitting, setSubmitting] = useState(false);
 
@@ -174,6 +176,8 @@ const ApplicationForm=()=> {
   };
 
   const handleSubmit = async () => {
+    if (isSubmitting) return; // Prevent double submission
+
     const formErrors = validateForm();
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
@@ -181,11 +185,11 @@ const ApplicationForm=()=> {
     }
 
     try {
-      setSubmitting(true);
-      
+      setIsSubmitting(true);
+
       // Create FormData for file upload
       const applicationData = new FormData();
-      
+
       // Add form fields with proper formatting
       Object.keys(formData).forEach(key => {
         let value = formData[key];
@@ -223,8 +227,8 @@ const ApplicationForm=()=> {
 
       // Submit application
       const response = await axios.post(
-        `http://localhost:3000/api/applications/apply/${jobId}`, 
-        applicationData, 
+        `http://localhost:3000/api/applications/apply/${jobId}`,
+        applicationData,
         {
           withCredentials: true,
           headers: {
@@ -243,10 +247,11 @@ const ApplicationForm=()=> {
         setTimeout(() => {
           navigate(`/jobs/${jobId}`);
         }, 2000);
+        setIsSuccess(true); // Show success screen
       } else {
         throw new Error(response.data.message || "Failed to submit application");
       }
-      
+
     } catch (error) {
       console.error("Error submitting application:", error);
       
@@ -268,8 +273,13 @@ const ApplicationForm=()=> {
         type: 'error',
         message: errorMessage
       });
+      const errorMessage = error.response?.data?.message ||
+        error.message ||
+        "Failed to submit application. Please try again.";
+      alert(errorMessage);
     } finally {
       setSubmitting(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -304,7 +314,40 @@ const ApplicationForm=()=> {
       )}
       
       <div className="max-w-4xl mx-auto bg-white border-2 border-gray-200 p-8">
-        {loading ? (
+        {/* Success Screen */}
+        {isSuccess ? (
+          <div className="text-center py-16">
+            <div className="w-20 h-20 bg-green-100 border-4 border-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h1 className="text-3xl font-black text-gray-900 mb-4">Application Submitted!</h1>
+            <p className="text-lg text-gray-600 mb-2">
+              ✅ You have successfully applied for
+            </p>
+            <p className="text-xl font-bold text-black mb-8">
+              {jobDetails.jobTitle} at {jobDetails.company}
+            </p>
+            <p className="text-gray-500 mb-8">
+              The employer will review your application and get in touch if you're shortlisted.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button
+                onClick={() => navigate('/job-portal')}
+                className="px-8 py-3 bg-black text-white font-bold uppercase border-2 border-black hover:bg-white hover:text-black transition-colors"
+              >
+                ← Browse More Jobs
+              </button>
+              <button
+                onClick={() => navigate('/jobs/applied')}
+                className="px-8 py-3 bg-white text-black font-bold uppercase border-2 border-black hover:bg-black hover:text-white transition-colors"
+              >
+                View My Applications
+              </button>
+            </div>
+          </div>
+        ) : loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-gray-800"></div>
             <span className="ml-3 text-lg font-semibold">Loading application form...</span>
@@ -398,369 +441,366 @@ const ApplicationForm=()=> {
             )}
             {errors.resume && <p className="text-red-500 text-xs mt-1">{errors.resume}</p>}
           </div>
+              <div>
+                <label className="block text-sm font-bold mb-2">
+                  Upload CV / Resume<span className="text-red-500">*</span>
+                </label>
+                <p className="text-xs text-gray-600 mb-3">Submit your resume in doc, docx, pdf</p>
+                <div className="border-2 border-dashed border-gray-300 p-6 text-center">
+                  <input
+                    type="file"
+                    id="resume"
+                    accept=".pdf,.doc,.docx"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor="resume"
+                    className="cursor-pointer flex flex-col items-center space-y-2"
+                  >
+                    <Upload className="h-8 w-8 text-gray-400" />
+                    <span className="text-sm text-gray-600">
+                      {resume ? resume.name : "Click to upload"}
+                    </span>
+                  </label>
+                </div>
+                {errors.resume && <p className="text-red-500 text-xs mt-1">{errors.resume}</p>}
+              </div>
 
-          {/* Cover Letter Section */}
-          <div>
-            <label className="block text-sm font-bold mb-2">
-              Cover Letter <span className="text-xs text-gray-500 font-normal">(Optional)</span>
-            </label>
-            <p className="text-xs text-gray-600 mb-3">
-              Write a brief cover letter explaining why you're interested in this position and what makes you a good fit.
-            </p>
-            <textarea
-              name="coverLetter"
-              value={formData.coverLetter}
-              onChange={handleChange}
-              rows={4}
-              className="w-full px-4 py-3 border-2 border-gray-300 bg-white focus:border-black focus:outline-none resize-vertical"
-            />
-          </div>
-
-          {/* Basic Details */}
-          <div>
-            <h3 className="font-bold text-sm mb-4">Basic Details</h3>
-            <div className="mb-4">
-              <label className="block text-xs font-semibold mb-2">
-                Full Name<span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleChange}
-                placeholder="Enter your full name"
-                className="w-full px-4 py-2 border-2 border-gray-300 bg-white focus:border-black focus:outline-none"
-              />
-              {errors.fullName && <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>}
-            </div>
-          </div>
-
-          {/* Email and Mobile */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold mb-2">
-                Email<span className="text-red-500">*</span>
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="your.email@example.com"
-                className="w-full px-4 py-2 border-2 border-gray-300 bg-white focus:border-black focus:outline-none"
-              />
-              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
-            </div>
-            <div>
-              <label className="block text-xs font-semibold mb-2">
-                Mobile<span className="text-red-500">*</span>
-              </label>
-              <div className="flex space-x-2">
-                <select className="px-2 py-2 border-2 border-gray-300 bg-white focus:border-black focus:outline-none">
-                  <option>🇮🇳 +91</option>
-                </select>
-                <input
-                  type="tel"
-                  name="mobile"
-                  value={formData.mobile}
+              {/* Cover Letter Section */}
+              <div>
+                <label className="block text-sm font-bold mb-2">
+                  Cover Letter <span className="text-xs text-gray-500 font-normal">(Optional)</span>
+                </label>
+                <p className="text-xs text-gray-600 mb-3">
+                  Write a brief cover letter explaining why you're interested in this position and what makes you a good fit.
+                </p>
+                <textarea
+                  name="coverLetter"
+                  value={formData.coverLetter}
                   onChange={handleChange}
-                  placeholder="Enter mobile number"
-                  className="flex-1 px-4 py-2 border-2 border-gray-300 bg-white focus:border-black focus:outline-none"
+                  placeholder="Dear Hiring Manager,
+
+I am writing to express my interest in this position because..."
+                  rows={6}
+                  className="w-full px-4 py-3 border-2 border-gray-300 bg-white focus:border-black focus:outline-none resize-vertical"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  This helps employers understand your motivation and interest in the role.
+                </p>
               </div>
-              {errors.mobile && <p className="text-red-500 text-xs mt-1">{errors.mobile}</p>}
-            </div>
-          </div>
 
-          {/* Gender */}
-          <div>
-            <label className="block text-xs font-semibold mb-3">
-              Gender<span className="text-red-500">*</span>
-            </label>
-            <div className="flex flex-wrap gap-3">
-              {["Female", "Male", "Other", "Prefer not to say"].map((g) => (
+              {/* Basic Details */}
+              <div>
+                <h3 className="font-bold text-sm mb-4">Basic Details</h3>
+                <div className="mb-4">
+                  <label className="block text-xs font-semibold mb-2">
+                    Full Name<span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="fullName"
+                    value={formData.fullName}
+                    onChange={handleChange}
+                    placeholder="Mahesh Das"
+                    className="w-full px-4 py-2 border-2 border-gray-300 bg-white focus:border-black focus:outline-none"
+                  />
+                  {errors.fullName && <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>}
+                </div>
+              </div>
+
+              {/* Email and Mobile */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold mb-2">
+                    Email<span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="mahesh.dass3309@gmail.com"
+                    className="w-full px-4 py-2 border-2 border-gray-300 bg-white focus:border-black focus:outline-none"
+                  />
+                  {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-2">
+                    Mobile<span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex space-x-2">
+                    <select className="px-2 py-2 border-2 border-gray-300 bg-white focus:border-black focus:outline-none">
+                      <option>🇮🇳 +91</option>
+                    </select>
+                    <input
+                      type="tel"
+                      name="mobile"
+                      value={formData.mobile}
+                      onChange={handleChange}
+                      placeholder="9358310568"
+                      className="flex-1 px-4 py-2 border-2 border-gray-300 bg-white focus:border-black focus:outline-none"
+                    />
+                  </div>
+                  {errors.mobile && <p className="text-red-500 text-xs mt-1">{errors.mobile}</p>}
+                </div>
+              </div>
+
+              {/* Gender */}
+              <div>
+                <label className="block text-xs font-semibold mb-3">
+                  Gender<span className="text-red-500">*</span>
+                </label>
+                <div className="flex flex-wrap gap-3">
+                  {["Female", "Male", "Transgender", "Woman", "Intersex", "Man-Binary", "Prefer not to say"].map((g) => (
+                    <button
+                      key={g}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, gender: g })}
+                      className={`px-4 py-2 border-2 text-sm font-semibold transition ${formData.gender === g
+                        ? "bg-black text-white border-black"
+                        : "bg-white text-black border-gray-300 hover:border-black"
+                        }`}
+                    >
+                      {g}
+                    </button>
+                  ))}
+                </div>
+                {errors.gender && <p className="text-red-500 text-xs mt-1">{errors.gender}</p>}
+              </div>
+
+              {/* Location */}
+              <div>
+                <label className="block text-xs font-semibold mb-2">
+                  Location<span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    name="location"
+                    value={formData.location}
+                    onChange={handleChange}
+                    placeholder="Jalandhar, Punjab, India"
+                    className="w-full px-4 py-2 border-2 border-gray-300 bg-white focus:border-black focus:outline-none pr-10"
+                  />
+                  <MapPin className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                </div>
+                {errors.location && <p className="text-red-500 text-xs mt-1">{errors.location}</p>}
+              </div>
+
+              {/* Institute Name */}
+              <div>
+                <label className="text-xs font-bold uppercase mb-2 block">
+                  Institute Name<span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="instituteName"
+                  value={formData.instituteName}
+                  onChange={handleChange}
+                  placeholder="lovely proffessional university"
+                  className="w-full px-4 py-3 border-2 border-gray-300 bg-gray-100 focus:border-black focus:outline-none"
+                />
+                {errors.instituteName && <p className="text-red-500 text-xs mt-1">{errors.instituteName}</p>}
+              </div>
+
+              {/* Differently Abled */}
+              <div>
+                <label className="text-xs font-bold uppercase mb-4 flex items-center space-x-2">
+                  <span>Differently Abled<span className="text-red-500">*</span></span>
+                  <Info className="h-4 w-4 text-gray-400" />
+                </label>
+                <div className="flex space-x-3">
+                  {["No", "Yes"].map((option) => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, differentlyAbled: option })}
+                      className={`px-6 py-2 border-2 text-sm font-semibold transition ${formData.differentlyAbled === option
+                        ? "bg-black text-white border-black"
+                        : "bg-white text-black border-gray-300 hover:border-black"
+                        }`}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* User Details */}
+              <div>
+                <h3 className="font-extrabold text-lg mb-6 uppercase">User Details</h3>
+
+                {/* Type */}
+                <div className="mb-6">
+                  <label className="text-xs font-bold uppercase mb-4 block">
+                    Type<span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex space-x-3">
+                    {["College Students", "Professional", "Fresher"].map((type) => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, userType: type })}
+                        className={`px-4 py-2 border-2 text-sm font-semibold transition ${formData.userType === type
+                          ? "bg-black text-white border-black"
+                          : "bg-white text-black border-gray-300 hover:border-black"
+                          }`}
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Domain */}
+                <div className="mb-6">
+                  <label className="text-xs font-bold uppercase mb-2 block">
+                    Domain<span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="domain"
+                    value={formData.domain}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border-2 border-gray-300 bg-gray-100 focus:border-black focus:outline-none"
+                  >
+                    <option value="">Select Domain</option>
+                    <option value="Engineering">Engineering</option>
+                    <option value="Medical">Medical</option>
+                    <option value="Commerce">Commerce</option>
+                    <option value="Arts">Arts</option>
+                  </select>
+                  {errors.domain && <p className="text-red-500 text-xs mt-1">{errors.domain}</p>}
+                </div>
+
+                {/* Course */}
+                <div className="mb-6">
+                  <label className="text-xs font-bold uppercase mb-2 block">
+                    Course<span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="course"
+                    value={formData.course}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border-2 border-gray-300 bg-gray-100 focus:border-black focus:outline-none"
+                  >
+                    <option value="">Select Course</option>
+                    <option value="B.Tech/BE (Bachelor of Technology / Bachelor of Engineering)">
+                      B.Tech/BE (Bachelor of Technology / Bachelor of Engineering)
+                    </option>
+                    <option value="M.Tech/ME">M.Tech/ME</option>
+                    <option value="BCA">BCA</option>
+                    <option value="MCA">MCA</option>
+                  </select>
+                  {errors.course && <p className="text-red-500 text-xs mt-1">{errors.course}</p>}
+                </div>
+
+                {/* Course Specialization */}
+                <div className="mb-6">
+                  <label className="text-xs font-bold uppercase mb-2 block">
+                    Course Specialization<span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="courseSpecialization"
+                    value={formData.courseSpecialization}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border-2 border-gray-300 bg-gray-100 focus:border-black focus:outline-none"
+                  >
+                    <option value="">Select Specialization</option>
+                    <option value="Computer Science and Engineering">Computer Science and Engineering</option>
+                    <option value="Mechanical Engineering">Mechanical Engineering</option>
+                    <option value="Civil Engineering">Civil Engineering</option>
+                    <option value="Electrical Engineering">Electrical Engineering</option>
+                  </select>
+                  {errors.courseSpecialization && <p className="text-red-500 text-xs mt-1">{errors.courseSpecialization}</p>}
+                </div>
+
+                {/* Graduating Year */}
+                <div className="mb-6">
+                  <label className="text-xs font-bold uppercase mb-4 block">
+                    Graduating Year<span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex space-x-3">
+                    {["2026", "2027", "2028", "2029"].map((year) => (
+                      <button
+                        key={year}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, graduatingYear: year })}
+                        className={`px-6 py-2 border-2 text-sm font-semibold transition ${formData.graduatingYear === year
+                          ? "bg-black text-white border-black"
+                          : "bg-white text-black border-gray-300 hover:border-black"
+                          }`}
+                      >
+                        {year}
+                      </button>
+                    ))}
+                  </div>
+                  {errors.graduatingYear && <p className="text-red-500 text-xs mt-1">{errors.graduatingYear}</p>}
+                </div>
+
+                {/* Course Duration */}
+                <div>
+                  <label className="text-xs font-bold uppercase mb-4 block">
+                    Course Duration<span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex space-x-3">
+                    {["3 Years", "4 Years"].map((duration) => (
+                      <button
+                        key={duration}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, courseDuration: duration })}
+                        className={`px-6 py-2 border-2 text-sm font-semibold transition ${formData.courseDuration === duration
+                          ? "bg-black text-white border-black"
+                          : "bg-white text-black border-gray-300 hover:border-black"
+                          }`}
+                      >
+                        {duration}
+                      </button>
+                    ))}
+                  </div>
+                  {errors.courseDuration && <p className="text-red-500 text-xs mt-1">{errors.courseDuration}</p>}
+                </div>
+              </div>
+
+              {/* Terms & Conditions */}
+              <div className="bg-gray-50 p-6 border-2 border-gray-200">
+                <h3 className="font-extrabold text-lg mb-4 uppercase">Terms & Conditions</h3>
+                <label className="flex items-start space-x-4 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="termsAccepted"
+                    checked={formData.termsAccepted}
+                    onChange={handleChange}
+                    className="mt-1 h-5 w-5"
+                  />
+                  <span className="text-sm text-gray-700 leading-relaxed">
+                    I hereby confirm my consent to receive this data mentioned in this form via any form
+                    mentioned with this recruiter for the opportunity for further analysis, processing, and
+                    outreach. Your data will ever be used by Unstatic for providing you regular and consistent
+                    updates on this opportunity. You also agree to the privacy policy and terms of use of Unstatic.
+                  </span>
+                </label>
+                {errors.termsAccepted && <p className="text-red-500 text-xs mt-1">{errors.termsAccepted}</p>}
+              </div>
+
+              {/* Submit Buttons */}
+              <div className="flex justify-between pt-8 gap-4">
                 <button
-                  key={g}
                   type="button"
-                  onClick={() => setFormData({ ...formData, gender: g })}
-                  className={`px-4 py-2 border-2 text-sm font-semibold transition ${
-                    formData.gender === g
-                      ? "bg-black text-white border-black"
-                      : "bg-white text-black border-gray-300 hover:border-black"
-                  }`}
+                  className="flex-1 px-8 py-4 border-2 border-gray-400 bg-gray-100 text-black font-bold hover:border-black hover:bg-white transition uppercase"
                 >
-                  {g}
+                  Back
                 </button>
-              ))}
-            </div>
-            {errors.gender && <p className="text-red-500 text-xs mt-1">{errors.gender}</p>}
-          </div>
-
-          {/* Location */}
-          <div>
-            <label className="block text-xs font-semibold mb-2">
-              Location<span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                name="location"
-                value={formData.location}
-                onChange={handleChange}
-                placeholder="City, State, Country"
-                className="w-full px-4 py-2 border-2 border-gray-300 bg-white focus:border-black focus:outline-none pr-10"
-              />
-              <MapPin className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-            </div>
-            {errors.location && <p className="text-red-500 text-xs mt-1">{errors.location}</p>}
-          </div>
-
-          {/* Institute Name */}
-          <div>
-            <label className="text-xs font-bold uppercase mb-2 block">
-              Institute Name<span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="instituteName"
-              value={formData.instituteName}
-              onChange={handleChange}
-              placeholder="Enter your institute/university name"
-              className="w-full px-4 py-3 border-2 border-gray-300 bg-gray-100 focus:border-black focus:outline-none"
-            />
-            {errors.instituteName && <p className="text-red-500 text-xs mt-1">{errors.instituteName}</p>}
-          </div>
-
-          {/* Differently Abled */}
-          <div>
-            <label className="text-xs font-bold uppercase mb-4 flex items-center space-x-2">
-              <span>Differently Abled<span className="text-red-500">*</span></span>
-              <Info className="h-4 w-4 text-gray-400" />
-            </label>
-            <div className="flex space-x-3">
-              {["No", "Yes"].map((option) => (
                 <button
-                  key={option}
                   type="button"
-                  onClick={() => setFormData({ ...formData, differentlyAbled: option })}
-                  className={`px-6 py-2 border-2 text-sm font-semibold transition ${
-                    formData.differentlyAbled === option
-                      ? "bg-black text-white border-black"
-                      : "bg-white text-black border-gray-300 hover:border-black"
-                  }`}
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className="flex-1 px-8 py-4 bg-black text-white font-bold transition flex items-center justify-center space-x-2 border-2 border-black uppercase disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-800"
                 >
-                  {option}
+                  <span>{isSubmitting ? 'Submitting...' : 'Submit Application'}</span>
+                  {!isSubmitting && <ArrowRight className="h-5 w-5" />}
                 </button>
-              ))}
-            </div>
-          </div>
-
-          {/* User Details */}
-          <div>
-            <h3 className="font-extrabold text-lg mb-6 uppercase">User Details</h3>
-            
-            {/* Type */}
-            <div className="mb-6">
-              <label className="text-xs font-bold uppercase mb-4 block">
-                Type<span className="text-red-500">*</span>
-              </label>
-              <div className="flex space-x-3">
-                {["College Students", "Professional", "Fresher"].map((type) => (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, userType: type })}
-                    className={`px-4 py-2 border-2 text-sm font-semibold transition ${
-                      formData.userType === type
-                        ? "bg-black text-white border-black"
-                        : "bg-white text-black border-gray-300 hover:border-black"
-                    }`}
-                  >
-                    {type}
-                  </button>
-                ))}
               </div>
-            </div>
-
-            {/* Domain */}
-            <div className="mb-6">
-              <label className="text-xs font-bold uppercase mb-2 block">
-                Domain<span className="text-red-500">*</span>
-              </label>
-              <select
-                name="domain"
-                value={formData.domain}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border-2 border-gray-300 bg-gray-100 focus:border-black focus:outline-none"
-              >
-                <option value="">Select Domain</option>
-                <option value="Engineering & Technology">Engineering & Technology</option>
-                <option value="Computer Science & IT">Computer Science & IT</option>
-                <option value="Business & Management">Business & Management</option>
-                <option value="Medical & Healthcare">Medical & Healthcare</option>
-                <option value="Arts & Humanities">Arts & Humanities</option>
-                <option value="Science & Research">Science & Research</option>
-                <option value="Commerce & Finance">Commerce & Finance</option>
-              </select>
-              {errors.domain && <p className="text-red-500 text-xs mt-1">{errors.domain}</p>}
-            </div>
-
-            {/* Course */}
-            <div className="mb-6">
-              <label className="text-xs font-bold uppercase mb-2 block">
-                Course<span className="text-red-500">*</span>
-              </label>
-              <select
-                name="course"
-                value={formData.course}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border-2 border-gray-300 bg-gray-100 focus:border-black focus:outline-none"
-              >
-                <option value="">Select Course</option>
-                <option value="B.Tech/BE (Bachelor of Technology / Bachelor of Engineering)">
-                  B.Tech/BE (Bachelor of Technology / Bachelor of Engineering)
-                </option>
-                <option value="M.Tech/ME (Master of Technology / Master of Engineering)">M.Tech/ME (Master of Technology / Master of Engineering)</option>
-                <option value="BCA (Bachelor of Computer Applications)">BCA (Bachelor of Computer Applications)</option>
-                <option value="MCA (Master of Computer Applications)">MCA (Master of Computer Applications)</option>
-                <option value="BSc (Bachelor of Science)">BSc (Bachelor of Science)</option>
-                <option value="MSc (Master of Science)">MSc (Master of Science)</option>
-                <option value="BBA (Bachelor of Business Administration)">BBA (Bachelor of Business Administration)</option>
-                <option value="MBA (Master of Business Administration)">MBA (Master of Business Administration)</option>
-              </select>
-              {errors.course && <p className="text-red-500 text-xs mt-1">{errors.course}</p>}
-            </div>
-
-            {/* Course Specialization */}
-            <div className="mb-6">
-              <label className="text-xs font-bold uppercase mb-2 block">
-                Course Specialization<span className="text-red-500">*</span>
-              </label>
-              <select
-                name="courseSpecialization"
-                value={formData.courseSpecialization}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border-2 border-gray-300 bg-gray-100 focus:border-black focus:outline-none"
-              >
-                <option value="">Select Specialization</option>
-                <option value="Computer Science and Engineering">Computer Science and Engineering</option>
-                <option value="Information Technology">Information Technology</option>
-                <option value="Software Engineering">Software Engineering</option>
-                <option value="Mechanical Engineering">Mechanical Engineering</option>
-                <option value="Civil Engineering">Civil Engineering</option>
-                <option value="Electrical Engineering">Electrical Engineering</option>
-                <option value="Electronics and Communication">Electronics and Communication</option>
-                <option value="Data Science and Analytics">Data Science and Analytics</option>
-                <option value="Artificial Intelligence and Machine Learning">Artificial Intelligence and Machine Learning</option>
-                <option value="Cybersecurity">Cybersecurity</option>
-                <option value="Business Administration">Business Administration</option>
-                <option value="Finance and Accounting">Finance and Accounting</option>
-                <option value="Marketing and Sales">Marketing and Sales</option>
-              </select>
-              {errors.courseSpecialization && <p className="text-red-500 text-xs mt-1">{errors.courseSpecialization}</p>}
-            </div>
-
-            {/* Graduating Year */}
-            <div className="mb-6">
-              <label className="text-xs font-bold uppercase mb-4 block">
-                Graduating Year<span className="text-red-500">*</span>
-              </label>
-              <div className="flex space-x-3">
-                {["2024", "2025", "2026", "2027"].map((year) => (
-                  <button
-                    key={year}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, graduatingYear: year })}
-                    className={`px-6 py-2 border-2 text-sm font-semibold transition ${
-                      formData.graduatingYear === year
-                        ? "bg-black text-white border-black"
-                        : "bg-white text-black border-gray-300 hover:border-black"
-                    }`}
-                  >
-                    {year}
-                  </button>
-                ))}
-              </div>
-              {errors.graduatingYear && <p className="text-red-500 text-xs mt-1">{errors.graduatingYear}</p>}
-            </div>
-
-            {/* Course Duration */}
-            <div>
-              <label className="text-xs font-bold uppercase mb-4 block">
-                Course Duration<span className="text-red-500">*</span>
-              </label>
-              <div className="flex space-x-3">
-                {["3 Years", "4 Years"].map((duration) => (
-                  <button
-                    key={duration}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, courseDuration: duration })}
-                    className={`px-6 py-2 border-2 text-sm font-semibold transition ${
-                      formData.courseDuration === duration
-                        ? "bg-black text-white border-black"
-                        : "bg-white text-black border-gray-300 hover:border-black"
-                    }`}
-                  >
-                    {duration}
-                  </button>
-                ))}
-              </div>
-              {errors.courseDuration && <p className="text-red-500 text-xs mt-1">{errors.courseDuration}</p>}
-            </div>
-          </div>
-
-          {/* Terms & Conditions */}
-          <div className="bg-gray-50 p-6 border-2 border-gray-200">
-            <h3 className="font-extrabold text-lg mb-4 uppercase">Terms & Conditions</h3>
-            <label className="flex items-start space-x-4 cursor-pointer">
-              <input
-                type="checkbox"
-                name="termsAccepted"
-                checked={formData.termsAccepted}
-                onChange={handleChange}
-                className="mt-1 h-5 w-5"
-              />
-              <span className="text-sm text-gray-700 leading-relaxed">
-                I hereby confirm that the information provided in this application form is accurate and complete. 
-                I consent to the processing of my personal data for recruitment purposes and agree to receive 
-                communications regarding this job opportunity. I understand that my data will be handled in 
-                accordance with applicable privacy laws and the company's privacy policy.
-              </span>
-            </label>
-            {errors.termsAccepted && <p className="text-red-500 text-xs mt-1">{errors.termsAccepted}</p>}
-          </div>
-
-          {/* Submit Buttons */}
-          <div className="flex justify-between pt-8 gap-4">
-            <button
-              type="button"
-              className="flex-1 px-8 py-4 border-2 border-gray-400 bg-gray-100 text-black font-bold hover:border-black hover:bg-white transition uppercase"
-            >
-              Back
-            </button>
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={submitting}
-              className={`flex-1 px-8 py-4 font-bold transition flex items-center justify-center space-x-2 border-2 uppercase ${
-                submitting 
-                  ? 'bg-gray-400 text-gray-200 border-gray-400 cursor-not-allowed'
-                  : 'bg-black text-white border-black hover:bg-gray-800'
-              }`}
-            >
-              {submitting ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  <span>Submitting...</span>
-                </>
-              ) : (
-                <>
-                  <span>Submit Application</span>
-                  <ArrowRight className="h-5 w-5" />
-                </>
-              )}
-            </button>
-          </div>
             </div>
           </>
         )}
