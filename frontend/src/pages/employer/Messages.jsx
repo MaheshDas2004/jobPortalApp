@@ -23,7 +23,7 @@ const EmployerMessages = () => {
 
     const fetchMessages = async () => {
         try {
-            const response = await axios.get(`${API_BASE}/auth/messages`, { withCredentials: true });
+            const response = await axios.get(`${API_BASE}/messages`, { withCredentials: true });
             if (response.data.success) {
                 // Group messages by conversation (based on the other person)
                 const grouped = groupMessages(response.data.messages);
@@ -44,10 +44,19 @@ const EmployerMessages = () => {
         const conversationMap = new Map();
 
         allMessages.forEach(msg => {
-            const otherPersonId = msg.senderId === user?._id ? msg.receiverId : msg.senderId;
-            const otherPerson = msg.senderId === user?._id
-                ? { id: msg.receiverId, name: 'Candidate', model: msg.receiverModel }
-                : { id: msg.senderId, name: msg.senderId?.fullName || 'Candidate', model: msg.senderModel };
+            const senderIdStr = (msg.senderId && typeof msg.senderId === 'object') ? msg.senderId._id : msg.senderId;
+            const receiverIdStr = (msg.receiverId && typeof msg.receiverId === 'object') ? msg.receiverId._id : msg.receiverId;
+            const isMe = senderIdStr === user?._id;
+            const otherPersonId = isMe ? receiverIdStr : senderIdStr;
+
+            let otherPersonName = 'Candidate';
+            if (isMe && msg.receiverId?.fullName) {
+                otherPersonName = msg.receiverId.fullName;
+            } else if (!isMe && msg.senderId?.fullName) {
+                otherPersonName = msg.senderId.fullName;
+            }
+
+            const otherPerson = { id: otherPersonId, name: otherPersonName };
 
             if (!conversationMap.has(otherPersonId)) {
                 conversationMap.set(otherPersonId, {
@@ -55,7 +64,7 @@ const EmployerMessages = () => {
                     name: otherPerson.name,
                     messages: [],
                     lastMessage: msg,
-                    jobTitle: msg.jobId?.jobTitle || 'General Discussion'
+                    jobTitle: (msg.jobId && typeof msg.jobId === 'object') ? msg.jobId.jobTitle : 'General Discussion'
                 });
             }
             conversationMap.get(otherPersonId).messages.push(msg);
@@ -73,12 +82,14 @@ const EmployerMessages = () => {
 
         setIsSending(true);
         try {
-            const response = await axios.post(`${API_BASE}/auth/messages`, {
+            const jobIdVal = selectedConversation.lastMessage?.jobId;
+            const appIdVal = selectedConversation.lastMessage?.applicationId;
+            const response = await axios.post(`${API_BASE}/messages`, {
                 receiverId: selectedConversation.id,
                 receiverModel: 'Candidate',
                 content: newMessage,
-                jobId: selectedConversation.lastMessage?.jobId?._id,
-                applicationId: selectedConversation.lastMessage?.applicationId?._id
+                jobId: (jobIdVal && typeof jobIdVal === 'object') ? jobIdVal._id : jobIdVal,
+                applicationId: (appIdVal && typeof appIdVal === 'object') ? appIdVal._id : appIdVal
             }, { withCredentials: true });
 
             if (response.data.success) {
@@ -209,7 +220,8 @@ const EmployerMessages = () => {
                             {/* Messages Area */}
                             <div className="flex-1 overflow-y-auto p-6 space-y-4 flex flex-col-reverse bg-gray-50">
                                 {messages.map(msg => {
-                                    const isMe = msg.senderId === user?._id;
+                                    const senderIdStr = (msg.senderId && typeof msg.senderId === 'object') ? msg.senderId._id : msg.senderId;
+                                    const isMe = senderIdStr === user?._id;
                                     return (
                                         <div key={msg._id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                                             <div className={`max-w-[70%] p-3 border-2 border-black ${isMe ? 'bg-black text-white' : 'bg-white text-black'

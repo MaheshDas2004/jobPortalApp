@@ -160,75 +160,7 @@ router.get('/saved-jobs', routeProtector, async (req, res) => {
   }
 });
 
-// Notifications Route
-router.get('/notifications', routeProtector, async (req, res) => {
-  try {
-    const notifications = await Notification.find({ userId: req.userId })
-      .sort({ createdAt: -1 });
 
-    res.json({ success: true, notifications });
-  } catch (error) {
-    console.error("Notifications fetch error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-// Messages Route
-router.get('/messages', routeProtector, async (req, res) => {
-  try {
-    const messages = await Message.find({
-      $or: [{ receiverId: req.userId }, { senderId: req.userId }]
-    }).sort({ createdAt: -1 });
-
-    res.json({ success: true, messages });
-  } catch (error) {
-    console.error("Messages fetch error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-const { sendToUser } = require('../config/socket');
-
-router.post('/messages', routeProtector, async (req, res) => {
-  try {
-    const { receiverId, receiverModel, content, jobId, applicationId } = req.body;
-    const senderId = req.userId;
-    // Assume sender model based on logic or pass it. For now, we can check if it's an employer or candidate.
-    // However, the senderId comes from routeProtector which is generic.
-    // In this app, employers send to candidates and vice versa.
-
-    // Check if sender is Employer (simple check if they are in the Employer collection)
-    const Employer = require('../models/employer');
-    const isEmployer = await Employer.exists({ _id: senderId });
-    const senderModel = isEmployer ? 'Employer' : 'Candidate';
-
-    const newMessage = new Message({
-      senderId,
-      senderModel,
-      receiverId,
-      receiverModel,
-      content,
-      jobId,
-      applicationId
-    });
-
-    await newMessage.save();
-
-    // Emit real-time event to receiver
-    sendToUser(receiverId, 'message', {
-      ...newMessage._doc,
-      senderId: { _id: senderId, fullName: isEmployer ? (await Employer.findById(senderId)).fullName : (await Candidate.findById(senderId)).fullName }
-    });
-
-    res.status(201).json({
-      success: true,
-      message: newMessage
-    });
-  } catch (error) {
-    console.error("Message send error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
-});
 
 router.get('/isloggedin', routeProtector, async (req, res) => {
   try {

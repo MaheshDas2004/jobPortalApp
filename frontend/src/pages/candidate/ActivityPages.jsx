@@ -28,7 +28,7 @@ export const Notifications = () => {
         const fetchNotifications = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get('http://localhost:3000/api/auth/notifications', {
+                const response = await axios.get('http://localhost:3000/api/notifications', {
                     withCredentials: true
                 });
                 if (response.data.success) {
@@ -163,7 +163,7 @@ export const Messages = () => {
         const fetchMessages = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get('http://localhost:3000/api/auth/messages', {
+                const response = await axios.get('http://localhost:3000/api/messages', {
                     withCredentials: true
                 });
                 if (response.data.success) {
