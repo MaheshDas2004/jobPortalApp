@@ -140,28 +140,6 @@ router.get('/applied-jobs', routeProtector, async (req, res) => {
   }
 });
 
-// Saved Jobs Route
-router.get('/saved-jobs', routeProtector, async (req, res) => {
-  try {
-    const user = await Candidate.findById(req.userId)
-      .populate({
-        path: 'savedJobs',
-        select: 'jobTitle company location jobType salary',
-        populate: { path: 'postedBy', select: 'fullName' }
-      });
-
-    res.json({
-      success: true,
-      savedJobs: user ? user.savedJobs : []
-    });
-  } catch (error) {
-    console.error("Saved jobs fetch error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-
-
 router.get('/isloggedin', routeProtector, async (req, res) => {
   try {
     const user = await Candidate.findById(req.userId).select("-password");

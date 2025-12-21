@@ -1,14 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  Search, Briefcase, MapPin, Code, TrendingUp, DollarSign, Users, LayoutGrid, Zap, ShieldCheck,
+  Search, Briefcase, MapPin, Code, TrendingUp, Users, LayoutGrid, Zap, ShieldCheck,
   User, Aperture, ArrowRight, Layers, ChevronRight, 
-  ChevronLeft, Heart, Eye, ExternalLink
+  ChevronLeft, ExternalLink, IndianRupee
 } from 'lucide-react';
 import Hero from '../components/Hero';
 import { useAuth } from '../context/AuthContext';
 
 const JobPortalHome = () => {
-  const [savedJobs, setSavedJobs] = useState([]);
+  // Removed savedJobs state
   const jobCarouselRef = useRef(null);
   const { user, userType, isLoggedIn, isEmployer, isCandidate, isLoading } = useAuth();
 
@@ -25,7 +25,7 @@ const JobPortalHome = () => {
   const jobCategories = [
     { title: 'Software Development', jobs: 2500, icon: Code, img: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&h=300&fit=crop' },
     { title: 'Marketing & Sales', jobs: 1200, icon: TrendingUp, img: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=400&h=300&fit=crop' },
-    { title: 'Finance & Accounting', jobs: 850, icon: DollarSign, img: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&h=300&fit=crop' },
+      { title: 'Finance & Accounting', jobs: 850, icon: IndianRupee, img: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&h=300&fit=crop' },
     { title: 'Customer Support', jobs: 1500, icon: Users, img: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&h=300&fit=crop' },
     { title: 'Data Science', jobs: 700, icon: Layers, img: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=300&fit=crop' },
     { title: 'Design & Creative', jobs: 600, icon: Aperture, img: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&h=300&fit=crop' },
@@ -33,74 +33,73 @@ const JobPortalHome = () => {
     { title: 'Project Management', jobs: 900, icon: LayoutGrid, img: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&h=300&fit=crop' },
   ];
 
-  const featuredJobs = [
-    { 
-      id: 1, 
-      title: 'Senior Frontend Developer', 
-      company: 'TechCorp', 
-      logo: '🚀', 
-      salary: '₹12-15 LPA', 
-      location: 'Bangalore, IN', 
-      type: 'In Office', 
-      applied: 45, 
-      views: 234, 
-      color: 'from-blue-500 to-purple-600'
-    },
-    { 
-      id: 2, 
-      title: 'Product Manager', 
-      company: 'StartupX', 
-      logo: '💡', 
-      salary: '₹18-22 LPA', 
-      location: 'Mumbai, IN', 
-      type: 'In Office', 
-      applied: 67, 
-      views: 189, 
-      color: 'from-green-500 to-blue-500'
-    },
-    { 
-      id: 3, 
-      title: 'UX/UI Designer', 
-      company: 'DesignHub', 
-      logo: '🎨', 
-      salary: '₹8-12 LPA', 
-      location: 'Remote', 
-      type: 'Remote', 
-      applied: 23, 
-      views: 156, 
-      color: 'from-pink-500 to-orange-500'
-    },
-    { 
-      id: 4, 
-      title: 'Data Scientist', 
-      company: 'DataTech', 
-      logo: '📊', 
-      salary: '₹15-20 LPA', 
-      location: 'Delhi, IN', 
-      type: 'Hybrid', 
-      applied: 89, 
-      views: 321, 
-      color: 'from-purple-500 to-pink-500'
-    },
-    { 
-      id: 5, 
-      title: 'DevOps Engineer', 
-      company: 'CloudSys', 
-      logo: '⚙️', 
-      salary: '₹14-18 LPA', 
-      location: 'Hyderabad, IN', 
-      type: 'In Office', 
-      applied: 56, 
-      views: 278, 
-      color: 'from-indigo-500 to-blue-600'
-    }
-  ];
+  const [featuredJobs, setFeaturedJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const toggleSaveJob = (jobId) => {
-    setSavedJobs(prev =>
-      prev.includes(jobId) ? prev.filter(id => id !== jobId) : [...prev, jobId]
-    );
+  useEffect(() => {
+    const fetchFeaturedJobs = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('http://localhost:3000/api/jobs/all');
+        const data = await response.json();
+        if (data.success) {
+          const allJobs = data.data;
+          // Filter featured jobs (excluding internships)
+          const jobs = allJobs.filter(job => job.featured && job.jobType !== 'Internship');
+          // Add UI enhancements to jobs
+          const enhancedJobs = jobs.map((job, index) => ({
+            ...job,
+            id: job._id,
+            title: job.jobTitle,
+            company: job.companyName,
+            type: job.workType,
+            salary: job.salary,
+            location: job.location,
+            applied: job.applicants?.length || 0,
+            views: job.views || 0,
+            color: getRandomGradient(index),
+            logo: getJobIcon(job.jobTitle)
+          }));
+          setFeaturedJobs(enhancedJobs);
+        }
+      } catch (error) {
+        console.error('Error fetching featured jobs:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFeaturedJobs();
+  }, []);
+
+  // Helper function to get random gradient colors
+  const getRandomGradient = (index) => {
+    const gradients = [
+      'from-blue-500 to-blue-600',
+      'from-pink-500 to-pink-600',
+      'from-purple-500 to-purple-600',
+      'from-yellow-500 to-yellow-600',
+      'from-indigo-500 to-indigo-600',
+      'from-green-500 to-green-600',
+      'from-red-500 to-red-600',
+      'from-teal-500 to-teal-600'
+    ];
+    return gradients[index % gradients.length];
   };
+
+  // Helper function to get job icon based on title
+  const getJobIcon = (title) => {
+    const lowerTitle = title?.toLowerCase() || '';
+    if (lowerTitle.includes('software') || lowerTitle.includes('developer')) return '💻';
+    if (lowerTitle.includes('data') || lowerTitle.includes('analyst')) return '📊';
+    if (lowerTitle.includes('design') || lowerTitle.includes('ui')) return '🎨';
+    if (lowerTitle.includes('marketing')) return '📢';
+    if (lowerTitle.includes('hr') || lowerTitle.includes('human')) return '👥';
+    if (lowerTitle.includes('research')) return '🔬';
+    if (lowerTitle.includes('manager') || lowerTitle.includes('executive')) return '💼';
+    return '🏢';
+  };
+
+  // Removed toggleSaveJob function
 
   const scrollCarousel = (direction, ref) => {
     if (ref.current) {
@@ -137,7 +136,11 @@ const JobPortalHome = () => {
                     <img src={cat.img} alt={cat.title} className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-linear-to-t from-black via-black/70 to-transparent"></div>
                     <div className="absolute top-3 right-3 p-2 sm:p-3 bg-white border-2 border-black">
-                      <cat.icon className="h-4 w-4 sm:h-5 sm:w-5 text-black" strokeWidth={2.5} />
+                      {cat.icon === 'INR' ? (
+                        <span className="h-4 w-4 sm:h-5 sm:w-5 text-black font-bold text-lg" style={{fontFamily:'monospace'}}>&#8377;</span>
+                      ) : cat.icon ? (
+                        React.createElement(cat.icon, { className: "h-4 w-4 sm:h-5 sm:w-5 text-black", strokeWidth: 2.5 })
+                      ) : null}
                     </div>
                   </div>
                   <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 md:p-5">
@@ -211,21 +214,15 @@ const JobPortalHome = () => {
                           <span>{job.location}</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                          <DollarSign className="h-4 w-4" strokeWidth={2.5} />
+                          <IndianRupee className="h-4 w-4" strokeWidth={2.5} />
                           <span>{job.salary}</span>
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between text-xs font-bold text-gray-600 mb-4 pt-4 border-t border-gray-200">
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center text-xs font-bold text-gray-600 mb-4 pt-4 border-t border-gray-200">
                           <Users className="h-4 w-4" strokeWidth={2.5} />
                           <span>{job.applied} Applied</span>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Eye className="h-4 w-4" strokeWidth={2.5} />
-                          <span>{job.views} Views</span>
-                        </div>
-                      </div>
 
                       <button className="w-full py-3 bg-black text-white font-black text-sm hover:bg-gray-900 transition flex items-center justify-center gap-2">
                         VIEW DETAILS

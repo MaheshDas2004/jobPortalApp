@@ -143,14 +143,6 @@ export default function Sidebar({ isOpen, onClose, user, isEmployer, isCandidate
                 <FileText className="h-5 w-5 text-gray-600 shrink-0" />
                 <span className="text-sm font-medium text-gray-800 uppercase">Applied Jobs</span>
               </Link>
-              <Link
-                to="/jobs/saved"
-                onClick={onClose}
-                className="w-full flex items-center space-x-3 px-3 py-3 hover:bg-gray-100 rounded transition text-left"
-              >
-                <Bookmark className="h-5 w-5 text-gray-600 shrink-0" />
-                <span className="text-sm font-medium text-gray-800 uppercase">Saved Jobs</span>
-              </Link>
             </div>
           )}
 
@@ -167,16 +159,6 @@ export default function Sidebar({ isOpen, onClose, user, isEmployer, isCandidate
                   <FileText className="h-5 w-5 text-gray-600 shrink-0" />
                   <span className="text-sm font-medium text-gray-800">My Resume</span>
                 </Link>
-                <button 
-                  onClick={() => {
-                    onClose();
-                    alert('Messages feature coming soon!');
-                  }}
-                  className="w-full flex items-center space-x-3 px-3 py-3 hover:bg-gray-100 rounded transition text-left"
-                >
-                  <MessageSquare className="h-5 w-5 text-gray-600 shrink-0" />
-                  <span className="text-sm font-medium text-gray-800">Messages</span>
-                </button>
               </div>
             )}
           </div>

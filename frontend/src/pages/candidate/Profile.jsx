@@ -113,12 +113,6 @@ const Profile = () => {
                           <span>{user.currentLocation}</span>
                         </div>
                       )}
-                      {user.educationDetails && user.educationDetails.length > 0 && (
-                        <div className="flex items-center gap-1">
-                          <GraduationCap className="w-4 h-4" />
-                          <span>{user.educationDetails[0].institution}</span>
-                        </div>
-                      )}
                     </div>
 
                     <div className="flex flex-wrap gap-2 mt-3">
@@ -132,12 +126,6 @@ const Profile = () => {
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <button className="p-2 border-2 border-black hover:bg-gray-100">
-                      <Share2 className="w-5 h-5" />
-                    </button>
-                    <button className="p-2 border-2 border-black hover:bg-gray-100">
-                      <Eye className="w-5 h-5" />
-                    </button>
                     <button
                       onClick={() => setIsPanelOpen(true)}
                       className="px-4 py-2 bg-black text-white border-2 border-black flex items-center gap-2 font-black uppercase hover:bg-gray-800 transition-colors">
@@ -232,11 +220,21 @@ const Profile = () => {
                       <div>
                         <h3 className="font-black text-black">{edu.institution}</h3>
                         <p className="font-bold text-sm">{edu.level} - {edu.fieldOfStudy}</p>
-                        <div className="flex items-center gap-4 mt-1 text-xs font-bold text-gray-600">
+                        <div className="flex flex-wrap items-center gap-4 mt-1 text-xs font-bold text-gray-600">
                           <div className="flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
-                            <span>{edu.year || (edu.startDate && new Date(edu.startDate).getFullYear())}</span>
+                            <span>
+                              {edu.startYear || (edu.startDate && new Date(edu.startDate).getFullYear()) || edu.year || ''}
+                              {((edu.startYear || edu.endYear || edu.endDate) && ' - ')}
+                              {edu.endYear || (edu.endDate && new Date(edu.endDate).getFullYear()) || (edu.endYear === '' ? 'Present' : '')}
+                            </span>
                           </div>
+                          {edu.location && (
+                            <div className="flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />
+                              <span>{edu.location}</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>

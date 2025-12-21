@@ -319,17 +319,7 @@ const PostJob = () => {
               <h1 className="text-3xl sm:text-4xl font-black mb-2">Post a Job</h1>
               <p className="text-gray-300 font-semibold">Find the perfect candidate for your company</p>
             </div>
-            <div className="hidden sm:flex items-center gap-3">
-              <div className="text-right">
-                <p className="text-sm font-bold text-gray-400">Active Jobs</p>
-                <p className="text-2xl font-black">24</p>
-              </div>
-              <div className="w-px h-12 bg-white/20"></div>
-              <div className="text-right">
-                <p className="text-sm font-bold text-gray-400">Total Applications</p>
-                <p className="text-2xl font-black">1.2K</p>
-              </div>
-            </div>
+        
           </div>
         </div>
       </div>

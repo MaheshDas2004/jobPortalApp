@@ -13,7 +13,6 @@ import ESignin from './pages/employer/ESignin'
 import ESignup from './pages/employer/ESignup'
 import PostJob from './pages/employer/PostJob'
 import Signup from './pages/candidate/Signup'
-import Dashboard from './pages/candidate/Dashboard'
 import EmployerDashboard from './pages/employer/Dashboard'
 import ApplicationDetails from './pages/employer/ApplicationDetails'
 import EmployerMessages from './pages/employer/Messages'
@@ -28,7 +27,6 @@ import { initSocket, disconnectSocket } from './utils/socket'
 // Import candidate pages
 import Resume from './pages/candidate/Resume';
 import AppliedJobs from './pages/candidate/AppliedJobs';
-import SavedJobs from './pages/candidate/SavedJobs';
 import { JobAlerts, Notifications, Messages } from './pages/candidate/ActivityPages';
 import CandidateLayout from './layouts/CandidateLayout';
 import ManageApplications from './pages/employer/ManageApplications';
@@ -86,11 +84,10 @@ const AppContent = () => {
 
         {/* Candidate Dashboard Routes */}
         <Route element={<CandidateLayout />}>
-          <Route path="/candidate-dashboard" element={<Dashboard />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/resume" element={<Resume />} />
           <Route path="/jobs/applied" element={<AppliedJobs />} />
-          <Route path="/jobs/saved" element={<SavedJobs />} />
+          {/* Removed SavedJobs route */}
           <Route path="/messages" element={<Messages />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/job-alerts" element={<JobAlerts />} />

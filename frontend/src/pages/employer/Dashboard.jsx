@@ -2,8 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Briefcase, Users, Eye, TrendingUp, Plus, Search,
-  MoreVertical, Calendar, MapPin, Clock, DollarSign,
-  Edit2, Pause, Play, ExternalLink, X, RefreshCw,
+  MoreVertical, Calendar, MapPin, Clock, IndianRupee,
+  Edit2, Play, ExternalLink, X, RefreshCw,
   Building2, ChevronRight, AlertCircle, CheckCircle2,
   FileText, User
 } from 'lucide-react';
@@ -32,8 +32,8 @@ const EmployerDashboard = () => {
   const dashboardStats = {
     activeJobs: jobs.filter(job => job.isActive).length,
     totalApplications: applications.length,
-    interviewsScheduled: applications.filter(app => app.status === 'interview').length,
-    offersMade: applications.filter(app => app.status === 'selected').length
+    shortlisted: applications.filter(app => app.status === 'shortlisted').length,
+    jobsCreated: jobs.length
   };
 
   // Fetch employer's jobs
@@ -94,25 +94,7 @@ const EmployerDashboard = () => {
     }
   };
 
-  // Toggle job status (pause/resume)
-  const handleToggleJobStatus = async (jobId) => {
-    try {
-      const response = await axios.patch(
-        `${API_BASE}/jobs/${jobId}/toggle-status`,
-        {},
-        { withCredentials: true }
-      );
-      if (response.data.success) {
-        // Update local state
-        setJobs(prev => prev.map(job =>
-          job._id === jobId ? { ...job, isActive: response.data.data.isActive } : job
-        ));
-      }
-    } catch (err) {
-      console.error('Error toggling job status:', err);
-      alert('Failed to update job status');
-    }
-  };
+  // Pause/resume logic removed
 
   // Format date helper
   const formatDate = (dateString) => {
@@ -139,7 +121,6 @@ const EmployerDashboard = () => {
   const StatusBadge = ({ status, type = 'job' }) => {
     const jobStyles = {
       active: 'bg-green-100 text-green-800 border-green-300',
-      paused: 'bg-yellow-100 text-yellow-800 border-yellow-300',
       closed: 'bg-gray-100 text-gray-800 border-gray-300'
     };
 
@@ -245,21 +226,21 @@ const EmployerDashboard = () => {
           <div className="bg-white border-2 border-black p-4 sm:p-6 shadow-lg">
             <div className="flex items-center justify-between mb-3 sm:mb-4">
               <div className="p-2 sm:p-3 bg-purple-100 border-2 border-black">
-                <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" strokeWidth={2.5} />
+                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" strokeWidth={2.5} />
               </div>
-              <span className="text-xl sm:text-2xl font-black">{dashboardStats.interviewsScheduled}</span>
+              <span className="text-xl sm:text-2xl font-black">{dashboardStats.shortlisted}</span>
             </div>
-            <h3 className="text-xs sm:text-sm font-bold text-gray-600 uppercase">Interviews</h3>
+            <h3 className="text-xs sm:text-sm font-bold text-gray-600 uppercase">Shortlisted</h3>
           </div>
 
           <div className="bg-white border-2 border-black p-4 sm:p-6 shadow-lg">
             <div className="flex items-center justify-between mb-3 sm:mb-4">
               <div className="p-2 sm:p-3 bg-orange-100 border-2 border-black">
-                <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600" strokeWidth={2.5} />
+                <Briefcase className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600" strokeWidth={2.5} />
               </div>
-              <span className="text-xl sm:text-2xl font-black">{dashboardStats.offersMade}</span>
+              <span className="text-xl sm:text-2xl font-black">{dashboardStats.jobsCreated}</span>
             </div>
-            <h3 className="text-xs sm:text-sm font-bold text-gray-600 uppercase">Offers Made</h3>
+            <h3 className="text-xs sm:text-sm font-bold text-gray-600 uppercase">Jobs Created</h3>
           </div>
         </div>
 
@@ -302,12 +283,12 @@ const EmployerDashboard = () => {
                               {job.jobType}
                             </span>
                             <span className="hidden sm:flex items-center gap-1">
-                              <DollarSign className="h-3 w-3" strokeWidth={2.5} />
-                              {job.salary}
+                              <IndianRupee className="h-3 w-3" strokeWidth={2.5} />
+                              {typeof job.salary === 'string' ? job.salary.replace('$', 'INR') : job.salary}
                             </span>
                           </div>
                         </div>
-                        <StatusBadge status={job.isActive ? 'active' : 'paused'} type="job" />
+                        <StatusBadge status={job.isActive ? 'active' : 'closed'} type="job" />
                       </div>
 
                       {/* Job Stats */}
@@ -331,16 +312,7 @@ const EmployerDashboard = () => {
                         >
                           <Edit2 className="h-3 w-3" /> Edit
                         </button>
-                        <button
-                          onClick={() => handleToggleJobStatus(job._id)}
-                          className="flex items-center gap-1 px-2 sm:px-3 py-1.5 text-xs font-bold border-2 border-black hover:bg-black hover:text-white transition-colors"
-                        >
-                          {job.isActive ? (
-                            <><Pause className="h-3 w-3" /> Pause</>
-                          ) : (
-                            <><Play className="h-3 w-3" /> Resume</>
-                          )}
-                        </button>
+                        {/* Pause/Resume button removed */}
                         <a
                           href={`/jobs/${job._id}`}
                           className="flex items-center gap-1 px-2 sm:px-3 py-1.5 text-xs font-bold border-2 border-black hover:bg-black hover:text-white transition-colors"
@@ -402,31 +374,6 @@ const EmployerDashboard = () => {
                 </div>
               )}
             </div>
-          </div>
-        </div>
-
-        {/* Quick Actions - Responsive Grid */}
-        <div className="mt-6 sm:mt-8 bg-white border-2 border-black p-4 sm:p-6 shadow-lg">
-          <h2 className="text-lg sm:text-xl font-black text-gray-900 mb-4 sm:mb-6">Quick Actions</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-            <a
-              href="/post-job"
-              className="bg-black text-white p-4 border-2 border-black hover:bg-white hover:text-black transition-colors text-center font-bold uppercase"
-            >
-              <Plus className="h-6 sm:h-8 w-6 sm:w-8 mx-auto mb-2" strokeWidth={2.5} />
-              Post New Job
-            </a>
-            <button
-              onClick={() => setShowProfilePanel(true)}
-              className="bg-white text-black p-4 border-2 border-black hover:bg-black hover:text-white transition-colors font-bold uppercase"
-            >
-              <Building2 className="h-6 sm:h-8 w-6 sm:w-8 mx-auto mb-2" strokeWidth={2.5} />
-              Company Profile
-            </button>
-            <button className="bg-white text-black p-4 border-2 border-black hover:bg-black hover:text-white transition-colors font-bold uppercase">
-              <Search className="h-6 sm:h-8 w-6 sm:w-8 mx-auto mb-2" strokeWidth={2.5} />
-              Search Candidates
-            </button>
           </div>
         </div>
       </div>

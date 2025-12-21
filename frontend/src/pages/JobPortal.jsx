@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  Search, MapPin, Briefcase, DollarSign, Clock, Building2,
+  Search, MapPin, Briefcase, IndianRupee, Clock, Building2,
   Heart, ExternalLink, Users, Award, ChevronRight, ChevronLeft,
-  Code, Palette, Database, Megaphone, IndianRupee, PlusCircle, Zap
+  Code, Palette, Database, Megaphone, PlusCircle, Zap
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -138,8 +138,6 @@ const JobPortal = () => {
     return '🏢';
   };
 
-
-
   const toggleSaveJob = (jobId) => {
     setSavedJobs(prev =>
       prev.includes(jobId) ? prev.filter(id => id !== jobId) : [...prev, jobId]
@@ -156,8 +154,6 @@ const JobPortal = () => {
     }
   };
 
-
-
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -171,18 +167,18 @@ const JobPortal = () => {
           <div className="absolute inset-0 bg-linear-to-b from-black/70 via-black/60 to-black"></div>
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+        <div className="relative z-10 max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
           <div className="max-w-4xl mx-auto text-center">
             {isCandidate ? (
               <>
                 <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black mb-4 leading-tight">
-                  Welcome back,
+                  Ready for your next move,
                   <span className="bg-white text-black px-4 py-1 inline-block transform -skew-x-6 ml-3">
                     {user?.fullName?.split(' ')[0]}
                   </span>
                 </h2>
                 <p className="text-lg sm:text-xl text-gray-300 mb-8 font-medium">
-                  Discover jobs tailored for your skills and experience!
+                  Explore new opportunities and take your career to the next level!
                 </p>
               </>
             ) : (
@@ -213,50 +209,11 @@ const JobPortal = () => {
               )}
             </div>
 
-            {/* Quick Stats */}
-            <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto">
-              <div className="text-center">
-                <p className="text-3xl sm:text-4xl font-black">{featuredJobs.length + featuredInternships.length}</p>
-                <p className="text-sm font-semibold text-gray-400">Open Positions</p>
-              </div>
-              <div className="text-center">
-                <p className="text-3xl sm:text-4xl font-black">25+</p>
-                <p className="text-sm font-semibold text-gray-400">Companies</p>
-              </div>
-              <div className="text-center">
-                <p className="text-3xl sm:text-4xl font-black">200+</p>
-                <p className="text-sm font-semibold text-gray-400">Registered Users</p>
-              </div>
-            </div>
           </div>
         </div>
       </header>
 
-      {/* Job Categories */}
-      <div className="border-b-2 border-gray-200 bg-white sticky top-0 z-40 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-15 py-4">
-          <div className="flex items-center gap-3 overflow-x-auto">
-            <h3 className="text-sm font-black uppercase whitespace-nowrap mr-2">Jobs Category</h3>
-            {categories.map((cat) => {
-              const Icon = cat.icon;
-              return (
-                <button
-                  key={cat.id}
-                  onClick={() => setActiveCategory(cat.id)}
-                  className={`px-5 py-2.5 font-bold text-sm whitespace-nowrap flex items-center gap-2 transition border-2 ${
-                    activeCategory === cat.id
-                      ? 'bg-black text-white border-black'
-                      : 'bg-white text-black border-gray-300 hover:border-black'
-                  }`}
-                >
-                  <Icon className="h-4 w-4" strokeWidth={2.5} />
-                  {cat.name}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
+      {/* Job Categories section removed */}
 
       {/* Featured Jobs Carousel */}
       <div className="bg-gray-50 py-16">
@@ -290,7 +247,7 @@ const JobPortal = () => {
             {loading ? (
               // Loading skeleton for jobs
               [...Array(3)].map((_, index) => (
-                <div key={index} className="min-w-[320px] bg-white border-2 border-gray-200 shadow-lg animate-pulse">
+                     <div key={index} className="min-w-[320px] max-w-8xl bg-white border-2 border-gray-200 shadow-lg animate-pulse">
                   <div className="h-32 bg-gray-200"></div>
                   <div className="p-6 space-y-4">
                     <div className="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -304,73 +261,72 @@ const JobPortal = () => {
                 </div>
               ))
             ) : featuredJobs.length === 0 ? (
-              <div className="min-w-[320px] bg-white border-2 border-gray-200 shadow-lg p-8 text-center">
+                   <div className="min-w-[320px] max-w-8xl bg-white border-2 border-gray-200 shadow-lg p-8 text-center">
                 <Briefcase className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                 <p className="text-gray-500 font-medium">No featured jobs available</p>
               </div>
             ) : (
               featuredJobs.map((job) => (
-              <div
-                key={job.id}
-                className="min-w-[320px] bg-white border-2 border-black shadow-lg hover:shadow-2xl transition-all group relative overflow-hidden"
-              >
-                <div className={`h-32 bg-linear-to-br ${job.color} relative flex items-center justify-center`}>
-                  <div className="absolute top-3 right-3 bg-white px-3 py-1 text-xs font-black">
-                    {job.type}
+                     <div
+                       key={job.id}
+                       className="min-w-[320px] max-w-8xl bg-white border-2 border-black shadow-lg hover:shadow-2xl transition-all group relative overflow-hidden"
+                     >
+                  <div className={`h-32 bg-linear-to-br ${job.color} relative flex items-center justify-center`}>
+                    <div className="absolute top-3 right-3 bg-white px-3 py-1 text-xs font-black">
+                      {job.type}
+                    </div>
+                    <div className="text-6xl">{job.logo}</div>
                   </div>
-                  <div className="text-6xl">{job.logo}</div>
+
+                  <div className="p-6">
+                    <h3 className="text-lg font-black mb-2 group-hover:underline cursor-pointer">
+                      {job.title}
+                    </h3>
+                    <p className="text-sm font-bold text-gray-600 mb-4">{job.company}</p>
+
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                        <MapPin className="h-4 w-4" strokeWidth={2.5} />
+                        <span>{job.location}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                        <IndianRupee className="h-4 w-4" strokeWidth={2.5} />
+                        <span>{job.salary}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center text-xs font-bold text-gray-600 mb-4 pt-4 border-t border-gray-200">
+                      <div className="flex items-center gap-1">
+                        <Users className="h-4 w-4" strokeWidth={2.5} />
+                        <span>{job.applied} Applied</span>
+                      </div>
+                    </div>
+
+                    <Link 
+                      to={`/jobs/${job.id}`}
+                      className="w-full py-3 bg-black text-white font-black text-sm hover:bg-gray-900 transition flex items-center justify-center gap-2"
+                    >
+                      VIEW DETAILS
+                      <ExternalLink className="h-4 w-4" strokeWidth={2.5} />
+                    </Link>
+                  </div>
                 </div>
-
-                <div className="p-6">
-                  <h3 className="text-lg font-black mb-2 group-hover:underline cursor-pointer">
-                    {job.title}
-                  </h3>
-                  <p className="text-sm font-bold text-gray-600 mb-4">{job.company}</p>
-
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                      <MapPin className="h-4 w-4" strokeWidth={2.5} />
-                      <span>{job.location}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                      <DollarSign className="h-4 w-4" strokeWidth={2.5} />
-                      <span>{job.salary}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center text-xs font-bold text-gray-600 mb-4 pt-4 border-t border-gray-200">
-                    <div className="flex items-center gap-1">
-                      <Users className="h-4 w-4" strokeWidth={2.5} />
-                      <span>{job.applied} Applied</span>
-                    </div>
-                  </div>
-
-                  <Link 
-                    to={`/jobs/${job.id}`}
-                    className="w-full py-3 bg-black text-white font-black text-sm hover:bg-gray-900 transition flex items-center justify-center gap-2"
-                  >
-                    VIEW DETAILS
-                    <ExternalLink className="h-4 w-4" strokeWidth={2.5} />
-                  </Link>
-                </div>
-
-              </div>
-            ))
+              ))
             )}
           </div>
 
           <div className="text-center mt-8">
-            <button className="px-8 py-3 bg-white text-black font-black border-2 border-black hover:bg-black hover:text-white transition inline-flex items-center gap-2">
+            <Link to="/jobs" className="px-8 py-3 bg-white text-black font-black border-2 border-black hover:bg-black hover:text-white transition inline-flex items-center gap-2">
               VIEW ALL JOBS
               <ChevronRight className="h-4 w-4" strokeWidth={2.5} />
-            </button>
+            </Link>
           </div>
         </div>
       </div>
 
-      {/* Internships Carousel Section */}
+      {/* Top Internships Carousel */}
       <div className="bg-white py-16">
-        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-15">
+        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-10">
             <div>
               <h2 className="text-3xl sm:text-4xl font-black mb-2">Top Internships</h2>
@@ -400,7 +356,7 @@ const JobPortal = () => {
             {loading ? (
               // Loading skeleton for internships
               [...Array(3)].map((_, index) => (
-                <div key={index} className="min-w-[320px] bg-white border-2 border-gray-200 shadow-lg animate-pulse">
+                     <div key={index} className="min-w-[320px] max-w-8xl bg-white border-2 border-gray-200 shadow-lg animate-pulse">
                   <div className="h-32 bg-gray-200"></div>
                   <div className="p-6 space-y-4">
                     <div className="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -414,69 +370,69 @@ const JobPortal = () => {
                 </div>
               ))
             ) : featuredInternships.length === 0 ? (
-              <div className="min-w-[320px] bg-white border-2 border-gray-200 shadow-lg p-8 text-center">
+                   <div className="min-w-[320px] max-w-8xl bg-white border-2 border-gray-200 shadow-lg p-8 text-center">
                 <Briefcase className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                 <p className="text-gray-500 font-medium">No featured internships available</p>
               </div>
             ) : (
               featuredInternships.map((internship) => (
-              <div
-                key={internship.id}
-                className="min-w-[320px] bg-white border-2 border-black shadow-lg hover:shadow-2xl transition-all group relative overflow-hidden"
-              >
-                <div className={`h-32 bg-linear-to-br ${internship.color} relative flex items-center justify-center`}>
-                  <div className="absolute top-3 right-3 bg-white px-3 py-1 text-xs font-black">
-                    {internship.type}
+                     <div
+                       key={internship.id}
+                       className="min-w-[320px] max-w-8xl bg-white border-2 border-black shadow-lg hover:shadow-2xl transition-all group relative overflow-hidden"
+                     >
+                  <div className={`h-32 bg-linear-to-br ${internship.color} relative flex items-center justify-center`}>
+                    <div className="absolute top-3 right-3 bg-white px-3 py-1 text-xs font-black">
+                      {internship.type}
+                    </div>
+                    <div className="text-6xl">{internship.logo}</div>
                   </div>
-                  <div className="text-6xl">{internship.logo}</div>
+
+                  <div className="p-6">
+                    <h3 className="text-lg font-black mb-2 group-hover:underline cursor-pointer">
+                      {internship.title}
+                    </h3>
+                    <p className="text-sm font-bold text-gray-600 mb-4">{internship.company}</p>
+
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                        <MapPin className="h-4 w-4" strokeWidth={2.5} />
+                        <span>{internship.location}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                        <IndianRupee className="h-4 w-4" strokeWidth={2.5} />
+                        <span>{internship.stipend}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                        <Clock className="h-4 w-4" strokeWidth={2.5} />
+                        <span>{internship.duration}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center text-xs font-bold text-gray-600 mb-4 pt-4 border-t border-gray-200">
+                      <div className="flex items-center gap-1">
+                        <Users className="h-4 w-4" strokeWidth={2.5} />
+                        <span>{internship.applied} Applied</span>
+                      </div>
+                    </div>
+
+                    <Link 
+                      to={`/jobs/${internship.id}`}
+                      className="w-full py-3 bg-black text-white font-black text-sm hover:bg-gray-900 transition flex items-center justify-center gap-2"
+                    >
+                      VIEW DETAILS
+                      <ExternalLink className="h-4 w-4" strokeWidth={2.5} />
+                    </Link>
+                  </div>
                 </div>
-
-                <div className="p-6">
-                  <h3 className="text-lg font-black mb-2 group-hover:underline cursor-pointer">
-                    {internship.title}
-                  </h3>
-                  <p className="text-sm font-bold text-gray-600 mb-4">{internship.company}</p>
-
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                      <MapPin className="h-4 w-4" strokeWidth={2.5} />
-                      <span>{internship.location}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                      <IndianRupee className="h-4 w-4" strokeWidth={2.5} />
-                      <span>{internship.stipend}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                      <Clock className="h-4 w-4" strokeWidth={2.5} />
-                      <span>{internship.duration}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center text-xs font-bold text-gray-600 mb-4 pt-4 border-t border-gray-200">
-                    <div className="flex items-center gap-1">
-                      <Users className="h-4 w-4" strokeWidth={2.5} />
-                      <span>{internship.applied} Applied</span>
-                    </div>
-                  </div>
-
-                  <Link 
-                    to={`/jobs/${internship.id}`}
-                    className="w-full py-3 bg-black text-white font-black text-sm hover:bg-gray-900 transition flex items-center justify-center gap-2"
-                  >
-                    VIEW DETAILS
-                    <ExternalLink className="h-4 w-4" strokeWidth={2.5} />
-                  </Link>
-                </div>
-              </div>
-            ))
+              ))
             )}
           </div>
 
           <div className="text-center mt-8">
-            <button className="px-8 py-3 bg-white text-black font-black border-2 border-black hover:bg-black hover:text-white transition inline-flex items-center gap-2">
+            <Link to="/jobs" className="px-8 py-3 bg-white text-black font-black border-2 border-black hover:bg-black hover:text-white transition inline-flex items-center gap-2">
               VIEW ALL INTERNSHIPS
               <ChevronRight className="h-4 w-4" strokeWidth={2.5} />
-            </button>
+            </Link>
           </div>
         </div>
       </div>

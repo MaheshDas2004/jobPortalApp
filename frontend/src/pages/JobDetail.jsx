@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
-  MapPin, Briefcase, Clock, Building2, Heart, Calendar,
+  MapPin, Briefcase, Clock, Building2, Calendar,
   Users, TrendingUp, Award, ArrowLeft,
   AlertCircle, DollarSign, X, LogIn
 } from 'lucide-react';
@@ -15,7 +15,7 @@ const JobDetail = () => {
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isSaved, setIsSaved] = useState(false);
+  // ...existing code...
   const [applying, setApplying] = useState(false);
   const [activeTab, setActiveTab] = useState('description');
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -269,12 +269,7 @@ const JobDetail = () => {
             {!isJobOwner && (
               <div className="bg-white border-2 border-black shadow-lg p-5">
                 <div className="flex gap-3">
-                  <button
-                    onClick={() => setIsSaved(!isSaved)}
-                    className="p-2 bg-white border-2 border-black hover:bg-black hover:text-white transition font-bold"
-                  >
-                    <Heart className={`h-5 w-5 ${isSaved ? 'fill-red-500 text-red-500' : ''}`} strokeWidth={2.5} />
-                  </button>
+                  {/* Removed save job button */}
                   
                   <button
                     onClick={hasApplied ? null : handleQuickApply}

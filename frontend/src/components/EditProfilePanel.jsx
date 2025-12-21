@@ -792,7 +792,7 @@ const EditProfilePanel = ({ isOpen, onClose, initialData, onSave }) => {
                                 {/* Expected Package */}
                                 <div className="space-y-2">
                                     <label className="block text-sm font-black uppercase">
-                                        Expected Package (CTC)
+                                        Expected Package (CTC) <span className="inline-block">₹</span>
                                     </label>
 
                                     <select
@@ -813,7 +813,7 @@ const EditProfilePanel = ({ isOpen, onClose, initialData, onSave }) => {
                                     </select>
 
                                     <p className="text-xs text-gray-500">
-                                        This helps recruiters match suitable roles
+                                        This helps recruiters match suitable roles. All values are in INR (₹).
                                     </p>
                                 </div>
                             </div>

@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import {
-  Search, MapPin, Briefcase, Clock, Building2, Heart,
+  Search, MapPin, Briefcase, Clock, Building2,
   ChevronDown, Filter, Zap, Users, Calendar, CheckCircle2,
   X, Award, TrendingUp, Menu
 } from 'lucide-react';
 
 const Jobs = () => {
   const [selectedFilters, setSelectedFilters] = useState(['Live']);
-  const [savedJobs, setSavedJobs] = useState([]);
+  // ...existing code...
   const [searchQuery, setSearchQuery] = useState('');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [openDropdowns, setOpenDropdowns] = useState({
@@ -119,11 +119,7 @@ const Jobs = () => {
 
 
 
-  const toggleSaveJob = (jobId) => {
-    setSavedJobs(prev =>
-      prev.includes(jobId) ? prev.filter(id => id !== jobId) : [...prev, jobId]
-    );
-  };
+  // ...existing code...
 
   const toggleFilter = (filter) => {
     setSelectedFilters(prev => {
@@ -614,17 +610,7 @@ const Jobs = () => {
                               </Link>
                               <p className="text-xs sm:text-sm font-bold text-gray-600">{job.company}</p>
                             </div>
-                            <div className="flex gap-2 sm:shrink-0 justify-center sm:justify-start">
-                              <button
-                                onClick={() => toggleSaveJob(job.id)}
-                                className="p-2 border-2 border-gray-300 hover:border-black transition"
-                              >
-                                <Heart
-                                  className={`h-4 w-4 md:h-5 md:w-5 ${savedJobs.includes(job.id) ? 'fill-black' : ''}`}
-                                  strokeWidth={2.5}
-                                />
-                              </button>
-                            </div>
+                            {/* Removed save job button */}
                           </div>
 
                           {/* Job Meta Info */}

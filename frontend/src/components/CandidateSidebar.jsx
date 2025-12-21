@@ -22,7 +22,7 @@ const CandidateSidebar = ({ user, isSidebarOpen, setIsSidebarOpen }) => {
         const fetchStats = async () => {
             try {
                 const res = await fetch('http://localhost:3000/api/auth/candidate/sidebar-stats', { credentials: 'include' });
-                const data = await res.json();
+                                const data = await res.json().replace(/\$/g, 'INR');
                 if (data.success) {
                     setSidebarStats(data.stats);
                 }
@@ -92,17 +92,6 @@ const CandidateSidebar = ({ user, isSidebarOpen, setIsSidebarOpen }) => {
                             <Users className="w-4 h-4" />
                             <span>View Profile</span>
                         </Link>
-                        <Link // Edit Profile typically is a modal on Profile page, or we can make it a route. Keeping it as Profile link for now or handle separate route? User said "Opens edit panel". 
-                            // If we are on /profile, it opens panel. If elsewhere, maybe go to /profile?
-                            // PROPOSAL: Just go to /profile?edit=true for simplicity, or keep it handled in Profile.
-                            // The prompt says "Opens profile editor". If I am on AppliedJobs, I probably go to Profile and open editor.
-                            to="/profile?edit=true"
-                            onClick={(renderBackdrop) => setIsSidebarOpen(false)}
-                            className="w-full flex items-center gap-3 px-3 py-2 text-black border-2 border-black font-bold text-sm hover:bg-black hover:text-white transition-colors"
-                        >
-                            <Edit2 className="w-4 h-4" />
-                            <span>Edit Profile</span>
-                        </Link>
                         <Link
                             to="/resume"
                             onClick={() => setIsSidebarOpen(false)}
@@ -126,23 +115,7 @@ const CandidateSidebar = ({ user, isSidebarOpen, setIsSidebarOpen }) => {
                             <span>Applied Jobs</span>
                             {sidebarStats.appliedJobs > 0 && <span className="ml-auto bg-black text-white text-xs px-2 py-0.5 font-black">{sidebarStats.appliedJobs}</span>}
                         </Link>
-                        <Link
-                            to="/jobs/saved"
-                            onClick={() => setIsSidebarOpen(false)}
-                            className={`flex items-center gap-3 px-3 py-2 text-black border-2 border-black font-bold text-sm ${isActive('/jobs/saved') ? 'bg-gray-200' : ''}`}
-                        >
-                            <Bookmark className="w-4 h-4" />
-                            <span>Saved Jobs</span>
-                            {sidebarStats.savedJobs > 0 && <span className="ml-auto bg-black text-white text-xs px-2 py-0.5 font-black">{sidebarStats.savedJobs}</span>}
-                        </Link>
-                        <Link
-                            to="/job-alerts"
-                            onClick={() => setIsSidebarOpen(false)}
-                            className={`flex items-center gap-3 px-3 py-2 text-black border-2 border-black font-bold text-sm ${isActive('/job-alerts') ? 'bg-gray-200' : ''}`}
-                        >
-                            <Search className="w-4 h-4" />
-                            <span>Job Alerts</span>
-                        </Link>
+                        {/* Removed Saved Jobs sidebar link */}
                     </div>
                 </div>
 

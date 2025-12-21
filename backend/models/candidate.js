@@ -115,10 +115,13 @@ const candidateSchema = new mongoose.Schema({
     level: { type: String }, // e.g. "B.Tech", "High School"
     institution: { type: String },
     fieldOfStudy: { type: String },
+    startYear: { type: String },
+    endYear: { type: String },
     startDate: { type: Date },
     endDate: { type: Date },
     grade: { type: String },
-    description: { type: String }
+    description: { type: String },
+    location: { type: String, trim: true }
   }],
   experienceDetails: [{
     title: { type: String },
@@ -141,10 +144,7 @@ const candidateSchema = new mongoose.Schema({
     type: String,
     enum: ['Full-Time', 'Part-Time', 'Remote', 'Hybrid', 'Contract', 'Internship']
   }],
-  savedJobs: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Job'
-  }],
+  // removed savedJobs field
   preferredLocations: [{
     type: String,
     trim: true

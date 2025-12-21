@@ -73,7 +73,7 @@ const Hero = ({ jobCategories = [] }) => {
                     <Search className="h-4 w-4 sm:h-5 sm:w-5" />
                     BROWSE JOBS
                   </a>
-                  <a href="/candidate-dashboard" className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-transparent text-white font-black border-2 border-white hover:bg-white hover:text-black transition-all text-sm sm:text-base flex items-center justify-center gap-2">
+                  <a href="/jobs/applied" className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-transparent text-white font-black border-2 border-white hover:bg-white hover:text-black transition-all text-sm sm:text-base flex items-center justify-center gap-2">
                     <Briefcase className="h-4 w-4 sm:h-5 sm:w-5" />
                     MY APPLICATIONS
                   </a>
