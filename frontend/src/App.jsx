@@ -17,7 +17,6 @@ import Dashboard from './pages/candidate/Dashboard'
 import EmployerDashboard from './pages/employer/Dashboard'
 import ApplicationDetails from './pages/employer/ApplicationDetails'
 import EmployerMessages from './pages/employer/Messages'
-import EHome from './pages/EHome'
 import IntroPage from './pages/InroPage'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import JobDetail from './pages/JobDetail'
@@ -32,8 +31,6 @@ import AppliedJobs from './pages/candidate/AppliedJobs';
 import SavedJobs from './pages/candidate/SavedJobs';
 import { JobAlerts, Notifications, Messages } from './pages/candidate/ActivityPages';
 import CandidateLayout from './layouts/CandidateLayout';
-import EmployerLayout from './layouts/EmployerLayout';
-
 // Loading component for initial auth check
 const AppContent = () => {
   const { isLoading, user } = useAuth();
@@ -100,7 +97,6 @@ const AppContent = () => {
         <Route path="/employer-dashboard" element={<EmployerDashboard />} />
         <Route path="/employer/application/:applicationId" element={<ApplicationDetails />} />
         <Route path="/employer-messages" element={<EmployerMessages />} />
-        <Route path="/ehome" element={<EHome />} />
         <Route path="/job/apply/:jobId" element={<ApplicationForm />} />
       </Routes>
     </div>

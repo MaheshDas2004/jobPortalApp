@@ -273,9 +273,6 @@ const ApplicationForm = () => {
         type: 'error',
         message: errorMessage
       });
-      const errorMessage = error.response?.data?.message ||
-        error.message ||
-        "Failed to submit application. Please try again.";
       alert(errorMessage);
     } finally {
       setSubmitting(false);
