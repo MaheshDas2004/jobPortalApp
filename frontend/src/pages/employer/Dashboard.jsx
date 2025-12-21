@@ -152,7 +152,7 @@ const EmployerDashboard = () => {
     const styles = type === 'job' ? jobStyles : appStyles;
     const normalizedStatus = status?.toLowerCase();
     const style = styles[normalizedStatus] || 'bg-gray-100 text-gray-800 border-gray-300';
-
+    
     const displayText = normalizedStatus === 'applied' ? 'New' :
       normalizedStatus === 'accepted' ? 'Accepted' :
         normalizedStatus === 'rejected' ? 'Rejected' : status;
