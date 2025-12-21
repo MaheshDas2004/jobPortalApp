@@ -34,6 +34,11 @@ export const Notifications = () => {
                 if (response.data.success) {
                     setNotifications(response.data.notifications || []);
                 }
+
+                // Mark all notifications as read when page is visited
+                await axios.patch('http://localhost:3000/api/notifications/mark-all-read', {}, {
+                    withCredentials: true
+                });
             } catch (err) {
                 console.error('Error fetching notifications:', err);
                 setError('Failed to load notifications');
@@ -153,11 +158,12 @@ export const Notifications = () => {
     );
 };
 
-// Full Messages Component with data fetching
+// Full Messages Component with chatbox-style grouped conversations
 export const Messages = () => {
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [expandedConversation, setExpandedConversation] = useState(null);
 
     useEffect(() => {
         const fetchMessages = async () => {
@@ -169,6 +175,11 @@ export const Messages = () => {
                 if (response.data.success) {
                     setMessages(response.data.messages || []);
                 }
+
+                // Mark all messages as read when page is visited
+                await axios.patch('http://localhost:3000/api/messages/mark-all-read', {}, {
+                    withCredentials: true
+                });
             } catch (err) {
                 console.error('Error fetching messages:', err);
                 setError('Failed to load messages');
@@ -193,6 +204,34 @@ export const Messages = () => {
         };
     }, []);
 
+    // Group messages by sender (employer)
+    const groupMessagesBySender = (messages) => {
+        const grouped = {};
+        messages.forEach(msg => {
+            const senderId = msg.senderId?._id || msg.senderId;
+            const senderName = msg.senderId?.fullName || 'Employer';
+            if (!grouped[senderId]) {
+                grouped[senderId] = {
+                    senderId,
+                    senderName,
+                    messages: [],
+                    latestMessage: null,
+                    unreadCount: 0
+                };
+            }
+            grouped[senderId].messages.push(msg);
+            if (!msg.read) grouped[senderId].unreadCount++;
+            // Track latest message for sorting
+            if (!grouped[senderId].latestMessage || new Date(msg.createdAt) > new Date(grouped[senderId].latestMessage.createdAt)) {
+                grouped[senderId].latestMessage = msg;
+            }
+        });
+        // Sort by latest message date descending
+        return Object.values(grouped).sort((a, b) =>
+            new Date(b.latestMessage?.createdAt) - new Date(a.latestMessage?.createdAt)
+        );
+    };
+
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         const now = new Date();
@@ -206,6 +245,8 @@ export const Messages = () => {
         if (diffDays < 7) return `${diffDays} days ago`;
         return date.toLocaleDateString();
     };
+
+    const conversations = groupMessagesBySender(messages);
 
     return (
         <div className="bg-white border-2 border-black p-6 min-h-[50vh]">
@@ -224,36 +265,72 @@ export const Messages = () => {
                     <AlertCircle className="w-12 h-12 mx-auto mb-4 text-red-400" />
                     <p className="text-red-600 font-medium">{error}</p>
                 </div>
-            ) : messages.length === 0 ? (
+            ) : conversations.length === 0 ? (
                 <div className="text-center py-12 border-2 border-dashed border-black bg-gray-50">
                     <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-400" />
                     <h3 className="font-black text-xl uppercase mb-2">No Messages Yet</h3>
-                    <p className="text-gray-600 font-medium">Your inbox is empty. Start a conversation!</p>
+                    <p className="text-gray-600 font-medium">Your inbox is empty. Messages from employers will appear here.</p>
                 </div>
             ) : (
-                <div className="space-y-4">
-                    {messages.map((message) => (
-                        <div
-                            key={message._id}
-                            className={`p-4 border-2 border-black ${message.read ? 'bg-gray-50' : 'bg-white'}`}
-                        >
-                            <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 bg-black text-white flex items-center justify-center font-black flex-shrink-0">
-                                    E
+                <div className="space-y-3">
+                    {conversations.map((conversation) => (
+                        <div key={conversation.senderId} className="border-2 border-black">
+                            {/* Conversation Header - Click to expand */}
+                            <button
+                                onClick={() => setExpandedConversation(
+                                    expandedConversation === conversation.senderId ? null : conversation.senderId
+                                )}
+                                className={`w-full p-4 flex items-center gap-4 hover:bg-gray-50 transition-colors ${expandedConversation === conversation.senderId ? 'bg-gray-100' : 'bg-white'
+                                    }`}
+                            >
+                                <div className="w-12 h-12 bg-black text-white flex items-center justify-center font-black flex-shrink-0 text-lg">
+                                    {conversation.senderName?.charAt(0)?.toUpperCase() || 'E'}
                                 </div>
-                                <div className="flex-1 min-w-0">
+                                <div className="flex-1 min-w-0 text-left">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <span className="font-black">Employer</span>
-                                        {!message.read && (
-                                            <span className="px-2 py-0.5 text-xs bg-blue-600 text-white font-bold">NEW</span>
+                                        <span className="font-black text-lg">{conversation.senderName}</span>
+                                        {conversation.unreadCount > 0 && (
+                                            <span className="px-2 py-0.5 text-xs bg-blue-600 text-white font-bold">
+                                                {conversation.unreadCount} NEW
+                                            </span>
                                         )}
                                     </div>
-                                    <p className="text-gray-700 font-medium whitespace-pre-wrap">{message.content}</p>
-                                    <p className="text-xs text-gray-500 mt-2 font-semibold">
-                                        {formatDate(message.createdAt)}
+                                    <p className="text-gray-600 font-medium text-sm truncate">
+                                        {conversation.latestMessage?.content}
                                     </p>
                                 </div>
-                            </div>
+                                <div className="text-right flex-shrink-0">
+                                    <p className="text-xs text-gray-500 font-semibold">
+                                        {formatDate(conversation.latestMessage?.createdAt)}
+                                    </p>
+                                    <p className="text-xs text-gray-400 mt-1">
+                                        {conversation.messages.length} message{conversation.messages.length !== 1 ? 's' : ''}
+                                    </p>
+                                </div>
+                            </button>
+
+                            {/* Expanded Messages - Chatbox style */}
+                            {expandedConversation === conversation.senderId && (
+                                <div className="border-t-2 border-black bg-gray-50 p-4 max-h-80 overflow-y-auto">
+                                    <div className="space-y-3">
+                                        {conversation.messages
+                                            .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+                                            .map((msg) => (
+                                                <div
+                                                    key={msg._id}
+                                                    className="bg-white border border-gray-200 p-3 rounded"
+                                                >
+                                                    <p className="text-gray-800 font-medium whitespace-pre-wrap">
+                                                        {msg.content}
+                                                    </p>
+                                                    <p className="text-xs text-gray-400 mt-2 font-semibold">
+                                                        {formatDate(msg.createdAt)}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>

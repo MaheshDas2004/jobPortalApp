@@ -63,8 +63,16 @@ const CandidateSidebar = ({ user, isSidebarOpen, setIsSidebarOpen }) => {
             </div>
 
             <div className="flex items-center gap-3 mb-6 pb-6 border-b-2 border-black">
-                <div className="w-12 h-12 bg-black border-2 border-black flex items-center justify-center text-white font-black uppercase text-xl shrink-0">
-                    {user?.fullName?.charAt(0) || 'U'}
+                <div className="w-12 h-12 bg-black border-2 border-black flex items-center justify-center text-white font-black uppercase text-xl shrink-0 overflow-hidden">
+                    {user?.profilePhoto ? (
+                        <img
+                            src={user.profilePhoto}
+                            alt={user?.fullName || 'User'}
+                            className="w-full h-full object-cover"
+                        />
+                    ) : (
+                        user?.fullName?.charAt(0) || 'U'
+                    )}
                 </div>
                 <div className="overflow-hidden">
                     <h3 className="font-black text-black truncate">{user?.fullName || 'User'}</h3>

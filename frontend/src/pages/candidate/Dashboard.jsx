@@ -55,13 +55,13 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       if (!user || authLoading) return;
-      
+
       setIsLoading(true);
       try {
         const response = await axios.get('http://localhost:3000/api/auth/candidate/profile', {
           withCredentials: true
         });
-        
+
         if (response.data.success) {
           const userData = response.data.user;
           setProfileData({
@@ -194,10 +194,10 @@ const Dashboard = () => {
   const saveProfile = async () => {
     setIsSaving(true);
     setSaveMessage('');
-    
+
     try {
       const profileToSave = { ...profileData };
-      
+
       // Handle file uploads separately (for now, we'll skip file upload implementation)
       if (profileToSave.profilePhoto instanceof File) {
         delete profileToSave.profilePhoto;
@@ -273,11 +273,25 @@ const Dashboard = () => {
       <div className="bg-black text-white py-8 border-b-4 border-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl sm:text-4xl font-black mb-2">
-                Welcome back, {profileData.fullName || user?.fullName || 'User'}!
-              </h1>
-              <p className="text-gray-300 font-semibold">Complete your profile to help employers find you</p>
+            <div className="flex items-center gap-4">
+              {/* Profile Photo */}
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white border-4 border-white flex items-center justify-center text-black font-black uppercase text-2xl shrink-0 overflow-hidden">
+                {profileData.profilePhoto ? (
+                  <img
+                    src={typeof profileData.profilePhoto === 'string' ? profileData.profilePhoto : URL.createObjectURL(profileData.profilePhoto)}
+                    alt={profileData.fullName || 'User'}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  profileData.fullName?.charAt(0) || user?.fullName?.charAt(0) || 'U'
+                )}
+              </div>
+              <div>
+                <h1 className="text-3xl sm:text-4xl font-black mb-2">
+                  Welcome back, {profileData.fullName || user?.fullName || 'User'}!
+                </h1>
+                <p className="text-gray-300 font-semibold">Complete your profile to help employers find you</p>
+              </div>
             </div>
             <div className="flex flex-col items-end gap-2">
               <button
@@ -311,11 +325,10 @@ const Dashboard = () => {
                     <button
                       key={section.id}
                       onClick={() => setActiveSection(section.id)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-bold transition ${
-                        activeSection === section.id
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-bold transition ${activeSection === section.id
                           ? 'bg-black text-white'
                           : 'bg-white text-black hover:bg-gray-100 border border-gray-300'
-                      }`}
+                        }`}
                     >
                       <Icon className="h-4 w-4" strokeWidth={2.5} />
                       {section.name}
@@ -335,7 +348,7 @@ const Dashboard = () => {
                   <h2 className="text-2xl font-black mb-6 pb-4 border-b-2 border-gray-200">
                     Personal Information
                   </h2>
-                  
+
                   {/* Profile Photo */}
                   <div className="mb-8 flex flex-col sm:flex-row items-center sm:items-start gap-6">
                     <div className="relative shrink-0">
@@ -618,7 +631,7 @@ const Dashboard = () => {
                           className="inline-flex items-center gap-2 px-4 py-2 bg-black text-white font-bold text-sm rounded-md"
                         >
                           {skill}
-                          <button 
+                          <button
                             onClick={() => removeSkill(skill)}
                             className="hover:bg-gray-700 rounded-full p-1 transition-colors duration-200"
                           >
@@ -656,7 +669,7 @@ const Dashboard = () => {
                           className="inline-flex items-center gap-2 px-4 py-2 bg-gray-200 border-2 border-black font-bold text-sm rounded-md"
                         >
                           {lang}
-                          <button 
+                          <button
                             onClick={() => removeLanguage(lang)}
                             className="hover:bg-gray-300 rounded-full p-1 transition-colors duration-200"
                           >
@@ -786,11 +799,10 @@ const Dashboard = () => {
                         <button
                           key={type}
                           onClick={() => toggleJobType(type)}
-                          className={`px-4 py-3 font-bold text-sm border-2 transition ${
-                            profileData.preferredJobTypes.includes(type)
+                          className={`px-4 py-3 font-bold text-sm border-2 transition ${profileData.preferredJobTypes.includes(type)
                               ? 'bg-black text-white border-black'
                               : 'bg-white text-black border-gray-300 hover:border-black'
-                          }`}
+                            }`}
                         >
                           {profileData.preferredJobTypes.includes(type) && (
                             <Check className="h-4 w-4 inline mr-2" strokeWidth={2.5} />

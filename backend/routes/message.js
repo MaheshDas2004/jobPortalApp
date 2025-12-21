@@ -82,4 +82,18 @@ router.post('/', routeProtector, async (req, res) => {
     }
 });
 
+// Mark all messages as read for current user
+router.patch('/mark-all-read', routeProtector, async (req, res) => {
+    try {
+        await Message.updateMany(
+            { receiverId: req.userId, read: false },
+            { read: true }
+        );
+        res.json({ success: true });
+    } catch (error) {
+        console.error("Mark all messages read error:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
 module.exports = router;
