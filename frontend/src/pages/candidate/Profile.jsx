@@ -89,6 +89,18 @@ const Profile = () => {
           {/* Profile Card */}
           <div className="bg-white border-2 border-black p-4 sm:p-6 mb-8">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              {/* Profile Photo */}
+              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-black border-2 border-black flex items-center justify-center text-white font-black uppercase text-3xl shrink-0 overflow-hidden">
+                {user.profilePhoto ? (
+                  <img
+                    src={user.profilePhoto}
+                    alt={user.fullName || 'User'}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  user.fullName?.charAt(0) || 'U'
+                )}
+              </div>
               <div className="flex-1 w-full">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>

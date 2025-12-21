@@ -16,6 +16,20 @@ router.get('/', routeProtector, async (req, res) => {
     }
 });
 
+// Mark all notifications as read for current user
+router.patch('/mark-all-read', routeProtector, async (req, res) => {
+    try {
+        await Notification.updateMany(
+            { userId: req.userId, read: false },
+            { read: true }
+        );
+        res.json({ success: true });
+    } catch (error) {
+        console.error("Mark all notifications read error:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
 // Mark notification as read (optional, but good to have)
 router.patch('/:id/read', routeProtector, async (req, res) => {
     try {

@@ -267,7 +267,6 @@ const Jobs = () => {
     {
       title: 'Status',
       options: ['Live', 'Expired', 'Closed', 'Recent'],
-      count: 1,
       hasSearch: false
     },
     {

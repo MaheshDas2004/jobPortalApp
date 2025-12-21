@@ -11,7 +11,7 @@ app.use(cors({
   origin: "http://localhost:5173",
   credentials: true
 }));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
 const path = require('path');
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
