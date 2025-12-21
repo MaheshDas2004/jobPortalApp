@@ -221,6 +221,12 @@ const ManageApplications = () => {
                     <div className="flex items-center gap-3">
                       {getStatusBadge(application.status)}
                       <button
+                        className="px-3 py-1 border-2 border-black text-xs font-bold bg-white hover:bg-black hover:text-white transition-colors"
+                        onClick={() => window.open(`/employer/application/${application._id}`, '_blank')}
+                      >
+                        View Application
+                      </button>
+                      <button
                         onClick={() => setExpandedApplication(
                           expandedApplication === application._id ? null : application._id
                         )}
@@ -265,55 +271,17 @@ const ManageApplications = () => {
                         </div>
                       </div>
 
-                      {/* Education & Actions */}
+                      {/* Education */}
                       <div>
                         <h4 className="font-black text-gray-900 mb-3 flex items-center gap-2">
                           <FileText className="w-4 h-4" />
-                          Education & Actions
+                          Education
                         </h4>
                         <div className="space-y-3">
                           <div className="text-sm">
                             <p><span className="font-semibold">Course:</span> {application.course}</p>
                             <p><span className="font-semibold">Institution:</span> {application.instituteName}</p>
                             <p><span className="font-semibold">Year:</span> {application.graduatingYear}</p>
-                          </div>
-                          
-                          {/* Status Update */}
-                          <div>
-                            <label className="block text-xs font-bold text-gray-700 mb-1">
-                              UPDATE STATUS
-                            </label>
-                            <select
-                              value={application.status}
-                              onChange={(e) => updateApplicationStatus(application._id, e.target.value)}
-                              disabled={updatingStatus === application._id}
-                              className="w-full px-3 py-2 border-2 border-black text-sm font-medium bg-white disabled:opacity-50"
-                            >
-                              {statusOptions.map(status => (
-                                <option key={status.value} value={status.value}>
-                                  {status.label}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-
-                          {/* Action Buttons */}
-                          <div className="flex gap-2">
-                            {application.resume && (
-                              <a
-                                href={`http://localhost:3000/uploads/resumes/${application.resume}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-black text-white border-2 border-black hover:bg-gray-800 transition-colors text-xs font-bold uppercase"
-                              >
-                                <Download className="w-3 h-3" />
-                                Resume
-                              </a>
-                            )}
-                            <button className="flex-1 flex items-center justify-center gap-1 px-3 py-2 border-2 border-black hover:bg-black hover:text-white transition-colors text-xs font-bold uppercase">
-                              <Mail className="w-3 h-3" />
-                              Contact
-                            </button>
                           </div>
                         </div>
                       </div>
@@ -328,6 +296,27 @@ const ManageApplications = () => {
                         </p>
                       </div>
                     )}
+
+                    {/* Status Update Actions */}
+                    <div className="mt-6 pt-4 border-t border-gray-200">
+                      <h4 className="font-black text-gray-900 mb-3">Update Status</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {statusOptions.map((status) => (
+                          <button
+                            key={status.value}
+                            onClick={() => updateApplicationStatus(application._id, status.value)}
+                            disabled={updatingStatus === application._id || application.status === status.value}
+                            className={`px-3 py-2 text-xs font-bold border-2 border-black transition-colors ${
+                              application.status === status.value
+                                ? 'bg-black text-white cursor-not-allowed'
+                                : 'bg-white hover:bg-black hover:text-white'
+                            } ${updatingStatus === application._id ? 'opacity-50 cursor-wait' : ''}`}
+                          >
+                            {status.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>

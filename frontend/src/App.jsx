@@ -31,6 +31,9 @@ import AppliedJobs from './pages/candidate/AppliedJobs';
 import SavedJobs from './pages/candidate/SavedJobs';
 import { JobAlerts, Notifications, Messages } from './pages/candidate/ActivityPages';
 import CandidateLayout from './layouts/CandidateLayout';
+import ManageApplications from './pages/employer/ManageApplications';
+import ViewJobs from './pages/employer/ViewJobs';
+
 // Loading component for initial auth check
 const AppContent = () => {
   const { isLoading, user } = useAuth();
@@ -93,10 +96,13 @@ const AppContent = () => {
           <Route path="/job-alerts" element={<JobAlerts />} />
         </Route>
 
-        {/* Employer Routes */}
+        {/* Employer Routes (no layout) */}
         <Route path="/employer-dashboard" element={<EmployerDashboard />} />
         <Route path="/employer/application/:applicationId" element={<ApplicationDetails />} />
         <Route path="/employer-messages" element={<EmployerMessages />} />
+        <Route path="/manage-applications" element={<ManageApplications />} />
+        <Route path="/view-jobs" element={<ViewJobs />} />
+        <Route path="/post-job" element={<PostJob />} />
         <Route path="/job/apply/:jobId" element={<ApplicationForm />} />
       </Routes>
     </div>

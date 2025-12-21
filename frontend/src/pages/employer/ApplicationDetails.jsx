@@ -139,24 +139,7 @@ const ApplicationDetails = () => {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <div className="bg-white border-b-2 border-black">
-                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    <div className="flex items-center justify-between">
-                        <button
-                            onClick={() => navigate('/employer-dashboard')}
-                            className="flex items-center gap-2 text-black font-bold hover:text-gray-600 transition-colors"
-                        >
-                            <ArrowLeft className="w-5 h-5" />
-                            <span className="hidden sm:inline">Back to Dashboard</span>
-                        </button>
-                        <h1 className="text-xl sm:text-2xl font-black uppercase">Application Details</h1>
-                        <div className="w-24"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-screen-2xl mx-auto px-4 sm:px-8 lg:px-16 py-8">
                 {/* Success/Error Messages */}
                 {updateSuccess && (
                     <div className="mb-6 p-4 bg-green-50 border-2 border-green-300 flex items-center gap-3">
@@ -175,6 +158,17 @@ const ApplicationDetails = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Main Content */}
                     <div className="lg:col-span-2 space-y-6">
+                        {/* Back Button above card */}
+                        <div className="mb-2">
+                            <button
+                                onClick={() => navigate('/employer-dashboard')}
+                                className="flex items-center gap-2 text-black font-bold hover:text-gray-600 transition-colors"
+                                title="Back to Dashboard"
+                            >
+                                <ArrowLeft className="w-5 h-5" />
+                                <span className="hidden sm:inline">Back to Dashboard</span>
+                            </button>
+                        </div>
                         {/* Candidate Profile Card */}
                         <div className="bg-white border-2 border-black p-6">
                             <div className="flex flex-col sm:flex-row items-start gap-6 mb-6">

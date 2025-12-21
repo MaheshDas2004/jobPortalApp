@@ -37,12 +37,6 @@ const Navbar = () => {
   }, [showProfileSidebar]);
 
   const toggleProfileSidebar = () => {
-    // Disable sidebar on dashboard routes
-    const isDashboard = location.pathname.startsWith('/candidate-dashboard') ||
-      location.pathname.startsWith('/employer-dashboard');
-
-    if (isDashboard) return;
-
     setShowProfileSidebar(!showProfileSidebar);
   };
 
@@ -99,6 +93,9 @@ const Navbar = () => {
               <>
                 <Link to="/post-job" className="text-xs sm:text-sm lg:text-base font-bold text-gray-900 hover:text-gray-600 uppercase whitespace-nowrap transition-colors">
                   Post Job
+                </Link>
+                <Link to="/view-jobs" className="text-xs sm:text-sm lg:text-base font-bold text-gray-900 hover:text-gray-600 uppercase whitespace-nowrap transition-colors">
+                  View Jobs
                 </Link>
                 <Link to="/manage-applications" className="text-xs sm:text-sm lg:text-base font-bold text-gray-900 hover:text-gray-600 uppercase whitespace-nowrap transition-colors">
                   Applications
@@ -200,6 +197,9 @@ const Navbar = () => {
               <>
                 <Link to="/post-job" onClick={() => setIsOpen(false)} className="block text-sm sm:text-base font-bold text-gray-900 hover:text-gray-600 uppercase transition-colors">
                   Post Job
+                </Link>
+                <Link to="/view-jobs" onClick={() => setIsOpen(false)} className="block text-sm sm:text-base font-bold text-gray-900 hover:text-gray-600 uppercase transition-colors">
+                  View Jobs
                 </Link>
                 <Link to="/manage-applications" onClick={() => setIsOpen(false)} className="block text-sm sm:text-base font-bold text-gray-900 hover:text-gray-600 uppercase transition-colors">
                   Applications

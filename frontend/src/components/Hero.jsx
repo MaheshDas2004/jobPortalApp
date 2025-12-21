@@ -92,23 +92,6 @@ const Hero = ({ jobCategories = [] }) => {
               )}
             </div>
 
-            {/* Search Bar in Hero */}
-            <div className="max-w-4xl mx-auto">
-              <div className="bg-white p-4 sm:p-6 border-2 border-black shadow-2xl">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                  <input type="text" placeholder="Job Title" className="w-full px-3 py-2 sm:py-3 border-2 border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-black focus:bg-white text-sm transition-all" />
-                  <input type="text" placeholder="Location" className="w-full px-3 py-2 sm:py-3 border-2 border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-black focus:bg-white text-sm transition-all" />
-                  <select className="w-full px-3 py-2 sm:py-3 border-2 border-gray-300 bg-gray-50 text-gray-900 appearance-none focus:outline-none focus:border-black focus:bg-white text-sm transition-all">
-                    <option value="">All Categories</option>
-                    {jobCategories.map(cat => <option key={cat.title} value={cat.title}>{cat.title}</option>)}
-                  </select>
-                  <button className="px-4 py-2 sm:py-3 bg-black text-white font-black hover:bg-gray-900 transition-all text-sm flex items-center justify-center gap-2">
-                    <Search className="h-4 w-4" />
-                    SEARCH NOW
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </section>

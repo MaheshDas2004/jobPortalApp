@@ -122,31 +122,6 @@ const JobPortalHome = () => {
     <div className="min-h-screen bg-white">
       <Hero jobCategories={jobCategories} />
       <main>
-        {/* Candidate Welcome Section */}
-        {isCandidate && (
-          <section className="bg-linear-to-r from-blue-50 to-purple-50 py-8 border-b-2 border-black">
-            <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-15">
-              <div className="flex items-center justify-between bg-white border-2 border-black p-6 shadow-lg">
-                <div>
-                  <h2 className="text-2xl sm:text-3xl font-black text-gray-900 mb-2">
-                    Welcome back, {user?.fullName?.split(' ')[0]}! 👋
-                  </h2>
-                  <p className="text-sm sm:text-base font-semibold text-gray-600">
-                    Ready to find your dream job? Browse our latest opportunities or check your applications.
-                  </p>
-                </div>
-                <div className="hidden sm:flex items-center gap-3">
-                  <a href="/job-portal" className="bg-black text-white px-6 py-3 border-2 border-black hover:bg-white hover:text-black transition-colors font-bold uppercase text-sm">
-                    Browse Jobs
-                  </a>
-                  <a href="/candidate-dashboard" className="bg-white text-black px-6 py-3 border-2 border-black hover:bg-black hover:text-white transition-colors font-bold uppercase text-sm">
-                    My Dashboard
-                  </a>
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
         {/* Categories Section */}
         <section className="bg-white py-16">
           <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-15">

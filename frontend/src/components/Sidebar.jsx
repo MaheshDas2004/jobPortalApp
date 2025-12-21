@@ -85,6 +85,14 @@ export default function Sidebar({ isOpen, onClose, user, isEmployer, isCandidate
           {isEmployer ? (
             <div className="space-y-2">
               <Link
+                to="/employer-dashboard"
+                onClick={onClose}
+                className="w-full flex items-center space-x-3 px-3 py-3 hover:bg-gray-100 rounded transition text-left"
+              >
+                <LayoutDashboard className="h-5 w-5 text-gray-600 shrink-0" />
+                <span className="text-sm font-medium text-gray-800 uppercase">Dashboard</span>
+              </Link>
+              <Link
                 to="/post-job"
                 onClick={onClose}
                 className="w-full flex items-center space-x-3 px-3 py-3 hover:bg-gray-100 rounded transition text-left"
@@ -107,6 +115,14 @@ export default function Sidebar({ isOpen, onClose, user, isEmployer, isCandidate
               >
                 <Users className="h-5 w-5 text-gray-600 shrink-0" />
                 <span className="text-sm font-medium text-gray-800 uppercase">Applications</span>
+              </Link>
+              <Link
+                to="/employer-messages"
+                onClick={onClose}
+                className="w-full flex items-center space-x-3 px-3 py-3 hover:bg-gray-100 rounded transition text-left"
+              >
+                <MessageSquare className="h-5 w-5 text-gray-600 shrink-0" />
+                <span className="text-sm font-medium text-gray-800 uppercase">Messages</span>
               </Link>
             </div>
           ) : (
@@ -141,30 +157,7 @@ export default function Sidebar({ isOpen, onClose, user, isEmployer, isCandidate
           <div className="mt-6 space-y-1">
             <p className="text-xs font-bold text-gray-500 uppercase mb-3">Quick Actions</p>
 
-            {isEmployer ? (
-              <div className="space-y-2">
-                <button 
-                  onClick={() => {
-                    onClose();
-                    alert('Analytics feature coming soon!');
-                  }}
-                  className="w-full flex items-center space-x-3 px-3 py-3 hover:bg-gray-100 rounded transition text-left"
-                >
-                  <TrendingUp className="h-5 w-5 text-gray-600 shrink-0" />
-                  <span className="text-sm font-medium text-gray-800">Analytics</span>
-                </button>
-                <button 
-                  onClick={() => {
-                    onClose();
-                    alert('Company Profile feature coming soon!');
-                  }}
-                  className="w-full flex items-center space-x-3 px-3 py-3 hover:bg-gray-100 rounded transition text-left"
-                >
-                  <User className="h-5 w-5 text-gray-600 shrink-0" />
-                  <span className="text-sm font-medium text-gray-800">Company Profile</span>
-                </button>
-              </div>
-            ) : (
+            {!isEmployer && (
               <div className="space-y-2">
                 <Link
                   to="/resume"
