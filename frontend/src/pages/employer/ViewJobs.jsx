@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Briefcase, Eye, Edit2, Pause, Play, Trash2, Plus, Search,
-  MapPin, Calendar, Clock, DollarSign, Users, TrendingUp,
-  Building2, Filter, MoreVertical, ExternalLink
+  Briefcase,Trash2, Plus, Search,
+  MapPin, Calendar, Clock,Users, TrendingUp,ChevronRight,ChevronDown
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
@@ -15,6 +14,7 @@ const ViewJobs = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
+  const [expandedJob, setExpandedJob] = useState(null);
 
   useEffect(() => {
     fetchJobs();
@@ -35,25 +35,7 @@ const ViewJobs = () => {
     }
   };
 
-  const toggleJobStatus = async (jobId, currentStatus) => {
-    try {
-      const response = await axios.patch(
-        `http://localhost:3000/api/jobs/${jobId}/toggle-status`,
-        {},
-        { withCredentials: true }
-      );
-      
-      if (response.data.success) {
-        setJobs(prev =>
-          prev.map(job =>
-            job._id === jobId ? { ...job, isActive: !currentStatus } : job
-          )
-        );
-      }
-    } catch (error) {
-      console.error('Error toggling job status:', error);
-    }
-  };
+
 
   const deleteJob = async (jobId) => {
     if (window.confirm('Are you sure you want to delete this job? This action cannot be undone.')) {
@@ -114,14 +96,12 @@ const ViewJobs = () => {
 
   const getStatusBadge = (isActive, deadline) => {
     const isExpired = deadline && new Date(deadline) < new Date();
-    
     if (isExpired) {
       return <span className="px-2 py-1 text-xs font-bold border bg-red-100 text-red-800 border-red-300 uppercase">Expired</span>;
     }
-    
     return isActive ? 
       <span className="px-2 py-1 text-xs font-bold border bg-green-100 text-green-800 border-green-300 uppercase">Active</span> :
-      <span className="px-2 py-1 text-xs font-bold border bg-gray-100 text-gray-800 border-gray-300 uppercase">Paused</span>;
+      <span className="px-2 py-1 text-xs font-bold border bg-gray-100 text-gray-800 border-gray-300 uppercase">Inactive</span>;
   };
 
   const filteredJobs = getFilteredAndSortedJobs();
@@ -142,28 +122,17 @@ const ViewJobs = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header */}
         <div className="mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-black text-gray-900 mb-2">
-                My Posted Jobs
-              </h1>
-              <p className="text-sm text-gray-600 font-semibold">
-                Manage and track all your job postings
-              </p>
-            </div>
-            <Link
-              to="/post-job"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-black text-white font-bold text-sm border-2 border-black hover:bg-gray-800 transition-colors uppercase"
-            >
-              <Plus className="w-4 h-4" />
-              Post New Job
-            </Link>
-          </div>
+          <h1 className="text-2xl sm:text-3xl font-black text-gray-900 mb-2">
+            Manage Jobs
+          </h1>
+          <p className="text-sm text-gray-600 font-semibold">
+            Review and manage your posted jobs
+          </p>
         </div>
 
         {/* Filters */}
         <div className="bg-white border-2 border-black p-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -176,18 +145,6 @@ const ViewJobs = () => {
               />
             </div>
 
-            {/* Status Filter */}
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 border-2 border-black font-medium bg-white"
-            >
-              <option value="all">All Status</option>
-              <option value="active">Active Jobs</option>
-              <option value="inactive">Paused Jobs</option>
-            </select>
-
-            {/* Sort By */}
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
@@ -202,13 +159,13 @@ const ViewJobs = () => {
             {/* Results Count */}
             <div className="flex items-center justify-center bg-gray-100 border-2 border-black px-4 py-2">
               <span className="text-sm font-black text-gray-900">
-                {filteredJobs.length} of {jobs.length} Jobs
+                {filteredJobs.length} Jobs
               </span>
             </div>
           </div>
         </div>
 
-        {/* Jobs Grid */}
+        {/* Jobs List */}
         {filteredJobs.length === 0 ? (
           <div className="bg-white border-2 border-black p-8 text-center">
             <Briefcase className="h-12 w-12 text-gray-300 mx-auto mb-3" />
@@ -229,89 +186,106 @@ const ViewJobs = () => {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="space-y-4">
             {filteredJobs.map((job) => (
               <div key={job._id} className="bg-white border-2 border-black">
                 {/* Job Header */}
-                <div className="p-4 border-b-2 border-gray-200">
-                  <div className="flex justify-between items-start mb-3">
+                <div className="p-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    {/* Job Info and Company */}
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-black text-gray-900 mb-1 line-clamp-2">{job.jobTitle}</h3>
-                      <div className="flex items-center gap-2 text-sm text-gray-600 font-medium">
-                        <Building2 className="w-4 h-4" />
-                        <span className="truncate">{job.company}</span>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-black text-white border-2 border-black flex items-center justify-center font-black text-sm">
+                          {job.jobTitle.charAt(0)}
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-black text-gray-900 truncate">
+                            {job.jobTitle}
+                          </h3>
+                          <p className="text-sm text-gray-600 font-medium truncate">
+                            {job.company}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                    {getStatusBadge(job.isActive, job.deadline)}
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-3 text-xs text-gray-600 font-semibold mb-3">
-                    <div className="flex items-center gap-1">
-                      <MapPin className="w-3 h-3" />
-                      <span>{job.location}</span>
+                    {/* Actions */}
+                    <div className="flex items-center gap-3">
+                      {getStatusBadge(job.isActive, job.deadline)}
+                      <Link
+                        to={`/jobs/${job._id}`}
+                        className="px-3 py-1 border-2 border-black text-xs font-bold bg-white hover:bg-black hover:text-white transition-colors"
+                      >
+                        View Job
+                      </Link>
+                      <button
+                        onClick={() => deleteJob(job._id)}
+                        className="p-2 border-2 border-red-300 text-red-700 hover:bg-red-100 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setExpandedJob(expandedJob === job._id ? null : job._id)}
+                        className="p-2 border-2 border-black hover:bg-black hover:text-white transition-colors"
+                      >
+                        {expandedJob === job._id ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                      </button>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Users className="w-3 h-3" />
-                      <span>{job.applicants?.length || 0} Applied</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
-                      <span>{formatDate(job.createdAt)}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium border">
-                      {job.jobType}
-                    </span>
-                    <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium border">
-                      {job.workType}
-                    </span>
-                    <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium border">
-                      {job.experience}
-                    </span>
                   </div>
                 </div>
-
-                {/* Job Actions */}
-                <div className="p-4">
-                  <div className="grid grid-cols-2 gap-2 mb-3">
-                    <Link
-                      to={`/jobs/${job._id}`}
-                      className="flex items-center justify-center gap-1 px-3 py-2 border-2 border-black hover:bg-black hover:text-white transition-colors text-xs font-bold uppercase"
-                    >
-                      <Eye className="w-3 h-3" />
-                      View
-                    </Link>
-                    <button
-                      onClick={() => console.log('Edit job:', job._id)}
-                      className="flex items-center justify-center gap-1 px-3 py-2 border-2 border-black hover:bg-black hover:text-white transition-colors text-xs font-bold uppercase"
-                    >
-                      <Edit2 className="w-3 h-3" />
-                      Edit
-                    </button>
+                {/* Dropdown Job Details */}
+                {expandedJob === job._id && (
+                  <div className="border-t-2 border-black bg-gray-50 p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-start">
+                      {/* Job Info Section */}
+                      <div className="flex flex-col h-full p-2 md:p-0">
+                        <h4 className="font-black text-lg mb-3 flex items-center gap-2 border-b pb-2 border-gray-200">
+                          <Briefcase className="w-5 h-5 text-gray-700" />
+                          Job Information
+                        </h4>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-gray-500" />
+                            <span className="font-medium">Posted: {formatDate(job.createdAt)}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-gray-500" />
+                            <span className="font-medium">Deadline: {job.deadline ? formatDate(job.deadline) : 'N/A'}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <TrendingUp className="w-4 h-4 text-gray-500" />
+                            <span className="font-medium">Experience: {job.experience}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Briefcase className="w-4 h-4 text-gray-500" />
+                            <span className="font-medium">Type: {job.jobType}, {job.workType}</span>
+                          </div>
+                        </div>
+                      </div>
+                      {/* Location Column */}
+                      <div className="flex flex-col h-full p-2 md:p-0 items-start md:items-center">
+                        <h4 className="font-black text-lg mb-3 flex items-center gap-2 border-b pb-2 border-gray-200 w-full md:justify-center">
+                          <MapPin className="w-5 h-5 text-gray-700" />
+                          Location
+                        </h4>
+                        <span className="font-medium text-gray-800 text-base mt-2 md:mt-0">{job.location}</span>
+                      </div>
+                      {/* Applications Section */}
+                      <div className="flex flex-col h-full p-2 md:p-0 items-start md:items-end">
+                        <h4 className="font-black text-lg mb-3 flex items-center gap-2 border-b pb-2 border-gray-200 w-full md:justify-end">
+                          <Users className="w-5 h-5 text-gray-700" />
+                          Applications
+                        </h4>
+                        <div className="space-y-2 text-sm mt-2 md:mt-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">Total Applied:</span>
+                            <span className="font-bold text-gray-900">{job.applicants?.length || 0}</span>
+                          </div>
+                          {/* You can add more application-related info here if needed */}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => toggleJobStatus(job._id, job.isActive)}
-                      className="flex items-center justify-center gap-1 px-3 py-2 border-2 border-gray-300 hover:bg-gray-100 transition-colors text-xs font-bold uppercase"
-                    >
-                      {job.isActive ? (
-                        <><Pause className="w-3 h-3" /> Pause</>
-                      ) : (
-                        <><Play className="w-3 h-3" /> Resume</>
-                      )}
-                    </button>
-                    <button
-                      onClick={() => deleteJob(job._id)}
-                      className="flex items-center justify-center gap-1 px-3 py-2 border-2 border-red-300 text-red-700 hover:bg-red-100 transition-colors text-xs font-bold uppercase"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                      Delete
-                    </button>
-                  </div>
-                </div>
+                )}
               </div>
             ))}
           </div>
@@ -321,4 +295,4 @@ const ViewJobs = () => {
   );
 };
 
-export default ViewJobs;
+export default ViewJobs

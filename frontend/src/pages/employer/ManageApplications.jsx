@@ -286,37 +286,6 @@ const ManageApplications = () => {
                         </div>
                       </div>
                     </div>
-
-                    {/* Cover Letter */}
-                    {application.coverLetter && (
-                      <div className="mt-6 pt-4 border-t border-gray-200">
-                        <h4 className="font-black text-gray-900 mb-2">Cover Letter</h4>
-                        <p className="text-sm text-gray-600 bg-white p-3 border border-gray-200 rounded">
-                          {application.coverLetter}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Status Update Actions */}
-                    <div className="mt-6 pt-4 border-t border-gray-200">
-                      <h4 className="font-black text-gray-900 mb-3">Update Status</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {statusOptions.map((status) => (
-                          <button
-                            key={status.value}
-                            onClick={() => updateApplicationStatus(application._id, status.value)}
-                            disabled={updatingStatus === application._id || application.status === status.value}
-                            className={`px-3 py-2 text-xs font-bold border-2 border-black transition-colors ${
-                              application.status === status.value
-                                ? 'bg-black text-white cursor-not-allowed'
-                                : 'bg-white hover:bg-black hover:text-white'
-                            } ${updatingStatus === application._id ? 'opacity-50 cursor-wait' : ''}`}
-                          >
-                            {status.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
                   </div>
                 )}
               </div>

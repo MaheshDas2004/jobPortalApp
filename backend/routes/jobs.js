@@ -168,44 +168,7 @@ router.get('/employer/my-jobs', routeProtector, async (req, res) => {
   }
 });
 
-// Toggle job active status (pause/resume)
-router.patch('/:id/toggle-status', routeProtector, async (req, res) => {
-  try {
-    const job = await Job.findById(req.params.id);
 
-    if (!job) {
-      return res.status(404).json({
-        success: false,
-        message: 'Job not found'
-      });
-    }
-
-    // Check if the logged-in user is the owner of the job
-    if (job.postedBy.toString() !== req.userId.toString()) {
-      return res.status(403).json({
-        success: false,
-        message: 'You are not authorized to modify this job'
-      });
-    }
-
-    // Toggle the isActive status
-    job.isActive = !job.isActive;
-    await job.save();
-
-    return res.status(200).json({
-      success: true,
-      message: `Job ${job.isActive ? 'activated' : 'paused'} successfully`,
-      data: job
-    });
-  } catch (error) {
-    console.error('Error toggling job status:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Server error while toggling job status',
-      error: error.message
-    });
-  }
-});
 
 
 // Update job
