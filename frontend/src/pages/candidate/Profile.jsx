@@ -75,12 +75,6 @@ const Profile = () => {
           alt="Profile Banner"
           className="w-full h-full object-cover"
         />
-        <button
-          onClick={() => setIsPanelOpen(true)}
-          className="absolute top-4 right-4 p-2 bg-white border-2 border-black hover:bg-black hover:text-white transition-colors"
-        >
-          <Edit2 className="w-4 h-4" />
-        </button>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6 mt-4">
