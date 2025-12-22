@@ -40,19 +40,16 @@ const ApplicationForm = () => {
   const [notification, setNotification] = useState({ show: false, type: '', message: '' });
   const [submitting, setSubmitting] = useState(false);
 
-  // Check authentication - redirect if not logged in as candidate
   useEffect(() => {
     if (!user || userType !== 'candidate') {
       navigate('/cand-signin');
     }
   }, [user, userType, navigate]);
 
-  // Fetch job details and candidate profile on component mount
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Fetch job details
         const jobResponse = await axios.get(`http://localhost:3000/api/jobs/${jobId}`);
         if (jobResponse.data.success) {
           setJobDetails({
@@ -60,70 +57,14 @@ const ApplicationForm = () => {
             company: jobResponse.data.data.company
           });
         }
-
-        // Fetch candidate profile if user is logged in
-        if (user && userType === 'candidate') {
-          try {
-            const profileResponse = await axios.get('http://localhost:3000/api/auth/profile', {
-              withCredentials: true
-            });
-            if (profileResponse.data.success) {
-              setCandidateProfile(profileResponse.data.user);
-              // Auto-fill form data from candidate profile
-              autoFillFormData(profileResponse.data.user);
-            }
-          } catch (profileError) {
-            console.log('Profile not found or error fetching profile:', profileError);
-            // Continue without auto-fill if profile fetch fails
-          }
-        }
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchData();
   }, [jobId, user, userType]);
-
-  // Auto-fill form data from candidate profile
-  const autoFillFormData = (profile) => {
-    // Map gender values to match form options
-    const genderMapping = {
-      'male': 'Male',
-      'female': 'Female',
-      'other': 'Prefer not to say',
-      'prefer-not': 'Prefer not to say'
-    };
-
-    setFormData(prev => ({
-      ...prev,
-      fullName: profile.fullName || '',
-      email: profile.email || '',
-      mobile: profile.phone || '',
-      gender: genderMapping[profile.gender] || profile.gender || '',
-      location: profile.currentLocation || '',
-      instituteName: profile.university || '',
-      // Map additional fields if available
-      domain: profile.fieldOfStudy || '',
-      course: profile.highestQualification || '',
-      graduatingYear: profile.graduationYear || '',
-      // Keep existing form defaults for fields not in profile
-      differentlyAbled: prev.differentlyAbled,
-      userType: prev.userType,
-      courseSpecialization: prev.courseSpecialization,
-      courseDuration: prev.courseDuration,
-      termsAccepted: prev.termsAccepted
-    }));
-
-    // If profile has resume URL, you could potentially set it here
-    // Note: This would require handling existing resume files differently
-    if (profile.resume) {
-      console.log('Profile has existing resume:', profile.resume);
-      // You might want to show a message or handle existing resume
-    }
-  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -135,22 +76,22 @@ const ApplicationForm = () => {
   };
 
   const handleFileUpload = (e) => {
+    if (resume) {
+      setErrors(prev => ({ ...prev, resume: 'You have already uploaded a resume. Remove it before uploading another.' }));
+      return;
+    }
     const file = e.target.files[0];
     if (file) {
-      // Validate file type
       const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
       if (!allowedTypes.includes(file.type)) {
         setErrors(prev => ({ ...prev, resume: 'Please upload a PDF, DOC, or DOCX file' }));
         return;
       }
-      
-      // Validate file size (5MB limit)
-      const maxSize = 5 * 1024 * 1024; // 5MB
+      const maxSize = 5 * 1024 * 1024;
       if (file.size > maxSize) {
         setErrors(prev => ({ ...prev, resume: 'File size must be less than 5MB' }));
         return;
       }
-      
       setResume(file);
       if (errors.resume) setErrors((prev) => ({ ...prev, resume: "" }));
     }
@@ -176,7 +117,11 @@ const ApplicationForm = () => {
   };
 
   const handleSubmit = async () => {
-    if (isSubmitting) return; // Prevent double submission
+    if (isSubmitting) return;
+    if (!resume) {
+      setErrors(prev => ({ ...prev, resume: 'Please upload your CV/Resume' }));
+      return;
+    }
 
     const formErrors = validateForm();
     if (Object.keys(formErrors).length > 0) {
@@ -186,46 +131,33 @@ const ApplicationForm = () => {
 
     try {
       setIsSubmitting(true);
-
-      // Create FormData for file upload
       const applicationData = new FormData();
 
-      // Add form fields with proper formatting
       Object.keys(formData).forEach(key => {
         let value = formData[key];
-        
-        // Skip empty values except for boolean fields
         if (!value && value !== false) {
           return;
         }
-        
-        // Handle gender field - convert to lowercase for backend
         if (key === 'gender') {
           value = value.toLowerCase().replace(/\s+/g, '-');
         }
-        
-        // Handle boolean fields
         if (typeof value === 'boolean') {
           value = value.toString();
         }
-        
         applicationData.append(key, value);
       });
 
-      // Add resume file (required)
       if (resume) {
         applicationData.append('resume', resume);
       } else {
         throw new Error('Resume is required');
       }
 
-      // Log FormData for debugging (optional)
       console.log('Submitting application with data:');
       for (let [key, value] of applicationData.entries()) {
         console.log(key, value);
       }
 
-      // Submit application
       const response = await axios.post(
         `http://localhost:3000/api/applications/apply/${jobId}`,
         applicationData,
@@ -243,11 +175,10 @@ const ApplicationForm = () => {
           type: 'success',
           message: 'Application submitted successfully! Redirecting...'
         });
-        // Redirect after showing success message
         setTimeout(() => {
           navigate(`/jobs/${jobId}`);
         }, 2000);
-        setIsSuccess(true); // Show success screen
+        setIsSuccess(true);
       } else {
         throw new Error(response.data.message || "Failed to submit application");
       }
@@ -258,13 +189,10 @@ const ApplicationForm = () => {
       let errorMessage = "Failed to submit application. Please try again.";
       
       if (error.response) {
-        // Server responded with error
         errorMessage = error.response.data?.message || errorMessage;
       } else if (error.request) {
-        // Request was made but no response
         errorMessage = "Network error. Please check your connection.";
       } else {
-        // Other errors
         errorMessage = error.message || errorMessage;
       }
       
@@ -282,7 +210,6 @@ const ApplicationForm = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
-      {/* Notification */}
       {notification.show && (
         <div className="fixed top-4 right-4 z-50 max-w-md">
           <div className={`rounded-lg border shadow-lg p-4 ${
@@ -309,9 +236,8 @@ const ApplicationForm = () => {
           </div>
         </div>
       )}
-      
-      <div className="max-w-4xl mx-auto bg-white border-2 border-gray-200 p-8">
-        {/* Success Screen */}
+
+      <div className="max-w-3xl mx-auto bg-white shadow-md p-8">
         {isSuccess ? (
           <div className="text-center py-16">
             <div className="w-20 h-20 bg-green-100 border-4 border-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -374,97 +300,63 @@ const ApplicationForm = () => {
             </div>
 
             <div className="space-y-6">
-              {/* Upload CV Section */}
-          <div>
-            <label className="block text-sm font-bold mb-2">
-              Upload CV / Resume<span className="text-red-500">*</span>
-            </label>
-            <p className="text-xs text-gray-600 mb-3">Submit your resume in doc, docx, pdf</p>
-            
-            {!resume ? (
-              <div className="border-2 border-dashed border-gray-300 p-6 text-center hover:border-gray-400 transition">
-                <input
-                  type="file"
-                  id="resume"
-                  accept=".pdf,.doc,.docx"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-                <label
-                  htmlFor="resume"
-                  className="cursor-pointer flex flex-col items-center space-y-2"
-                >
-                  <Upload className="h-5 w-5 text-gray-400" />
-                  <span className="text-sm text-gray-600">
-                    Click to upload
-                  </span>
-                </label>
-              </div>
-            ) : (
-              <div className="border-2 border-gray-200 bg-gray-50 p-4 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-blue-500 rounded flex items-center justify-center">
-                      <FileText className="h-5 w-5 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">View File</p>
-                      <p className="text-xs text-gray-500">{resume.name}</p>
-                      <p className="text-xs text-gray-400">
-                        {(resume.size / 1024 / 1024).toFixed(2)} MB
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setResume(null);
-                      document.getElementById('resume').value = '';
-                    }}
-                    className="p-2 text-gray-400 hover:text-red-500 transition"
-                    title="Remove file"
-                  >
-                    <Trash2 className="h-5 w-5" />
-                  </button>
-                </div>
-                <input
-                  type="file"
-                  id="resume"
-                  accept=".pdf,.doc,.docx"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-              </div>
-            )}
-            {errors.resume && <p className="text-red-500 text-xs mt-1">{errors.resume}</p>}
-          </div>
               <div>
                 <label className="block text-sm font-bold mb-2">
                   Upload CV / Resume<span className="text-red-500">*</span>
                 </label>
                 <p className="text-xs text-gray-600 mb-3">Submit your resume in doc, docx, pdf</p>
-                <div className="border-2 border-dashed border-gray-300 p-6 text-center">
-                  <input
-                    type="file"
-                    id="resume"
-                    accept=".pdf,.doc,.docx"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
-                  <label
-                    htmlFor="resume"
-                    className="cursor-pointer flex flex-col items-center space-y-2"
-                  >
-                    <Upload className="h-8 w-8 text-gray-400" />
-                    <span className="text-sm text-gray-600">
-                      {resume ? resume.name : "Click to upload"}
-                    </span>
-                  </label>
-                </div>
+                
+                {!resume ? (
+                  <div className="border-2 border-dashed border-gray-300 p-6 text-center hover:border-gray-400 transition">
+                    <input
+                      type="file"
+                      id="resume"
+                      accept=".pdf,.doc,.docx"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+                    <label
+                      htmlFor="resume"
+                      className="cursor-pointer flex flex-col items-center space-y-2"
+                    >
+                      <Upload className="h-5 w-5 text-gray-400" />
+                      <span className="text-sm text-gray-600">
+                        Click to upload
+                      </span>
+                    </label>
+                  </div>
+                ) : (
+                  <div className="border-2 border-gray-200 bg-gray-50 p-4 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-blue-500 rounded flex items-center justify-center">
+                          <FileText className="h-5 w-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-900">View File</p>
+                          <p className="text-xs text-gray-500">{resume.name}</p>
+                          <p className="text-xs text-gray-400">
+                            {(resume.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setResume(null);
+                          document.getElementById('resume').value = '';
+                        }}
+                        className="p-2 text-gray-400 hover:text-red-500 transition"
+                        title="Remove file"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </button>
+                    </div>
+                  </div>
+                )}
                 {errors.resume && <p className="text-red-500 text-xs mt-1">{errors.resume}</p>}
               </div>
 
-              {/* Cover Letter Section */}
               <div>
                 <label className="block text-sm font-bold mb-2">
                   Cover Letter <span className="text-xs text-gray-500 font-normal">(Optional)</span>
@@ -487,7 +379,6 @@ I am writing to express my interest in this position because..."
                 </p>
               </div>
 
-              {/* Basic Details */}
               <div>
                 <h3 className="font-bold text-sm mb-4">Basic Details</h3>
                 <div className="mb-4">
@@ -506,7 +397,6 @@ I am writing to express my interest in this position because..."
                 </div>
               </div>
 
-              {/* Email and Mobile */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold mb-2">
@@ -543,7 +433,6 @@ I am writing to express my interest in this position because..."
                 </div>
               </div>
 
-              {/* Gender */}
               <div>
                 <label className="block text-xs font-semibold mb-3">
                   Gender<span className="text-red-500">*</span>
@@ -566,7 +455,6 @@ I am writing to express my interest in this position because..."
                 {errors.gender && <p className="text-red-500 text-xs mt-1">{errors.gender}</p>}
               </div>
 
-              {/* Location */}
               <div>
                 <label className="block text-xs font-semibold mb-2">
                   Location<span className="text-red-500">*</span>
@@ -585,7 +473,6 @@ I am writing to express my interest in this position because..."
                 {errors.location && <p className="text-red-500 text-xs mt-1">{errors.location}</p>}
               </div>
 
-              {/* Institute Name */}
               <div>
                 <label className="text-xs font-bold uppercase mb-2 block">
                   Institute Name<span className="text-red-500">*</span>
@@ -601,7 +488,6 @@ I am writing to express my interest in this position because..."
                 {errors.instituteName && <p className="text-red-500 text-xs mt-1">{errors.instituteName}</p>}
               </div>
 
-              {/* Differently Abled */}
               <div>
                 <label className="text-xs font-bold uppercase mb-4 flex items-center space-x-2">
                   <span>Differently Abled<span className="text-red-500">*</span></span>
@@ -624,11 +510,9 @@ I am writing to express my interest in this position because..."
                 </div>
               </div>
 
-              {/* User Details */}
               <div>
                 <h3 className="font-extrabold text-lg mb-6 uppercase">User Details</h3>
 
-                {/* Type */}
                 <div className="mb-6">
                   <label className="text-xs font-bold uppercase mb-4 block">
                     Type<span className="text-red-500">*</span>
@@ -650,7 +534,6 @@ I am writing to express my interest in this position because..."
                   </div>
                 </div>
 
-                {/* Domain */}
                 <div className="mb-6">
                   <label className="text-xs font-bold uppercase mb-2 block">
                     Domain<span className="text-red-500">*</span>
@@ -670,7 +553,6 @@ I am writing to express my interest in this position because..."
                   {errors.domain && <p className="text-red-500 text-xs mt-1">{errors.domain}</p>}
                 </div>
 
-                {/* Course */}
                 <div className="mb-6">
                   <label className="text-xs font-bold uppercase mb-2 block">
                     Course<span className="text-red-500">*</span>
@@ -692,7 +574,6 @@ I am writing to express my interest in this position because..."
                   {errors.course && <p className="text-red-500 text-xs mt-1">{errors.course}</p>}
                 </div>
 
-                {/* Course Specialization */}
                 <div className="mb-6">
                   <label className="text-xs font-bold uppercase mb-2 block">
                     Course Specialization<span className="text-red-500">*</span>
@@ -712,7 +593,6 @@ I am writing to express my interest in this position because..."
                   {errors.courseSpecialization && <p className="text-red-500 text-xs mt-1">{errors.courseSpecialization}</p>}
                 </div>
 
-                {/* Graduating Year */}
                 <div className="mb-6">
                   <label className="text-xs font-bold uppercase mb-4 block">
                     Graduating Year<span className="text-red-500">*</span>
@@ -735,7 +615,6 @@ I am writing to express my interest in this position because..."
                   {errors.graduatingYear && <p className="text-red-500 text-xs mt-1">{errors.graduatingYear}</p>}
                 </div>
 
-                {/* Course Duration */}
                 <div>
                   <label className="text-xs font-bold uppercase mb-4 block">
                     Course Duration<span className="text-red-500">*</span>
@@ -759,7 +638,6 @@ I am writing to express my interest in this position because..."
                 </div>
               </div>
 
-              {/* Terms & Conditions */}
               <div className="bg-gray-50 p-6 border-2 border-gray-200">
                 <h3 className="font-extrabold text-lg mb-4 uppercase">Terms & Conditions</h3>
                 <label className="flex items-start space-x-4 cursor-pointer">
@@ -780,7 +658,6 @@ I am writing to express my interest in this position because..."
                 {errors.termsAccepted && <p className="text-red-500 text-xs mt-1">{errors.termsAccepted}</p>}
               </div>
 
-              {/* Submit Buttons */}
               <div className="flex justify-between pt-8 gap-4">
                 <button
                   type="button"
@@ -804,5 +681,6 @@ I am writing to express my interest in this position because..."
       </div>
     </div>
   );
-}
-export default ApplicationForm
+};
+
+export default ApplicationForm;

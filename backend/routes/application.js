@@ -44,7 +44,6 @@ router.post('/apply/:id', routeProtector, (req, res, next) => {
         resumePath
       } = req.body;
 
-    // Create new application
     const newApplication = new Application({
       jobId,
       candidateId,
